@@ -1,0 +1,28 @@
+# Warenentnahme – Root .htaccess
+
+# HTTP → HTTPS + non-www → www Redirect
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  # non-www → www
+  RewriteCond %{HTTP_HOST} ^warenentnahme\.de$ [NC]
+  RewriteRule ^(.*)$ https://www.warenentnahme.de/$1 [R=301,L]
+  # http → https
+  RewriteCond %{HTTPS} off
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</IfModule>
+
+# Verzeichnis-Listing deaktivieren
+Options -Indexes
+
+# Sensitive Dateien schützen
+<FilesMatch "^(\.htaccess|\.htpasswd|.*\.log)$">
+  Require all denied
+</FilesMatch>
+
+# X-Frame-Options ENTFERNT — blockiert iframe auf gleicher Domain
+# Stattdessen: CSP frame-ancestors erlaubt nur eigene Domain
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "frame-ancestors 'self' https://www.warenentnahme.de https://warenentnahme.de"
+  # X-Frame-Options explizit ENTFERNEN falls Ionos es serverseitig setzt
+  Header always unset X-Frame-Options
+</IfModule>

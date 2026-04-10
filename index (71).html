@@ -2582,22 +2582,37 @@ function AddTab({arts,favs,onSel,onFav,onManual}){
         (a.marke||'').toLowerCase().includes(x)||
         (a.liefKuerzel||'').toLowerCase().includes(x);
     });
-    // Sortierung: frische Ware (Gemüse/Obst) immer vor verarbeiteten Produkten
-    // Rang 0: exakter Match | 1: Gemüse/Obst mit Wort-Match | 2: beginnt mit (alle) | 3: Gemüse/Obst enthält | 4: Rest
-    // Tiebreaker: kürzerer Name zuerst (unverarbeitetes Produkt wahrscheinlicher)
+    // Sortierung: frische/unverarbeitete Produkte zuerst, dann verarbeitete
+    // Rang 0: exakter Match
+    // Rang 1: kein Verarbeitungswort + (Name/Wort beginnt mit x, ODER Kompositum enthält x)  →  z.B. "Strauch-Tomaten", "Romatomaten"
+    // Rang 2: beginnt mit x, aber verarbeitet  →  z.B. "Tomatensauce", "Tomatenpaste"
+    // Rang 3: Kompositum / Wort-Match, aber verarbeitet  →  z.B. "Getrocknete Tomaten"
+    // Rang 4: Rest (enthält x irgendwo)
+    // Tiebreaker: kürzerer Name zuerst (kürzere Namen = simpler = wahrscheinlich frischer)
+    const VERARBEITET=['getrocknet','mariniert','eingelegt','passiert','konzentriert',
+      'ketchup','sauce','sosse','soße','pesto','suppe','mark','paste','saft','pulver',
+      'püree','puree','mus','kompott','marmelade','konfitüre','konfiture',
+      'ravioli','tortellini','hummus','focaccia','aufstrich','fertig','creme','würfel',
+      'wuerfel','pickled','konserv','einmach'];
     matched.sort((a,b)=>{
       const na=a.name.toLowerCase(), nb=b.name.toLowerCase();
-      const isVeg=art=>art.kategorie==='Gemüse'||art.kategorie==='Obst';
+      const isProcessed=n=>VERARBEITET.some(kw=>n.includes(kw));
+      // Wort-Anfang-Match: jedes Wort (getrennt durch Leerzeichen, Komma, Bindestrich, Slash)
       const wordStarts=n=>n.split(/[\s,\-\/]+/).some(w=>w.startsWith(x)||norm(w).startsWith(xN));
-      const rank=(n,art)=>{
+      // Kompositum: Suchbegriff steckt irgendwo im Wort (z.B. "romatomaten" enthält "tomaten")
+      const compound=n=>n.split(/[\s,\/]+/).some(w=>w.includes(x)||norm(w).includes(xN));
+      const rank=n=>{
         const nn=norm(n);
         if(n===x||nn===xN) return 0;
-        if(isVeg(art)&&(n.startsWith(x)||nn.startsWith(xN)||wordStarts(n))) return 1;
-        if(n.startsWith(x)||nn.startsWith(xN)) return 2;
-        if(isVeg(art)) return 3;
+        const proc=isProcessed(n);
+        const starts=n.startsWith(x)||nn.startsWith(xN);
+        const wMatch=wordStarts(n)||compound(n);
+        if(!proc&&(starts||wMatch)) return 1;   // frisch + Match → oben
+        if(starts) return 2;                     // verarbeitet aber beginnt mit
+        if(wMatch) return 3;                     // verarbeitet, Wort-Match
         return 4;
       };
-      const sa=rank(na,a),sb=rank(nb,b);
+      const sa=rank(na),sb=rank(nb);
       if(sa!==sb)return sa-sb;
       return a.name.length-b.name.length;
     });

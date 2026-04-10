@@ -2582,10 +2582,21 @@ function AddTab({arts,favs,onSel,onFav,onManual}){
         (a.marke||'').toLowerCase().includes(x)||
         (a.liefKuerzel||'').toLowerCase().includes(x);
     });
-    // Sortierung: exakter Match > beginnt mit > Gemüse/Obst enthält > Rest; Tiebreaker: kürzerer Name
+    // Sortierung: frische Ware (Gemüse/Obst) immer vor verarbeiteten Produkten
+    // Rang 0: exakter Match | 1: Gemüse/Obst mit Wort-Match | 2: beginnt mit (alle) | 3: Gemüse/Obst enthält | 4: Rest
+    // Tiebreaker: kürzerer Name zuerst (unverarbeitetes Produkt wahrscheinlicher)
     matched.sort((a,b)=>{
       const na=a.name.toLowerCase(), nb=b.name.toLowerCase();
-      const rank=(n,art)=>{const nn=norm(n);if(n===x||nn===xN)return 0;if(n.startsWith(x)||nn.startsWith(xN))return 1;if(art.kategorie==='Gemüse'||art.kategorie==='Obst')return 2;return 3;};
+      const isVeg=art=>art.kategorie==='Gemüse'||art.kategorie==='Obst';
+      const wordStarts=n=>n.split(/[\s,\-\/]+/).some(w=>w.startsWith(x)||norm(w).startsWith(xN));
+      const rank=(n,art)=>{
+        const nn=norm(n);
+        if(n===x||nn===xN) return 0;
+        if(isVeg(art)&&(n.startsWith(x)||nn.startsWith(xN)||wordStarts(n))) return 1;
+        if(n.startsWith(x)||nn.startsWith(xN)) return 2;
+        if(isVeg(art)) return 3;
+        return 4;
+      };
       const sa=rank(na,a),sb=rank(nb,b);
       if(sa!==sb)return sa-sb;
       return a.name.length-b.name.length;

@@ -906,7 +906,6 @@ function App(){
   // Haushalt: Inhaber + optionale Personen
   const[periodDay,setPeriodDay]=useSt('gt_periodDay',1);
   // Debug: periodDay beim Start loggen
-  React.useEffect(()=>{console.log('[periodDay] Geladener Wert:',periodDay,'| localStorage raw:',localStorage.getItem('gt_periodDay'));},[]);
   const[hh,setHH]=useSt('gt_hh',{
     name:'Inhaber',
     betrieb:'gaststaetten',
@@ -1060,7 +1059,6 @@ function App(){
         const localPushStr=localStorage.getItem('gt_sync_pushed_at');
         const localPushedAt=localPushStr?new Date(localPushStr).getTime():0;
         const localEmpty=!arts.length&&!ents.length&&!meals.length;
-        console.log('[Sync Pull] remoteTs:',remoteTs,'localPushedAt:',localPushedAt,'localEmpty:',localEmpty,'serverEnts:',d.ents?.length||0,'serverMeals:',d.meals?.length||0);
         // +5000ms Toleranz damit minimale Zeitunterschiede kein Problem sind
         let loadedCount=0;
         if(remoteTs>localPushedAt-5000||!localPushStr||localEmpty){
@@ -1075,9 +1073,7 @@ function App(){
           if(d.gmbhWithdrawals?.length){setGmbhWithdrawals(d.gmbhWithdrawals);loadedCount+=d.gmbhWithdrawals.length;}
           if(d.gmbhPersons?.length)setGmbhPersons(d.gmbhPersons);
           if(d.rechtsform)setRechtsform(d.rechtsform);
-          console.log('[Sync Pull] ✅ Daten übernommen');
         } else {
-          console.log('[Sync Pull] ⚠️ Übersprungen — lokaler Timestamp neuer als Server');
         }
         const ts=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
         setSyncLastAt(ts);
@@ -1280,7 +1276,7 @@ function App(){
       setEnts(p=>p.map(e=>e.id===editTarget?{...e,menge:qty,preis,einheit,wert:roundCurrency(preis*qty)}:e));
       showT(`✓ ${art.name} aktualisiert`);setModal(null);setEditTarget(null);
     } else {
-      setEnts(p=>[{id:Date.now(),articleId:art.id,name:art.name,einheit,preis,mwst:art.mwst,menge:qty,wert:roundCurrency(preis*qty),datum:dKey(new Date()),monat:cm},...p]);
+      setEnts(p=>[{id:Date.now()+'_'+Math.random().toString(36).slice(2),articleId:art.id,name:art.name,einheit,preis,mwst:art.mwst,menge:qty,wert:roundCurrency(preis*qty),datum:dKey(new Date()),monat:cm},...p]);
       showT(`✓ ${art.name}`);setModal(null);
     }
   };
@@ -1296,10 +1292,27 @@ function App(){
   const toggleMeal=type=>{
     const ex=meals.find(m=>m.datum===cd&&m.type===type);
     if(ex){setMeals(p=>p.filter(m=>m.id!==ex.id));showT(`${ML[type]} entfernt`);}
-    else{setMeals(p=>[{id:Date.now(),type,datum:cd,monat:cm,wert:SB[type],label:ML[type]},...p]);showT(`✓ ${ML[type]} – ${fmt(SB[type])}`);}
+    else{setMeals(p=>[{id:Date.now()+'_'+Math.random().toString(36).slice(2),type,datum:cd,monat:cm,wert:SB[type],label:ML[type]},...p]);showT(`✓ ${ML[type]} – ${fmt(SB[type])}`);}
   };
   const toggleFav=id=>setFavs(p=>p.includes(id)?p.filter(f=>f!==id):[...p,id]);
-  const delEnt=id=>setEnts(p=>p.filter(e=>e.id!==id));
+  const[undoEnt,setUndoEnt]=useState(null); // {entry, countdown}
+  const undoEntTimerRef=React.useRef(null);
+  const undoEntCountRef=React.useRef(null);
+  const delEnt=id=>{
+    const entry=ents.find(e=>e.id===id);
+    if(!entry)return;
+    if(undoEntTimerRef.current)clearTimeout(undoEntTimerRef.current);
+    if(undoEntCountRef.current)clearInterval(undoEntCountRef.current);
+    setUndoEnt({entry,countdown:4});
+    let c=4;
+    undoEntCountRef.current=setInterval(()=>{c--;setUndoEnt(u=>u?{...u,countdown:c}:null);if(c<=0)clearInterval(undoEntCountRef.current);},1000);
+    undoEntTimerRef.current=setTimeout(()=>{setEnts(p=>p.filter(e=>e.id!==id));setUndoEnt(null);},4000);
+  };
+  const cancelDelEnt=()=>{
+    if(undoEntTimerRef.current)clearTimeout(undoEntTimerRef.current);
+    if(undoEntCountRef.current)clearInterval(undoEntCountRef.current);
+    setUndoEnt(null);
+  };
   const editEnt=(ent)=>{
     const fakeArt={id:ent.articleId||ent.id,name:ent.name,preis:ent.preis,einheit:ent.einheit,mwst:ent.mwst,marke:ent.marke||'',liefKuerzel:ent.liefKuerzel||'',_editMenge:ent.menge};
     setEditTarget(ent.id);
@@ -1308,12 +1321,12 @@ function App(){
 
 
   // useMemo verhindert teure Re-Filter bei jedem Render
-  const me=useMemo(()=>{const r=ents.filter(e=>{const d=e.datum?.slice(0,10)||'';return d>=curPeriod.sk&&d<=curPeriod.ek;});console.log('[Periode Filter] Zeitraum:',curPeriod.sk,'→',curPeriod.ek,'| ents gesamt:',ents.length,'| in Periode:',r.length);return r;},[ents,curPeriod]);
-  const mm=useMemo(()=>{const r=meals.filter(m=>m.datum>=curPeriod.sk&&m.datum<=curPeriod.ek);console.log('[Periode Filter] meals gesamt:',meals.length,'| in Periode:',r.length);return r;},[meals,curPeriod]);
-  const tw=useMemo(()=>me.reduce((s,e)=>s+e.wert,0),[me]);
-  const t7=useMemo(()=>me.filter(e=>e.mwst===7).reduce((s,e)=>s+e.wert,0),[me]);
-  const t19=useMemo(()=>me.filter(e=>e.mwst===19).reduce((s,e)=>s+e.wert,0),[me]);
-  const tm=useMemo(()=>mm.reduce((s,m)=>s+m.wert,0),[mm]);
+  const me=useMemo(()=>ents.filter(e=>{const d=e.datum?.slice(0,10)||'';return d>=curPeriod.sk&&d<=curPeriod.ek;}),[ents,curPeriod]);
+  const mm=useMemo(()=>meals.filter(m=>m.datum>=curPeriod.sk&&m.datum<=curPeriod.ek),[meals,curPeriod]);
+  const tw=useMemo(()=>roundCurrency(me.reduce((s,e)=>s+e.wert,0)),[me]);
+  const t7=useMemo(()=>roundCurrency(me.filter(e=>e.mwst===7).reduce((s,e)=>s+e.wert,0)),[me]);
+  const t19=useMemo(()=>roundCurrency(me.filter(e=>e.mwst===19).reduce((s,e)=>s+e.wert,0)),[me]);
+  const tm=useMemo(()=>roundCurrency(mm.reduce((s,m)=>s+m.wert,0)),[mm]);
   const periodEnts=me; // alias
   const today=useMemo(()=>ents.filter(e=>e.datum.startsWith(cd)),[ents,cd]);
   const todayM=useMemo(()=>meals.filter(m=>m.datum===cd),[meals,cd]);
@@ -1347,12 +1360,10 @@ function App(){
   // ── GmbH State ──────────────────────────────────────────────
   const[gmbhMeals,setGmbhMeals]=useSt('gmbh_meals',[]);
   const[gmbhWithdrawals,setGmbhWithdrawals]=useSt('gmbh_withdrawals',[]);
-  const[gmbhPersons,setGmbhPersons]=React.useState(gmbhLoadPersons);
+  const[gmbhPersons,setGmbhPersons]=useSt('gmbh_persons',[{id:'gf1',name:'Gesellschafter-Geschäftsführer',aktiv:true}]);
   const[pendingGmbhArt,setPendingGmbhArt]=useState(null);
-  const[gmbhFirma,setGmbhFirma]=useState(()=>{try{return localStorage.getItem('gmbh_firma')||'';}catch{return'';}});
+  const[gmbhFirma,setGmbhFirma]=useSt('gmbh_firma','');
   const[gmbhPeriodDay,setGmbhPeriodDay]=useSt('gmbh_periodDay',20);
-  // Sync gmbhPersons to localStorage on change
-  React.useEffect(()=>{ gmbhSavePersons(gmbhPersons); },[gmbhPersons]);
 
   // ── MODUS-WECHSEL: Transiente States zurücksetzen ────────
   // Verhindert, dass EU-Modal oder GmbH-Pending-Artikel
@@ -1400,8 +1411,8 @@ function App(){
           onBack={()=>setTab('add')}
           scanLabel="Für Mitnahme übernehmen →"
           showT={showT}/>}
-        {tab==='report'&&<GmbhReportTab meals={gmbhMeals} withdrawals={gmbhWithdrawals} persons={gmbhPersons} setPersons={setGmbhPersons} firma={gmbhFirma} setFirma={f=>{setGmbhFirma(f);localStorage.setItem('gmbh_firma',f);}} periodDay={gmbhPeriodDay} setPeriodDay={setGmbhPeriodDay}/>}
-        {tab==='settings'&&<GmbhSettingsTab persons={gmbhPersons} setPersons={setGmbhPersons} firma={gmbhFirma} setFirma={f=>{setGmbhFirma(f);localStorage.setItem('gmbh_firma',f);}} periodDay={gmbhPeriodDay} setPeriodDay={setGmbhPeriodDay}/>}
+        {tab==='report'&&<GmbhReportTab meals={gmbhMeals} withdrawals={gmbhWithdrawals} persons={gmbhPersons} setPersons={setGmbhPersons} firma={gmbhFirma} setFirma={f=>setGmbhFirma(f)} periodDay={gmbhPeriodDay} setPeriodDay={setGmbhPeriodDay}/>}
+        {tab==='settings'&&<GmbhSettingsTab persons={gmbhPersons} setPersons={setGmbhPersons} firma={gmbhFirma} setFirma={f=>setGmbhFirma(f)} periodDay={gmbhPeriodDay} setPeriodDay={setGmbhPeriodDay}/>}
         {tab==='import'&&<ImportTab arts={arts} setArts={setArts} showT={showT} ents={ents} hh={hh} setHH={setHH} setEnts={setEnts} setMeals={setMeals} setFavs={setFavs} syncPin={syncPin} setShowSyncModal={setShowSyncModal} backupData={backupData} restoreData={restoreData} gmbhMeals={gmbhMeals} setGmbhMeals={setGmbhMeals} gmbhWithdrawals={gmbhWithdrawals} setGmbhWithdrawals={setGmbhWithdrawals} gmbhPersons={gmbhPersons} setGmbhPersons={setGmbhPersons} rechtsform={rechtsform} setRechtsform={setRechtsform}/>}
         </>
         : <>
@@ -1419,6 +1430,15 @@ function App(){
       <button onClick={()=>setNewPeriodBanner(false)} style={{background:'rgba(0,0,0,.2)',border:'none',color:'#fff',borderRadius:6,padding:'4px 10px',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>OK</button>
     </div>}
     {toast&&<div className="toast">{toast}</div>}
+    {undoEnt&&<div style={{position:'fixed',bottom:'calc(var(--nh) + 12px)',left:'50%',transform:'translateX(-50%)',
+      background:'var(--text)',color:'#fff',padding:'10px 14px',borderRadius:16,zIndex:300,
+      display:'flex',alignItems:'center',gap:12,boxShadow:'0 4px 20px rgba(0,0,0,0.25)',whiteSpace:'nowrap',fontSize:12}}>
+      <span style={{fontWeight:500}}>{undoEnt.entry.name} gelöscht</span>
+      <button onClick={cancelDelEnt} style={{background:'var(--lime)',color:'var(--green)',border:'none',
+        borderRadius:10,padding:'5px 12px',fontSize:12,fontWeight:700,cursor:'pointer'}}>
+        Rückgängig ({undoEnt.countdown})
+      </button>
+    </div>}
 
     {/* Homescreen-Install-Tutorial */}
     {shouldShowInstall&&<div className="mo" onClick={()=>setShowInstall(true)}>
@@ -2526,6 +2546,20 @@ function ScanTab({arts,eanIndex,onSel,onBack,onNotFound,showT,scanLabel}){
   </div>);
 }
 
+// ── SYNONYM-TABELLE (einmalig definiert, nicht bei jedem Tastendruck neu)
+const SEARCH_SYNONYME={
+  'passierte tomaten':'passata','tomaten passiert':'passata','tomatenpassata':'passata',
+  'passata':'passierte tomaten',
+  'meeressalz':'meersalz',
+  'olivenoel':'olivenöl',
+  'kartoffeln':'erdapfel','erdapfel':'kartoffel',
+  'hackfleisch':'hack','hack ':'hackfleisch',
+  'sahne':'rahm obers','obers':'sahne rahm',
+  'joghurt':'jogurt','jogurt':'joghurt',
+  'ketchup':'ketschup catsup','ketschup':'ketchup',
+  'mayonnaise':'mayo','mayo':'mayonnaise',
+};
+
 // ── ADD
 function AddTab({arts,favs,onSel,onFav,onManual}){
   const[q,setQ]=useState('');
@@ -2557,21 +2591,8 @@ function AddTab({arts,favs,onSel,onFav,onManual}){
     // Umlaut-tolerante Suche
     const norm=s=>s.replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss');
     const xN=norm(x);
-    // Synonym-Tabelle: Sucheingabe → Suchbegriff der in Artikelnamen gefunden werden soll
-    const SYNONYME={
-      'passierte tomaten':'passata','tomaten passiert':'passata','tomatenpassata':'passata',
-      'passata':'passierte tomaten',
-      'meeressalz':'meersalz',
-      'olivenoel':'olivenöl',
-      'kartoffeln':'erdapfel','erdapfel':'kartoffel',
-      'hackfleisch':'hack','hack ':'hackfleisch',
-      'sahne':'rahm obers','obers':'sahne rahm',
-      'joghurt':'jogurt','jogurt':'joghurt',
-      'ketchup':'ketschup catsup','ketschup':'ketchup',
-      'mayonnaise':'mayo','mayo':'mayonnaise',
-    };
     // Prüfe ob Sucheingabe ein Synonym hat
-    const syn=Object.entries(SYNONYME).find(([k])=>x.includes(k));
+    const syn=Object.entries(SEARCH_SYNONYME).find(([k])=>x.includes(k));
     const xSyn=syn?syn[1]:null;
     const matched=arts.filter(a=>{
       const n=a.name.toLowerCase();
@@ -2902,10 +2923,10 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
   const sel=selKey?periods.find(p=>p.key===selKey):periods[0];
   const me=useMemo(()=>sel?ents.filter(e=>e.datum?.slice(0,10)>=sel.sk&&e.datum?.slice(0,10)<=sel.ek):[]  ,[sel,ents]);
   const mm=useMemo(()=>sel?meals.filter(m=>m.datum>=sel.sk&&m.datum<=sel.ek):[]  ,[sel,meals]);
-  const tw=me.reduce((s,e)=>s+e.wert,0);
-  const t7=me.filter(e=>e.mwst===7).reduce((s,e)=>s+e.wert,0);
-  const t19=me.filter(e=>e.mwst===19).reduce((s,e)=>s+e.wert,0);
-  const tm=mm.reduce((s,m)=>s+m.wert,0);
+  const tw=roundCurrency(me.reduce((s,e)=>s+e.wert,0));
+  const t7=roundCurrency(me.filter(e=>e.mwst===7).reduce((s,e)=>s+e.wert,0));
+  const t19=roundCurrency(me.filter(e=>e.mwst===19).reduce((s,e)=>s+e.wert,0));
+  const tm=roundCurrency(mm.reduce((s,m)=>s+m.wert,0));
   // ── STILLER INTEGRITÄTSCHECK ── kein UI, nur console.warn
   React.useEffect(()=>{
     const sumParts=roundCurrency(t7+t19);

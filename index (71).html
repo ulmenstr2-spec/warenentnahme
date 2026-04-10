@@ -1048,7 +1048,11 @@ function App(){
   };
 
   // ── SYNC PULL (Daten laden)
-  const syncPull=async(token=authToken)=>{
+  // force=true → vollständiger Überschreib-Modus (nur bei explizitem Benutzer-Wunsch)
+  // force=false (Standard) → Merge-Modus: vorhandene lokale Einträge bleiben erhalten,
+  //   nur vom Server neue Einträge werden hinzugefügt – verhindert Datenverlust
+  //   wenn lokale Änderungen noch nicht gepusht wurden (z.B. neues Gerät eingeloggt)
+  const syncPull=async(token=authToken, force=false)=>{
     if(!token)return false;
     setSyncStatus('syncing');
     try{
@@ -1058,28 +1062,38 @@ function App(){
         const remoteTs=d.ts?new Date(d.ts).getTime():0;
         const localPushStr=localStorage.getItem('gt_sync_pushed_at');
         const localPushedAt=localPushStr?new Date(localPushStr).getTime():0;
-        const localEmpty=!arts.length&&!ents.length&&!meals.length;
-        // +5000ms Toleranz damit minimale Zeitunterschiede kein Problem sind
+        // "lokal leer" = keine Einträge (Artikelimport zählt nicht als Nutzdaten)
+        const localEmpty=!ents.length&&!meals.length&&!gmbhMeals.length&&!gmbhWithdrawals.length;
+        // Daten laden wenn: erzwungen, lokal leer, noch nie gepusht, oder Server deutlich neuer
+        const shouldLoad=force||localEmpty||!localPushStr||remoteTs>localPushedAt+5000;
         let loadedCount=0;
-        if(remoteTs>localPushedAt-5000||!localPushStr||localEmpty){
-          // arts werden NICHT vom Server gezogen - zu groß, bleiben lokal
-          if(d.ents?.length){setEnts(d.ents);loadedCount+=d.ents.length;}
-          if(d.meals?.length){setMeals(d.meals);loadedCount+=d.meals.length;}
+        if(shouldLoad){
+          if(force||localEmpty){
+            // Vollständiger Restore: Gerät hat keine Einträge ODER User hat explizit angefordert
+            if(d.ents?.length){setEnts(d.ents);loadedCount+=d.ents.length;}
+            if(d.meals?.length){setMeals(d.meals);loadedCount+=d.meals.length;}
+            if(d.gmbhMeals?.length){setGmbhMeals(d.gmbhMeals);loadedCount+=d.gmbhMeals.length;}
+            if(d.gmbhWithdrawals?.length){setGmbhWithdrawals(d.gmbhWithdrawals);loadedCount+=d.gmbhWithdrawals.length;}
+          } else {
+            // Merge-Modus: nur Einträge hinzufügen die lokal noch nicht vorhanden sind
+            // → lokale Einträge die noch nicht gepusht wurden bleiben ERHALTEN
+            if(d.ents?.length){setEnts(prev=>{const ids=new Set(prev.map(e=>e.id));const neu=d.ents.filter(e=>!ids.has(e.id));if(!neu.length)return prev;loadedCount+=neu.length;return[...neu,...prev];});}
+            if(d.meals?.length){setMeals(prev=>{const ids=new Set(prev.map(m=>m.id));const neu=d.meals.filter(m=>!ids.has(m.id));if(!neu.length)return prev;loadedCount+=neu.length;return[...neu,...prev];});}
+            if(d.gmbhMeals?.length){setGmbhMeals(prev=>{const ids=new Set(prev.map(m=>m.id));const neu=d.gmbhMeals.filter(m=>!ids.has(m.id));if(!neu.length)return prev;loadedCount+=neu.length;return[...neu,...prev];});}
+            if(d.gmbhWithdrawals?.length){setGmbhWithdrawals(prev=>{const ids=new Set(prev.map(w=>w.id));const neu=d.gmbhWithdrawals.filter(w=>!ids.has(w.id));if(!neu.length)return prev;loadedCount+=neu.length;return[...neu,...prev];});}
+          }
+          // Einstellungen: immer vom Server übernehmen (kein Datenverlust-Risiko)
           if(d.hh)setHH(d.hh);
           if(d.favs?.length)setFavs(d.favs);
-          // periodDay: lokaler Wert hat Vorrang — vom Server nur übernehmen wenn Server einen sinnvollen Wert (!=1) hat UND lokal noch Default ist
           if(d.periodDay&&d.periodDay!==1)setPeriodDay(d.periodDay);
-          if(d.gmbhMeals?.length){setGmbhMeals(d.gmbhMeals);loadedCount+=d.gmbhMeals.length;}
-          if(d.gmbhWithdrawals?.length){setGmbhWithdrawals(d.gmbhWithdrawals);loadedCount+=d.gmbhWithdrawals.length;}
           if(d.gmbhPersons?.length)setGmbhPersons(d.gmbhPersons);
           if(d.rechtsform)setRechtsform(d.rechtsform);
-        } else {
         }
         const ts=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
         setSyncLastAt(ts);
         localStorage.setItem('gt_sync_last',ts);
         setSyncStatus('ok');
-        setSyncMsg({type:'ok',text:loadedCount>0?`✓ Wiederhergestellt – ${loadedCount} Einträge geladen`:`✓ Daten aktuell (${ts})`});
+        setSyncMsg({type:'ok',text:loadedCount>0?`✓ Synchronisiert – ${loadedCount} Einträge geladen`:`✓ Daten aktuell (${ts})`});
         setTimeout(()=>setSyncStatus('idle'),3000);
         setTimeout(()=>setSyncMsg(null),4000);
         return true;
@@ -1613,7 +1627,7 @@ function App(){
                 display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
               <Icon name="upload" size={16} color="#2a6010"/> Jetzt hochladen
             </button>
-            <button onClick={()=>syncPull(authToken)}
+            <button onClick={()=>syncPull(authToken,true)}
               style={{width:'100%',marginBottom:10,padding:'13px',borderRadius:12,
                 border:'1.5px solid #b8d4e8',background:'#eef6fc',
                 color:'#1a6080',fontSize:14,fontWeight:600,cursor:'pointer',

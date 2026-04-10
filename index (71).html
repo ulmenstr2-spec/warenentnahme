@@ -3995,20 +3995,20 @@ Alle Lebensmittel=7%, Spirituosen/Getränke=19%.`;
           </div>
 
           {/* Button */}
-          <input ref={iosInputRef} type="file" accept=".bnn,.bnn.txt,.xlsx,.xls,.csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,*/*" style={{display:'none'}}
-            onChange={e=>{if(e.target.files[0])processFiles([e.target.files[0]]);e.target.value='';}}
+          <input ref={iosInputRef} type="file" multiple accept=".bnn,.bnn.txt,.xlsx,.xls,.csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,*/*" style={{display:'none'}}
+            onChange={e=>{if(e.target.files.length)processFiles(Array.from(e.target.files));e.target.value='';}}
             disabled={loading}/>
           <button onClick={()=>iosInputRef.current?.click()} disabled={loading}
             className="btn btn-l"
             style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
             {loading
               ?<><Icon name="upload" size={18} color="white"/> Wird verarbeitet…</>
-              :<><Icon name="upload" size={18} color="white"/> Datei auswählen</>}
+              :<><Icon name="upload" size={18} color="white"/> Dateien auswählen</>}
           </button>
 
           {/* Mehrere Dateien */}
           <div style={{fontSize:11,color:'var(--t2)',textAlign:'center',marginTop:8}}>
-            Mehrere Dateien? Einfach nacheinander wiederholen – Artikel werden zusammengeführt.
+            Mehrere Dateien auf einmal auswählbar – Artikel werden zusammengeführt.
           </div>
         </div>
       </>:<div className="uz" style={{opacity:loading?.5:1}}>

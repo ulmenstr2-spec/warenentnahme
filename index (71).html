@@ -759,16 +759,15 @@ const dispEinh=e=>{
 
 function useSt(key,init){
   const[v,set]=useState(()=>{try{const s=localStorage.getItem(key);if(s)return JSON.parse(s);if(key==='gt_arts')return DEMO;return init;}catch{return init;}});
-  useEffect(()=>{
-    try{localStorage.setItem(key,JSON.stringify(v));}
-    catch(e){
-      if(e.name==='QuotaExceededError'||e.code===22||e.code===1014){
-        // Show warning via custom event (picked up in App)
-        window.dispatchEvent(new CustomEvent('storage-full'));
-      }
-    }
-  },[key,v]);
-  return[v,set];
+  const setAndSave=React.useCallback(updater=>{
+    set(prev=>{
+      const next=typeof updater==='function'?updater(prev):updater;
+      try{localStorage.setItem(key,JSON.stringify(next));}
+      catch(e){if(e.name==='QuotaExceededError'||e.code===22||e.code===1014)window.dispatchEvent(new CustomEvent('storage-full'));}
+      return next;
+    });
+  },[key]);
+  return[v,setAndSave];
 }
 
 // ── ICONS
@@ -930,6 +929,7 @@ function App(){
   const[syncStatus,setSyncStatus]=useState('idle'); // idle|syncing|ok|error|unverified
   const[syncLastAt,setSyncLastAt]=useState(()=>{try{return localStorage.getItem('gt_sync_last')||'';}catch{return'';}});
   const[showSyncModal,setShowSyncModal]=useState(false);
+  const[syncMsg,setSyncMsg]=useState(null); // {type:'ok'|'err', text:string}
   // Auth-Modal States
   const[authView,setAuthView]=useState('login');   // login|register|reset|reset_done
   const[authInputEmail,setAuthInputEmail]=useState('');
@@ -1030,16 +1030,22 @@ function App(){
         localStorage.setItem('gt_sync_last',ts);
         localStorage.setItem('gt_sync_pushed_at',new Date().toISOString());
         setSyncStatus('ok');
+        setSyncMsg({type:'ok',text:`✓ Hochgeladen um ${ts}`});
         setTimeout(()=>setSyncStatus('idle'),3000);
+        setTimeout(()=>setSyncMsg(null),4000);
       } else if(j.error?.includes('abgelaufen')){
         // Token abgelaufen → ausloggen
         doLogout(false);
         setSyncStatus('error');
+        setSyncMsg({type:'err',text:'✗ Sitzung abgelaufen – bitte neu einloggen'});
+        setTimeout(()=>setSyncMsg(null),4000);
       } else {
         setSyncStatus('error');
+        setSyncMsg({type:'err',text:'✗ Fehler beim Hochladen'});
+        setTimeout(()=>setSyncMsg(null),4000);
         console.error('Sync push:',j.error);
       }
-    }catch(e){setSyncStatus('error');console.error('Sync push:',e);}
+    }catch(e){setSyncStatus('error');setSyncMsg({type:'err',text:'✗ Fehler beim Hochladen'});setTimeout(()=>setSyncMsg(null),4000);console.error('Sync push:',e);}
   };
 
   // ── SYNC PULL (Daten laden)
@@ -1056,16 +1062,17 @@ function App(){
         const localEmpty=!arts.length&&!ents.length&&!meals.length;
         console.log('[Sync Pull] remoteTs:',remoteTs,'localPushedAt:',localPushedAt,'localEmpty:',localEmpty,'serverEnts:',d.ents?.length||0,'serverMeals:',d.meals?.length||0);
         // +5000ms Toleranz damit minimale Zeitunterschiede kein Problem sind
+        let loadedCount=0;
         if(remoteTs>localPushedAt-5000||!localPushStr||localEmpty){
           // arts werden NICHT vom Server gezogen - zu groß, bleiben lokal
-          if(d.ents?.length)setEnts(d.ents);
-          if(d.meals?.length)setMeals(d.meals);
+          if(d.ents?.length){setEnts(d.ents);loadedCount+=d.ents.length;}
+          if(d.meals?.length){setMeals(d.meals);loadedCount+=d.meals.length;}
           if(d.hh)setHH(d.hh);
           if(d.favs?.length)setFavs(d.favs);
           // periodDay: lokaler Wert hat Vorrang — vom Server nur übernehmen wenn Server einen sinnvollen Wert (!=1) hat UND lokal noch Default ist
           if(d.periodDay&&d.periodDay!==1)setPeriodDay(d.periodDay);
-          if(d.gmbhMeals?.length)setGmbhMeals(d.gmbhMeals);
-          if(d.gmbhWithdrawals?.length)setGmbhWithdrawals(d.gmbhWithdrawals);
+          if(d.gmbhMeals?.length){setGmbhMeals(d.gmbhMeals);loadedCount+=d.gmbhMeals.length;}
+          if(d.gmbhWithdrawals?.length){setGmbhWithdrawals(d.gmbhWithdrawals);loadedCount+=d.gmbhWithdrawals.length;}
           if(d.gmbhPersons?.length)setGmbhPersons(d.gmbhPersons);
           if(d.rechtsform)setRechtsform(d.rechtsform);
           console.log('[Sync Pull] ✅ Daten übernommen');
@@ -1076,7 +1083,9 @@ function App(){
         setSyncLastAt(ts);
         localStorage.setItem('gt_sync_last',ts);
         setSyncStatus('ok');
+        setSyncMsg({type:'ok',text:loadedCount>0?`✓ Wiederhergestellt – ${loadedCount} Einträge geladen`:`✓ Daten aktuell (${ts})`});
         setTimeout(()=>setSyncStatus('idle'),3000);
+        setTimeout(()=>setSyncMsg(null),4000);
         return true;
       } else if(j.empty){
         setSyncStatus('idle');
@@ -1084,9 +1093,11 @@ function App(){
       } else {
         if(j.error?.includes('abgelaufen'))doLogout(false);
         setSyncStatus('error');
+        setSyncMsg({type:'err',text:'✗ Fehler beim Herunterladen'});
+        setTimeout(()=>setSyncMsg(null),4000);
         return false;
       }
-    }catch(e){setSyncStatus('error');console.error('Sync pull:',e);return false;}
+    }catch(e){setSyncStatus('error');setSyncMsg({type:'err',text:'✗ Fehler beim Herunterladen'});setTimeout(()=>setSyncMsg(null),4000);console.error('Sync pull:',e);return false;}
   };
 
   // ── AUTH: Login
@@ -1220,7 +1231,7 @@ function App(){
       `---\n` +
       `(Mein Feedback)\n\n\n` +
       `---\n` +
-      `App-Version: 1.0-beta\n` +
+      `App-Version: 1.1-beta\n` +
       `Artikel: ${arts_count}, Einträge: ${ents_count}\n` +
       `Gerät: ${navigator.userAgent.slice(0,60)}\n`
     );
@@ -1564,6 +1575,14 @@ function App(){
             </div>
 
             {/* Aktionen */}
+            {syncMsg&&(
+              <div style={{padding:'10px 14px',borderRadius:10,marginBottom:12,fontSize:13,fontWeight:600,
+                background:syncMsg.type==='ok'?'rgba(45,90,27,0.08)':'rgba(192,57,43,0.08)',
+                color:syncMsg.type==='ok'?'#2a6010':'#c0392b',
+                border:`1px solid ${syncMsg.type==='ok'?'rgba(45,90,27,0.2)':'rgba(192,57,43,0.2)'}`}}>
+                {syncMsg.text}
+              </div>
+            )}
             <button onClick={()=>syncPush(authToken)}
               style={{width:'100%',marginBottom:10,padding:'13px',borderRadius:12,
                 border:'1.5px solid #c8deb8',background:'#f0f8e8',
@@ -2563,12 +2582,13 @@ function AddTab({arts,favs,onSel,onFav,onManual}){
         (a.marke||'').toLowerCase().includes(x)||
         (a.liefKuerzel||'').toLowerCase().includes(x);
     });
-    // Sortierung: exakter Namensanfang zuerst, dann Beginn nach Leerzeichen, dann Rest
+    // Sortierung: exakter Match > beginnt mit > Gemüse/Obst enthält > Rest; Tiebreaker: kürzerer Name
     matched.sort((a,b)=>{
       const na=a.name.toLowerCase(), nb=b.name.toLowerCase();
-      const sa=na.startsWith(x)?0:na.split(/[\s,]+/).some(w=>w.startsWith(x))?1:2;
-      const sb=nb.startsWith(x)?0:nb.split(/[\s,]+/).some(w=>w.startsWith(x))?1:2;
-      return sa-sb;
+      const rank=(n,art)=>{const nn=norm(n);if(n===x||nn===xN)return 0;if(n.startsWith(x)||nn.startsWith(xN))return 1;if(art.kategorie==='Gemüse'||art.kategorie==='Obst')return 2;return 3;};
+      const sa=rank(na,a),sb=rank(nb,b);
+      if(sa!==sb)return sa-sb;
+      return a.name.length-b.name.length;
     });
     // Filter anwenden
     let filtered=matched;

@@ -533,7 +533,7 @@ function parseBNN(text) {
     if(f.length<37) continue;
     const id=f[0].trim();
     if(!/^[A-Za-z0-9][-A-Za-z0-9]{2,12}$/.test(id)&&!/^\d{4,10}$/.test(id)) continue;
-    if(f[1]!=='A') continue; // nur aktive Artikel
+    if(f[1]==='L') continue; // gelöschte Artikel überspringen (BNN3: L=gelöscht, leer oder A=aktiv)
 
     const name=normUml(f[6].trim());
     if(!name||name.length<2){diag.noName++;continue;}
@@ -1362,6 +1362,9 @@ function App(){
   const[gmbhWithdrawals,setGmbhWithdrawals]=useSt('gmbh_withdrawals',[]);
   const[gmbhPersons,setGmbhPersons]=useSt('gmbh_persons',[{id:'gf1',name:'Gesellschafter-Geschäftsführer',aktiv:true}]);
   const[pendingGmbhArt,setPendingGmbhArt]=useState(null);
+  // Migration: gmbh_firma wurde früher als raw string gespeichert, jetzt als JSON
+  // Einmalig beim ersten Laden konvertieren, damit useSt es lesen kann
+  try{const _f=localStorage.getItem('gmbh_firma');if(_f&&!_f.startsWith('"'))localStorage.setItem('gmbh_firma',JSON.stringify(_f));}catch{}
   const[gmbhFirma,setGmbhFirma]=useSt('gmbh_firma','');
   const[gmbhPeriodDay,setGmbhPeriodDay]=useSt('gmbh_periodDay',20);
 
@@ -2587,7 +2590,7 @@ function AddTab({arts,favs,onSel,onFav,onManual}){
     if(!debouncedQ.trim()&&filterKat){
       return arts.filter(a=>isValidKat(a.kategorie)&&a.kategorie===filterKat).slice(0,80);
     }
-    const x=debouncedQ.toLowerCase();
+    const x=debouncedQ.trim().toLowerCase();
     // Umlaut-tolerante Suche
     const norm=s=>s.replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss');
     const xN=norm(x);

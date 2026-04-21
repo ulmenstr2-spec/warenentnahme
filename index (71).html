@@ -925,7 +925,7 @@ function App(){
     return()=>window.removeEventListener('storage-full',h);
   },[]);
   // ── SYNC ──────────────────────────────────────────────────
-  const API_URL = './api.php'; // Relativ → kein CORS, kein Redirect-Problem
+  const API_URL = '/app/api.php'; // Absolut → funktioniert unabhängig vom Pfad der HTML-Seite
   // ── AUTH / SYNC STATES
   const[authEmail,setAuthEmail]=useState(()=>{try{return localStorage.getItem('gt_auth_email')||'';}catch{return'';}});
   const[authToken,setAuthToken]=useState(()=>{try{return localStorage.getItem('gt_auth_token')||'';}catch{return'';}});

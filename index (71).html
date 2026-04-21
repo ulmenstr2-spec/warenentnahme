@@ -420,6 +420,8 @@ const Icon = ({name, size=18, color='currentColor', strokeWidth=1.5, style={}}) 
 // ── CONSTANTS
 const SB = { frueh:2.37, mittag:4.57, abend:4.57 }; // Sachbezugswerte 2026
 const PM = { gesamt:(3173+828)/12, ust7:3173/12, ust19:828/12 };
+// USt-Satz für Mahlzeiten: ab 01.01.2026 gilt 7% (Steueränderungsgesetz 2025)
+const mealUstSatz=datum=>(datum||'')>='2026-01-01'?7:19;
 
 // Umlaute normalisieren (restliche kaputte Zeichen entfernen)
 // CP850-Dekodierung passiert bereits vor parseBNN im Import-Handler
@@ -556,7 +558,9 @@ function parseBNN(text) {
     const einh=f[23].trim()||'Stk';
     // Format wie "6 x 500g" oder "24 x 0,33l" → f[23] direkt verwenden
     const vpeIsXFormat=/^\d+\s*x\s*/i.test(vpe);
-    const einheit=(!vpe||vpeIsXFormat)?einh:vpe;
+    // Format wie "12 FL" (Gebindegröße ohne x) → nur Einheitscode f[23] verwenden
+    const vpeIsCountUnit=/^\d+\s+[A-Za-z]{1,5}$/.test(vpe);
+    const einheit=(!vpe||vpeIsXFormat||vpeIsCountUnit)?einh:vpe;
 
     // Preis normalisieren: "25 kg" → Preis/25 pro kg, "5 Ltr" → Preis/5 pro Ltr etc.
     // Nur bei Gewicht/Volumen mit Menge > 1 (nicht bei "1 kg", "1 Ltr")
@@ -2959,7 +2963,7 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
     const cn=v=>{const p=parseFloat(v);return isNaN(p)?'':String(roundCurrency(p));};
     const dateDE=d=>d.slice(0,10);
     const exportTS=new Date().toISOString();
-    const EU_REPORT_VERSION='1.3';
+    const EU_REPORT_VERSION='1.4';
     const aktivPersonen=persons.filter(p=>p.aktiv).map(p=>p.name).join(', ');
     let rows,fname;
     if(exportFmt==='datev'){
@@ -3035,24 +3039,58 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
   const exportXLSX=()=>{
     if(!sel||!window.XLSX)return;
     const WB=window.XLSX.utils.book_new();
-    // Sheet 1: Warenentnahmen
-    const wsData=[['Datum','Artikel','Einheit','Menge','EK netto €','MwSt %','Wert €']];
-    me.forEach(e=>wsData.push([e.datum.slice(0,10),e.name,e.einheit,e.menge,e.preis,e.mwst+'%',e.wert]));
+    // Sheet 1: Warenentnahmen (mit Netto- und USt-Spalten)
+    const wsData=[['Datum','Artikel','Einheit','Menge','EK netto €','MwSt %','Brutto €','Netto €','USt-Betrag €']];
+    me.forEach(e=>{
+      const n=calcNetFromGross(e.wert,e.mwst||7);
+      wsData.push([e.datum.slice(0,10),e.name,e.einheit,e.menge,e.preis,e.mwst+'%',e.wert,n,roundCurrency(e.wert-n)]);
+    });
+    const wb7=roundCurrency(me.filter(e=>e.mwst===7).reduce((s,e)=>s+e.wert,0));
+    const wb19=roundCurrency(me.filter(e=>e.mwst===19).reduce((s,e)=>s+e.wert,0));
+    const wn7=calcNetFromGross(wb7,7),wn19=calcNetFromGross(wb19,19);
     wsData.push([]);
-    wsData.push(['','','','','Summe 7%','',me.filter(e=>e.mwst===7).reduce((s,e)=>s+e.wert,0).toFixed(2)]);
-    wsData.push(['','','','','Summe 19%','',me.filter(e=>e.mwst===19).reduce((s,e)=>s+e.wert,0).toFixed(2)]);
-    wsData.push(['','','','','GESAMT','',me.reduce((s,e)=>s+e.wert,0).toFixed(2)]);
+    wsData.push(['','','','','','Summe 7%',wb7,wn7,roundCurrency(wb7-wn7)]);
+    wsData.push(['','','','','','Summe 19%',wb19,wn19,roundCurrency(wb19-wn19)]);
+    wsData.push(['','','','','','GESAMT',roundCurrency(wb7+wb19),roundCurrency(wn7+wn19),roundCurrency((wb7-wn7)+(wb19-wn19))]);
     const ws=window.XLSX.utils.aoa_to_sheet(wsData);
-    ws['!cols']=[{wch:12},{wch:40},{wch:8},{wch:8},{wch:12},{wch:8},{wch:10}];
+    ws['!cols']=[{wch:12},{wch:38},{wch:8},{wch:6},{wch:12},{wch:7},{wch:10},{wch:10},{wch:12}];
     window.XLSX.utils.book_append_sheet(WB,ws,'Warenentnahmen');
     // Sheet 2: Personalessen
     if(mm.length){
-      const msData=[['Datum','Art','Betrag €']];
-      mm.forEach(m=>msData.push([m.datum,m.label,m.wert]));
-      msData.push([],[['','Gesamt',mm.reduce((s,m)=>s+m.wert,0).toFixed(2)]]);
+      const msData=[['Datum','Art','USt %','Brutto €','Netto €','USt-Betrag €']];
+      mm.forEach(m=>{
+        const ust=mealUstSatz(m.datum);
+        const n=calcNetFromGross(m.wert,ust);
+        msData.push([m.datum,m.label,ust+'%',m.wert,n,roundCurrency(m.wert-n)]);
+      });
+      const mtot=roundCurrency(mm.reduce((s,m)=>s+m.wert,0));
+      const mn7=calcNetFromGross(roundCurrency(mm.filter(m=>mealUstSatz(m.datum)===7).reduce((s,m)=>s+m.wert,0)),7);
+      const mn19=calcNetFromGross(roundCurrency(mm.filter(m=>mealUstSatz(m.datum)===19).reduce((s,m)=>s+m.wert,0)),19);
+      msData.push([],[['','Gesamt','',mtot,roundCurrency(mn7+mn19),roundCurrency(mtot-mn7-mn19)]]);
       window.XLSX.utils.book_append_sheet(WB,window.XLSX.utils.aoa_to_sheet(msData),'Personalessen');
     }
-    // Sheet 3: Zusammenfassung
+    // Sheet 3: USt-Aufschlüsselung (Warenentnahmen + Personalessen)
+    const xm7=roundCurrency(mm.filter(m=>mealUstSatz(m.datum)===7).reduce((s,m)=>s+m.wert,0));
+    const xm19=roundCurrency(mm.filter(m=>mealUstSatz(m.datum)===19).reduce((s,m)=>s+m.wert,0));
+    const xb7=roundCurrency(wb7+xm7),xb19=roundCurrency(wb19+xm19);
+    const xn7=calcNetFromGross(xb7,7),xn19=calcNetFromGross(xb19,19);
+    const xu7=roundCurrency(xb7-xn7),xu19=roundCurrency(xb19-xn19);
+    const xbGes=roundCurrency(xb7+xb19),xnGes=roundCurrency(xn7+xn19),xuGes=roundCurrency(xu7+xu19);
+    const uData=[
+      ['USt-Aufschlüsselung — Eigenverbrauch gesamt (Warenentnahmen + Sachbezug Personalessen)'],
+      ['Zeitraum',sel.lbl],['Erstellt',new Date().toLocaleDateString('de-DE')],
+      [],
+      ['USt-Satz','Brutto (EUR)','Netto (EUR)','USt-Betrag (EUR)'],
+      ['7 %',xb7,xn7,xu7],
+      ['19 %',xb19,xn19,xu19],
+      ['Gesamt',xbGes,xnGes,xuGes],
+      [],
+      ['Hinweis: Sachbezug Mahlzeiten ab 01.01.2026 mit 7 % USt (Steueränderungsgesetz 2025), davor 19 %.'],
+    ];
+    const wsU=window.XLSX.utils.aoa_to_sheet(uData);
+    wsU['!cols']=[{wch:14},{wch:14},{wch:14},{wch:16}];
+    window.XLSX.utils.book_append_sheet(WB,wsU,'USt-Aufschlüsselung');
+    // Sheet 4: Zusammenfassung
     const p=calcPausch(persons,hh.betrieb);
     const tges=me.reduce((s,e)=>s+e.wert,0)+mm.reduce((s,m)=>s+m.wert,0);
     const sumData=[
@@ -3067,7 +3105,7 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
 
   const exportJSON=()=>{
     if(!sel)return;
-    const EU_REPORT_VERSION='1.3';
+    const EU_REPORT_VERSION='1.4';
     const exportTS=new Date().toISOString();
     const metadata={
       zeitraumVon:sel.sk,
@@ -3225,6 +3263,43 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
       doc.text('Keine Mahlzeiten in diesem Zeitraum.',ML+3,y+4);y+=10;
     }
     y+=6;
+
+    // ── UST-AUFSCHLÜSSELUNG ──────────────────────────────────────
+    const _ustM7=roundCurrency(mm.filter(m=>mealUstSatz(m.datum)===7).reduce((s,m)=>s+m.wert,0));
+    const _ustM19=roundCurrency(mm.filter(m=>mealUstSatz(m.datum)===19).reduce((s,m)=>s+m.wert,0));
+    const _ustB7=roundCurrency(t7+_ustM7),_ustB19=roundCurrency(t19+_ustM19);
+    const _ustN7=calcNetFromGross(_ustB7,7),_ustN19=calcNetFromGross(_ustB19,19);
+    const _ustU7=roundCurrency(_ustB7-_ustN7),_ustU19=roundCurrency(_ustB19-_ustN19);
+    const _ustBGes=roundCurrency(_ustB7+_ustB19);
+    const _ustNGes=roundCurrency(_ustN7+_ustN19),_ustUGes=roundCurrency(_ustU7+_ustU19);
+    if(y>240)doc.addPage(),y=18;
+    section('USt-Aufschlüsselung (Warenentnahmen + Sachbezug Personalessen)');
+    doc.setFillColor(220,230,210);doc.rect(ML,y,TW,6,'F');
+    doc.setTextColor(...BLACK);doc.setFontSize(7.5);doc.setFont('helvetica','bold');
+    doc.text('USt-Satz',ML+3,y+4.2);
+    doc.text('Brutto (EUR)',ML+65,y+4.2,{align:'right'});
+    doc.text('Netto (EUR)',ML+125,y+4.2,{align:'right'});
+    doc.text('USt-Betrag (EUR)',ML+TW-2,y+4.2,{align:'right'});
+    y+=6;
+    const _ustRow=(satz,brutto,netto,ust,shade)=>{
+      if(shade){doc.setFillColor(248,251,244);doc.rect(ML,y,TW,5.5,'F');}
+      doc.setDrawColor(220,230,210);doc.line(ML,y+5.5,ML+TW,y+5.5);
+      doc.setTextColor(...BLACK);doc.setFontSize(7.5);doc.setFont('helvetica','normal');
+      doc.text(satz,ML+3,y+4);
+      doc.text(`${fN(brutto)} €`,ML+65,y+4,{align:'right'});
+      doc.text(`${fN(netto)} €`,ML+125,y+4,{align:'right'});
+      doc.text(`${fN(ust)} €`,ML+TW-2,y+4,{align:'right'});
+      y+=5.5;
+    };
+    if(_ustB7>0)_ustRow('7 %',_ustB7,_ustN7,_ustU7,false);
+    if(_ustB19>0)_ustRow('19 %',_ustB19,_ustN19,_ustU19,true);
+    doc.setFillColor(220,230,210);doc.rect(ML,y,TW,6,'F');
+    doc.setTextColor(...GREEN);doc.setFontSize(8);doc.setFont('helvetica','bold');
+    doc.text('Gesamt',ML+3,y+4.3);
+    doc.text(`${fN(_ustBGes)} €`,ML+65,y+4.3,{align:'right'});
+    doc.text(`${fN(_ustNGes)} €`,ML+125,y+4.3,{align:'right'});
+    doc.text(`${fN(_ustUGes)} €`,ML+TW-2,y+4.3,{align:'right'});
+    y+=10;
 
     // ── VERGLEICH BOX
     if(y>240)doc.addPage(),y=18;
@@ -3388,6 +3463,30 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
               <div className="rl"><span style={{color:'var(--t2)'}}>Tage</span><span>{new Set(mm.map(m=>m.datum)).size}</span></div>
               <div className="rtot"><span>Sachbezug gesamt</span><span style={{color:'#2a6010'}}>{fmt(tm)}</span></div>
             </div>
+            {(()=>{
+              const xm7=roundCurrency(mm.filter(m=>mealUstSatz(m.datum)===7).reduce((s,m)=>s+m.wert,0));
+              const xm19=roundCurrency(mm.filter(m=>mealUstSatz(m.datum)===19).reduce((s,m)=>s+m.wert,0));
+              const xb7=roundCurrency(t7+xm7),xb19=roundCurrency(t19+xm19);
+              const xn7=calcNetFromGross(xb7,7),xn19=calcNetFromGross(xb19,19);
+              const xu7=roundCurrency(xb7-xn7),xu19=roundCurrency(xb19-xn19);
+              if(xb7+xb19===0)return null;
+              return(<>
+                <div className="sec">USt-Aufschlüsselung</div>
+                <div className="card">
+                  {xb7>0&&<>
+                    <div className="rl"><span style={{color:'var(--t2)'}}>7 % — Brutto</span><span>{fmt(xb7)}</span></div>
+                    <div className="rl" style={{paddingLeft:20}}><span style={{color:'var(--t3)',fontSize:11}}>Netto</span><span style={{color:'var(--t2)',fontSize:11}}>{fN(xn7)} €</span></div>
+                    <div className="rl" style={{paddingLeft:20}}><span style={{color:'var(--t3)',fontSize:11}}>USt 7 %</span><span style={{color:'var(--t2)',fontSize:11}}>{fN(xu7)} €</span></div>
+                  </>}
+                  {xb19>0&&<>
+                    <div className="rl"><span style={{color:'var(--t2)'}}>19 % — Brutto</span><span>{fmt(xb19)}</span></div>
+                    <div className="rl" style={{paddingLeft:20}}><span style={{color:'var(--t3)',fontSize:11}}>Netto</span><span style={{color:'var(--t2)',fontSize:11}}>{fN(xn19)} €</span></div>
+                    <div className="rl" style={{paddingLeft:20}}><span style={{color:'var(--t3)',fontSize:11}}>USt 19 %</span><span style={{color:'var(--t2)',fontSize:11}}>{fN(xu19)} €</span></div>
+                  </>}
+                  <div className="rtot"><span>Gesamt brutto</span><span style={{color:'#2a6010'}}>{fmt(roundCurrency(xb7+xb19))}</span></div>
+                </div>
+              </>);
+            })()}
             <div className="sec">Pauschbetrag-Vergleich</div>
             <div className="card">
               <div className="rl"><span style={{color:'var(--t2)'}}>Warenentnahme</span><span>{fmt(tw)}</span></div>
@@ -4320,7 +4419,7 @@ const GMBH_DEFAULT_MV = [
 // GMBH REPORT HELPERS  (Version: REPORT_VERSION Konstante unten)
 // ═══════════════════════════════════════════════════════════════
 
-const GMBH_REPORT_VERSION = '1.3';
+const GMBH_REPORT_VERSION = '1.4';
 
 // ── Format-Helper: zwei separate Formatter, keine gemeinsame Logik ──────────
 // PDF: Komma als Dezimaltrennzeichen, 2 Nachkommastellen
@@ -5993,6 +6092,32 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
     txt('Gesamt',SC[0],y);txt(fc(totalBruttoExakt),SC[1],y);txt(fc(totalNettoExakt),SC[2],y);
     y+=8;
 
+    // ── 3b. UST-AUFSCHLÜSSELUNG ──────────────────────────────────
+    const gUstB7=roundCurrency(
+      mMeals.filter(m=>m.datum>='2026-01-01').reduce((s,m)=>s+(m.vorteil||0),0)+
+      mWith.filter(w=>(w.mwst||7)===7).reduce((s,w)=>s+(w.vorteil||0),0));
+    const gUstB19=roundCurrency(
+      mMeals.filter(m=>m.datum<'2026-01-01').reduce((s,m)=>s+(m.vorteil||0),0)+
+      mWith.filter(w=>(w.mwst||7)===19).reduce((s,w)=>s+(w.vorteil||0),0));
+    const gUstN7=calcNetFromGross(gUstB7,7),gUstN19=calcNetFromGross(gUstB19,19);
+    const gUstU7=roundCurrency(gUstB7-gUstN7),gUstU19=roundCurrency(gUstB19-gUstN19);
+    const gUstBGes=roundCurrency(gUstB7+gUstB19);
+    const gUstNGes=roundCurrency(gUstN7+gUstN19),gUstUGes=roundCurrency(gUstU7+gUstU19);
+    safeY(240);
+    doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(...BLACK);
+    txt('USt-Aufschlüsselung',ML,y);y+=5;
+    hline(y,GREEN);y+=3;
+    doc.setFontSize(7);doc.setTextColor(...GRAY);
+    txt('USt-Satz',ML+2,y);txt('Brutto (EUR)',ML+65,y);txt('Netto (EUR)',ML+125,y);txt('USt-Betrag (EUR)',W-MR,y);
+    y+=4;hline(y,LGRAY);y+=3;
+    doc.setTextColor(...BLACK);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
+    if(gUstB7>0){txt('7 %',ML+2,y);txt(fc(gUstB7),ML+65,y);txt(fc(gUstN7),ML+125,y);txt(fc(gUstU7),W-MR,y);y+=5;}
+    if(gUstB19>0){txt('19 %',ML+2,y);txt(fc(gUstB19),ML+65,y);txt(fc(gUstN19),ML+125,y);txt(fc(gUstU19),W-MR,y);y+=5;}
+    hline(y,DKGREEN);y+=3;
+    doc.setFont('helvetica','bold');
+    txt('Gesamt',ML+2,y);txt(fc(gUstBGes),ML+65,y);txt(fc(gUstNGes),ML+125,y);txt(fc(gUstUGes),W-MR,y);
+    y+=8;
+
     // ── 4. JAHRESÜBERSICHT JE PERSON (YTD) ──────────────────────
     safeY(240);
     doc.setFontSize(8.5);doc.setFont('helvetica','bold');
@@ -6396,6 +6521,29 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
             <span style={{fontSize:15,fontWeight:700,color:'var(--text)'}}>{fN(totalMeals+totalWith)} €</span>
           </div>
         </div>
+
+        {(mMeals.length>0||mWith.length>0)&&(()=>{
+          const gb7=roundCurrency(mMeals.filter(m=>m.datum>='2026-01-01').reduce((s,m)=>s+(m.vorteil||0),0)+mWith.filter(w=>(w.mwst||7)===7).reduce((s,w)=>s+(w.vorteil||0),0));
+          const gb19=roundCurrency(mMeals.filter(m=>m.datum<'2026-01-01').reduce((s,m)=>s+(m.vorteil||0),0)+mWith.filter(w=>(w.mwst||7)===19).reduce((s,w)=>s+(w.vorteil||0),0));
+          const gn7=calcNetFromGross(gb7,7),gn19=calcNetFromGross(gb19,19);
+          const gu7=roundCurrency(gb7-gn7),gu19=roundCurrency(gb19-gn19);
+          return(<>
+            <div className="sec">USt-Aufschlüsselung</div>
+            <div className="card">
+              {gb7>0&&<>
+                <div className="rl"><span style={{color:'var(--t2)'}}>7 % — Brutto</span><span style={{fontWeight:600}}>{fN(gb7)} €</span></div>
+                <div className="rl" style={{paddingLeft:20}}><span style={{color:'var(--t3)',fontSize:11}}>Netto</span><span style={{color:'var(--t2)',fontSize:11}}>{fN(gn7)} €</span></div>
+                <div className="rl" style={{paddingLeft:20}}><span style={{color:'var(--t3)',fontSize:11}}>USt 7 %</span><span style={{color:'var(--t2)',fontSize:11}}>{fN(gu7)} €</span></div>
+              </>}
+              {gb19>0&&<>
+                <div className="rl"><span style={{color:'var(--t2)'}}>19 % — Brutto</span><span style={{fontWeight:600}}>{fN(gb19)} €</span></div>
+                <div className="rl" style={{paddingLeft:20}}><span style={{color:'var(--t3)',fontSize:11}}>Netto</span><span style={{color:'var(--t2)',fontSize:11}}>{fN(gn19)} €</span></div>
+                <div className="rl" style={{paddingLeft:20}}><span style={{color:'var(--t3)',fontSize:11}}>USt 19 %</span><span style={{color:'var(--t2)',fontSize:11}}>{fN(gu19)} €</span></div>
+              </>}
+              <div className="rtot"><span>Gesamt brutto</span><span style={{color:'var(--text)'}}>{fN(roundCurrency(gb7+gb19))} €</span></div>
+            </div>
+          </>);
+        })()}
 
         <div className="sec">Warenrabatt {yr} — Jahresstand pro Person</div>
         {personRabatt.map(p=>(

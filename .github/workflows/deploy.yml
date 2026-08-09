@@ -1,0 +1,55 @@
+name: Deploy to Ionos
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Dateien aus dem Repo mit ihren Leerzeichen-Namen in saubere
+      # Deploy-Struktur kopieren. config.php bleibt auf dem Server (Secrets).
+      - name: Build deploy structure
+        run: |
+          mkdir -p dist/root dist/app
+
+          # Root: Landing Page + .htaccess
+          cp "landingpage (8).html"  dist/root/index.html
+          cp "htaccess (2).txt"      dist/root/.htaccess
+
+          # App: PWA-Bundle
+          cp "index (71).html"   dist/app/index.html
+          cp "manifest (1).json" dist/app/manifest.json
+          cp splash-logo.png     dist/app/splash-logo.png
+
+          # Service Worker: BUILD_ID durch Commit-SHA ersetzen
+          sed "s/__BUILD_ID__/${{ github.sha }}/g" sw.js > dist/app/sw.js
+
+      - name: Deploy root (Landing Page)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: dist/root/
+          server-dir: /
+          exclude: |
+            **/.git*
+            **/.git*/**
+
+      - name: Deploy app
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: dist/app/
+          server-dir: /app/
+          exclude: |
+            **/.git*
+            **/.git*/**

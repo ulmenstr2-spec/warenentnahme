@@ -30,10 +30,10 @@ jobs:
         run: |
           lftp -u "${{ secrets.FTP_USERNAME }}","${{ secrets.FTP_PASSWORD }}" \
             sftp://${{ secrets.FTP_SERVER }} \
-            -e "set sftp:auto-confirm yes; mirror -R dist/root/ /; quit"
+            -e "set sftp:auto-confirm yes; mirror -R dist/root/ /public/; quit"
 
       - name: Deploy app
         run: |
           lftp -u "${{ secrets.FTP_USERNAME }}","${{ secrets.FTP_PASSWORD }}" \
             sftp://${{ secrets.FTP_SERVER }} \
-            -e "set sftp:auto-confirm yes; mirror -R dist/app/ /app/; quit"
+            -e "set sftp:auto-confirm yes; mirror -R dist/app/ /public/app/; quit"

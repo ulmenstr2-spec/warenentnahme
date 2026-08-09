@@ -14,15 +14,15 @@ jobs:
         run: |
           mkdir -p dist/root dist/app
 
-          cp "landingpage (8).html"  dist/root/index.html
-          cp "htaccess (2).txt"      dist/root/.htaccess
+          cp landing.html  dist/root/index.html
+          cp htaccess.txt  dist/root/.htaccess
 
           BUILD_DATE=$(TZ=Europe/Berlin date +"%d.%m.%Y %H:%M")
           sed -e "s/__BUILD_ID__/${{ github.sha }}/g" \
               -e "s/__BUILD_DATE__/$BUILD_DATE/g" \
-              "index (71).html" > dist/app/index.html
-          cp "manifest (1).json" dist/app/manifest.json
-          cp splash-logo.png     dist/app/splash-logo.png
+              app.html > dist/app/index.html
+          cp manifest.json   dist/app/manifest.json
+          cp splash-logo.png dist/app/splash-logo.png
 
           sed "s/__BUILD_ID__/${{ github.sha }}/g" sw.js > dist/app/sw.js
 

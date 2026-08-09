@@ -26,20 +26,28 @@
 
 <script>
 // ── SERVICE WORKER ────────────────────────────────────────
+window.__swReg = null;
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('/app/sw.js', {scope:'/app/'})
       .then(reg=>{
+        window.__swReg = reg;
         console.log('[SW] Registriert:', reg.scope);
+
+        const notifyUpdate = ()=>{
+          window.__swUpdateAvailable = true;
+          window.dispatchEvent(new Event('sw-update-available'));
+        };
+
+        // Schon ein wartender SW beim Start (z.B. nach Reload)?
+        if(reg.waiting && navigator.serviceWorker.controller) notifyUpdate();
 
         // Update-Check: wenn neue Version verfügbar → Nutzer informieren
         reg.addEventListener('updatefound', ()=>{
           const newWorker = reg.installing;
           newWorker.addEventListener('statechange', ()=>{
             if(newWorker.state === 'installed' && navigator.serviceWorker.controller){
-              // Neue Version verfügbar — App-seitigen Update-Banner anzeigen
-              window.__swUpdateAvailable = true;
-              window.dispatchEvent(new Event('sw-update-available'));
+              notifyUpdate();
             }
           });
         });
@@ -1539,8 +1547,9 @@ function App(){
         Neue Version verfügbar
       </span>
       <button onClick={()=>{
-        navigator.serviceWorker?.controller?.postMessage('SKIP_WAITING');
-        window.location.reload();
+        const waiting = window.__swReg?.waiting;
+        if(waiting){ waiting.postMessage('SKIP_WAITING'); }
+        else { window.location.reload(); }
       }} style={{background:'#a8d060',border:'none',borderRadius:6,
         color:'#1a2612',fontSize:11,fontWeight:700,padding:'4px 10px',cursor:'pointer'}}>
         Jetzt aktualisieren

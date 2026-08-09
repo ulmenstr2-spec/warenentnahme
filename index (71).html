@@ -55,8 +55,11 @@ if('serviceWorker' in navigator){
       .catch(err=>console.warn('[SW] Registrierung fehlgeschlagen:', err));
 
     // Wenn SW die Seite übernimmt, Seite neu laden
+    // (nicht beim allerersten Install — clients.claim() löst auch controllerchange aus)
     let refreshing = false;
+    let hadController = !!navigator.serviceWorker.controller;
     navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+      if(!hadController){ hadController = true; return; }
       if(!refreshing){ refreshing=true; window.location.reload(); }
     });
   });
@@ -4969,7 +4972,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
       einheit:a.einheit||f.einheit,
       mwst:a.mwst||f.mwst,
       methode:method,kat,
-      vk:a.uvp?String(a.uvp):f.vk,
+      vk:a.uvp?String(a.uvp):'',
       ekBrutto:String(ekBrutto(a)||''),
       gaesteVP,
     }));
@@ -5069,6 +5072,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
     if(!form.artikel.trim())return 'Artikel wählen';
     if(!form.person)return 'Person wählen';
     if(!form.methode)return 'Methode wählen';
+    if(form.methode==='rabatt'&&curArtikelFlag===false)return 'Warenrabatt nicht zulässig – Artikel wird nicht an Gäste verkauft';
     if(form.methode==='rabatt'){
       if((parseFloat(form.vk)||0)<=0)return 'VK/UVP eingeben';
       if((parseFloat(form.mp)||0)<0)return 'Mitarbeiterpreis darf nicht negativ sein';
@@ -5090,11 +5094,11 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
   // ── PLAUSIBILITY WARNINGS
   const curEkBrutto=ekBrutto(curArt);
   const warnings=[];
-  if(curArt?.uvp&&form.methode==='ek')warnings.push('Für diesen Artikel ist ein VK/UVP hinterlegt – Warenrabatt-Methode empfohlen.');
+  if(curArt?.uvp&&form.methode==='ek'&&curArtikelFlag!==false)warnings.push('Für diesen Artikel ist ein VK/UVP hinterlegt – Warenrabatt-Methode empfohlen.');
   if(form.methode==='marktwert'&&curArt&&curEkBrutto>0){
     const ratio=curMV.wert/curEkBrutto;
-    if(ratio<0.9)warnings.push('⚠ Marktwert liegt unter EK – Kategorie prüfen oder EK+Handling verwenden.');
-    else if(ratio<0.5)warnings.push('⚠ Marktwert liegt weit unter 50 % des EK-Preises.');
+    if(ratio<0.5)warnings.push('⚠ Marktwert liegt weit unter 50 % des EK-Preises.');
+    else if(ratio<0.9)warnings.push('⚠ Marktwert liegt unter EK – Kategorie prüfen oder EK+Handling verwenden.');
     if(ratio>3)warnings.push('⚠ Marktwert liegt über 3× EK-Preis – Plausibilitätscheck.');
   }
   if(form.methode==='marktwert'&&(form.einheit==='stk'||form.einheit==='Stk')&&
@@ -5366,7 +5370,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
                   background:'var(--lm)',borderRadius:8,padding:'8px 12px'}}>
                   <Icon name="package" size={16} color="var(--gruen)"/>
                   <span style={{fontSize:13,fontWeight:600,color:'var(--gruen)',flex:1}}>{form.artikel}</span>
-                  <button onClick={()=>setForm(f=>({...f,artikel:'',artId:null}))}
+                  <button onClick={()=>{setForm(f=>({...f,artikel:'',artId:null,methode:null}));setCurArtikelFlag(null);}}
                     style={{background:'none',border:'none',color:'var(--t3)',cursor:'pointer',fontSize:16,padding:'0 2px'}}>×</button>
                 </div>
               )}

@@ -4983,7 +4983,9 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
   // ── EDIT EXISTING ENTRY
   const startEdit=w=>{
     const art=arts.find(a=>a.id===w.artId)||null;
-    const flag=art?gmbhGetArtikelFlag(art):null;
+    // Freitext: Flag aus Methode ableiten (gast → Ja, marktwert/ek → Nein, rabatt → erneut fragen)
+    const flag=art?gmbhGetArtikelFlag(art)
+      :(w.methode==='gast'?true:(w.methode==='rabatt'?null:false));
     setCurArtikelFlag(flag);
     const methode=(flag===false&&w.methode==='rabatt')?'marktwert':w.methode;
     setForm({
@@ -5004,6 +5006,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
   React.useEffect(()=>{
     if(!pendingArt)return;
     if(pendingArt._notFound){
+      setCurArtikelFlag(null);
       setForm(f=>({...EMPTY,
         person:f.person,datum:f.datum,
         artikel:pendingArt._scannedEAN?`EAN ${pendingArt._scannedEAN}`:'',
@@ -5133,14 +5136,14 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
     if(editId){
       setWithdrawals(p=>p.map(x=>x.id===editId?entry:x));
       setForm({...EMPTY,person:form.person,datum:form.datum});
-      setShowForm(false);setEditId(null);
+      setShowForm(false);setEditId(null);setCurArtikelFlag(null);
     } else {
       // Erst Undo-Window öffnen — Eintrag wird nach 5s fest gespeichert
       setUndoPending({id:entry.id,label:entry.artikel,vorteil:entry.vorteil,entry});
       setCountdown(5);
       setLastSaved(entry);
       setForm({...EMPTY,person:form.person,datum:form.datum});
-      setShowForm(false);setEditId(null);
+      setShowForm(false);setEditId(null);setCurArtikelFlag(null);
       // Timer läuft über Refs — überlebt Tab-Wechsel
       if(timerRef.current)clearTimeout(timerRef.current);
       if(countdownRef.current)clearInterval(countdownRef.current);
@@ -5180,6 +5183,8 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
       selectArt(art);
     } else {
       // Manuell erfasster Artikel: Formular mit letzten Werten füllen
+      // Flag aus Methode ableiten (gast → Ja, marktwert/ek → Nein, rabatt → erneut fragen)
+      setCurArtikelFlag(lastSaved.methode==='gast'?true:(lastSaved.methode==='rabatt'?null:false));
       setForm(f=>({...f,
         artikel:lastSaved.artikel,artId:lastSaved.artId,
         menge:lastSaved.menge,einheit:lastSaved.einheit,
@@ -5192,6 +5197,29 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
       setShowForm(true);setEditId(null);
       setTimeout(()=>window.scrollTo({top:0,behavior:'smooth'}),50);
     }
+  };
+
+  // ── MIGRATION: Warenrabatt-Einträge von "Nein"-Artikeln → Marktwert (nur mit Bestätigung)
+  const[migrateList,setMigrateList]=useState(null); // null | betroffene Einträge
+  useEffect(()=>{
+    const flags=gmbhLoadArtikelFlags();
+    const affected=withdrawals.filter(w=>w.methode==='rabatt'&&w.artId&&flags[w.artId]===false);
+    if(affected.length>0)setMigrateList(affected);
+  },[]);
+  const migrateConvert=w=>{
+    const art=arts.find(a=>a.id===w.artId)||null;
+    const kat=art?pickKat(art):'Gemüse';
+    const mv=mvList.find(m=>m.kat===kat)||mvList[0];
+    const mengeNorm=normalizeMenge(parseFloat(w.menge)||1,w.einheit,mv.einheit);
+    const e={...w,methode:'marktwert',kat,mvWert:mv.wert,vk:null,mp:null,
+      vorteil:roundCurrency(mv.wert*mengeNorm),updatedAt:new Date().toISOString()};
+    e.evaluationTrace=buildEvaluationTrace(e);
+    return e;
+  };
+  const runMigration=()=>{
+    const ids=new Set(migrateList.map(w=>w.id));
+    setWithdrawals(prev=>prev.map(w=>ids.has(w.id)?migrateConvert(w):w));
+    setMigrateList(null);
   };
 
   // ── JAHRESSTAND (strikt pro Kalenderjahr, Attribution per datum.slice(0,4))
@@ -5242,6 +5270,45 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
 
   return(
     <div>
+      {/* ── MIGRATIONS-DIALOG: Warenrabatt-Einträge von "Nein"-Artikeln */}
+      {migrateList&&(()=>{
+        const preview=migrateList.map(w=>({old:w,neu:migrateConvert(w)}));
+        const sumOld=preview.reduce((s,p)=>s+(p.old.vorteil||0),0);
+        const sumNeu=preview.reduce((s,p)=>s+(p.neu.vorteil||0),0);
+        return(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:300,
+          display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+          <div style={{background:'var(--s1)',borderRadius:16,padding:20,maxWidth:420,width:'100%',
+            maxHeight:'80vh',overflowY:'auto',boxShadow:'0 8px 40px rgba(0,0,0,.25)'}}>
+            <div style={{fontSize:15,fontWeight:700,marginBottom:6}}>Bewertung korrigieren?</div>
+            <div style={{fontSize:12,color:'var(--t2)',marginBottom:12,lineHeight:1.5}}>
+              {migrateList.length===1
+                ?'1 Eintrag wurde mit Warenrabatt bewertet, obwohl der Artikel laut deiner Antwort nicht an Gäste verkauft wird.'
+                :`${migrateList.length} Einträge wurden mit Warenrabatt bewertet, obwohl die Artikel laut deiner Antwort nicht an Gäste verkauft werden.`}
+              {' '}Empfohlen: auf Marktwert umstellen — dann stimmt der Freibetrag-Zähler wieder.
+            </div>
+            {preview.map(({old,neu})=>(
+              <div key={old.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',
+                padding:'8px 10px',background:'var(--s2)',borderRadius:8,marginBottom:6,fontSize:12,gap:8}}>
+                <div style={{minWidth:0}}>
+                  <div style={{fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{old.artikel}</div>
+                  <div style={{fontSize:10,color:'var(--t3)'}}>{fmtD(old.datum)} · {personName(old.person)} · {old.menge} {old.einheit}</div>
+                </div>
+                <div style={{textAlign:'right',fontSize:11,flexShrink:0}}>
+                  <span style={{color:'var(--t3)',textDecoration:'line-through'}}>{fN(old.vorteil)} €</span>
+                  <span style={{fontWeight:700,marginLeft:6}}>{fN(neu.vorteil)} €</span>
+                </div>
+              </div>
+            ))}
+            <div style={{fontSize:11,color:'var(--t2)',margin:'8px 0 14px',textAlign:'right'}}>
+              Summe: <span style={{textDecoration:'line-through'}}>{fN(sumOld)} €</span> → <strong>{fN(sumNeu)} €</strong> · zählt nicht mehr zum Freibetrag
+            </div>
+            <button className="btn btn-l" style={{width:'100%'}} onClick={runMigration}>Jetzt auf Marktwert umstellen</button>
+            <button style={{width:'100%',background:'none',border:'none',color:'var(--t2)',fontSize:12,
+              marginTop:10,cursor:'pointer',padding:8}} onClick={()=>setMigrateList(null)}>Später erinnern</button>
+          </div>
+        </div>);
+      })()}
       <div className="hdr">
         <div className="hdr-eye">GmbH Sachzuwendung</div>
         <div className="hdr-title">Waren<em>mitnahme</em></div>
@@ -5439,8 +5506,8 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
                 ))}
               </div>
 
-              {/* Bewertung — Gäste-Flag-Frage oder Methode */}
-              {form.artId&&curArtikelFlag===null?(
+              {/* Bewertung — Gäste-Flag-Frage oder Methode (auch bei Freitext) */}
+              {(form.artId||form.artikel.trim())&&curArtikelFlag===null?(
                 /* Frage: Wird dieses Produkt an Gäste verkauft? */
                 <div>
                   <div className="sec">Wird dieses Produkt so an Gäste verkauft?</div>
@@ -5456,7 +5523,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
                         <button key={String(v)} onClick={()=>{
                           gmbhSetArtikelFlag(curArt,v);setCurArtikelFlag(v);
                           if(v){setForm(f=>({...f,methode:'gast',gaesteVP:curArt?.uvp?String(curArt.uvp):f.gaesteVP}));}
-                          else{const m=pickDefaultMethod(curArt);setForm(f=>({...f,methode:m==='rabatt'?'marktwert':m||'ek'}));}
+                          else{const m=pickDefaultMethod(curArt);setForm(f=>({...f,methode:m==='rabatt'?'marktwert':m||(curArt?'ek':'marktwert')}));}
                         }}
                           style={{padding:'14px 8px',borderRadius:8,textAlign:'center',cursor:'pointer',lineHeight:1.4,
                             border:`1.5px solid ${deflt===v?'var(--gruen)':'var(--border)'}`,
@@ -5470,7 +5537,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
                     </div>
                   );})()}
                   <div style={{fontSize:10,color:'var(--t3)',marginTop:8,textAlign:'center'}}>
-                    Antwort wird für dieses Produkt gespeichert
+                    {form.artId?'Antwort wird für dieses Produkt gespeichert':'Antwort gilt nur für diesen Eintrag'}
                   </div>
                 </div>
               ):(
@@ -5480,7 +5547,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
                 <div>
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
                     <div className="sec" style={{margin:0}}>Gäste-Verkaufspreis (brutto)</div>
-                    {form.artId&&<button onClick={()=>{gmbhSetArtikelFlag(curArt,null);setCurArtikelFlag(null);setF('methode')(null);}}
+                    {<button onClick={()=>{gmbhSetArtikelFlag(curArt,null);setCurArtikelFlag(null);setF('methode')(null);}}
                       style={{fontSize:10,color:'var(--t3)',background:'none',border:'none',cursor:'pointer',padding:0,textDecoration:'underline'}}>
                       Antwort ändern
                     </button>}
@@ -5496,7 +5563,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
               {form.methode!=='gast'&&(<>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
                 <div className="sec" style={{margin:0}}>Bewertungsmethode</div>
-                {form.artId&&curArtikelFlag!==null&&<button onClick={()=>{gmbhSetArtikelFlag(curArt,null);setCurArtikelFlag(null);setF('methode')(null);}}
+                {curArtikelFlag!==null&&<button onClick={()=>{gmbhSetArtikelFlag(curArt,null);setCurArtikelFlag(null);setF('methode')(null);}}
                   style={{fontSize:10,color:'var(--t3)',background:'none',border:'none',cursor:'pointer',padding:0,textDecoration:'underline'}}>
                   Antwort ändern
                 </button>}

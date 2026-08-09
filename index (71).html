@@ -26,20 +26,28 @@
 
 <script>
 // ── SERVICE WORKER ────────────────────────────────────────
+window.__swReg = null;
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('/app/sw.js', {scope:'/app/'})
       .then(reg=>{
+        window.__swReg = reg;
         console.log('[SW] Registriert:', reg.scope);
+
+        const notifyUpdate = ()=>{
+          window.__swUpdateAvailable = true;
+          window.dispatchEvent(new Event('sw-update-available'));
+        };
+
+        // Schon ein wartender SW beim Start (z.B. nach Reload)?
+        if(reg.waiting && navigator.serviceWorker.controller) notifyUpdate();
 
         // Update-Check: wenn neue Version verfügbar → Nutzer informieren
         reg.addEventListener('updatefound', ()=>{
           const newWorker = reg.installing;
           newWorker.addEventListener('statechange', ()=>{
             if(newWorker.state === 'installed' && navigator.serviceWorker.controller){
-              // Neue Version verfügbar — App-seitigen Update-Banner anzeigen
-              window.__swUpdateAvailable = true;
-              window.dispatchEvent(new Event('sw-update-available'));
+              notifyUpdate();
             }
           });
         });
@@ -1539,8 +1547,9 @@ function App(){
         Neue Version verfügbar
       </span>
       <button onClick={()=>{
-        navigator.serviceWorker?.controller?.postMessage('SKIP_WAITING');
-        window.location.reload();
+        const waiting = window.__swReg?.waiting;
+        if(waiting){ waiting.postMessage('SKIP_WAITING'); }
+        else { window.location.reload(); }
       }} style={{background:'#a8d060',border:'none',borderRadius:6,
         color:'#1a2612',fontSize:11,fontWeight:700,padding:'4px 10px',cursor:'pointer'}}>
         Jetzt aktualisieren
@@ -4971,11 +4980,13 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
   // ── EDIT EXISTING ENTRY
   const startEdit=w=>{
     const art=arts.find(a=>a.id===w.artId)||null;
-    setCurArtikelFlag(art?gmbhGetArtikelFlag(art):null);
+    const flag=art?gmbhGetArtikelFlag(art):null;
+    setCurArtikelFlag(flag);
+    const methode=(flag===false&&w.methode==='rabatt')?'marktwert':w.methode;
     setForm({
       datum:w.datum,person:w.person,artikel:w.artikel,artId:w.artId||null,
       menge:w.menge,einheit:w.einheit,mwst:w.mwst,
-      methode:w.methode,kat:w.kat||'Gemüse',
+      methode,kat:w.kat||'Gemüse',
       vk:String(w.vk||''),mp:String(w.mp||'0'),
       ekBrutto:String(w.ekBrutto||''),handlingRate:String(w.handlingRate||'0.15'),
       tagVegan:w.tagVegan||false,gaesteVP:String(w.gaesteVP||''),
@@ -5486,12 +5497,13 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
                   Antwort ändern
                 </button>}
               </div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:6,marginBottom:4}}>
+              <div style={{display:'grid',gridTemplateColumns:curArtikelFlag===false?'1fr 1fr':'1fr 1fr 1fr',gap:6,marginBottom:4}}>
                 {[
                   {k:'rabatt',lbl:'Warenrabatt',sub:'VK − MP',note:'→ 1.080 € Freibetrag'},
                   {k:'marktwert',lbl:'Marktwert',sub:'je Kategorie',note:'getrennt'},
                   {k:'ek',lbl:'EK + Handling',sub:'Ausnahme',note:'getrennt'},
-                ].map(({k,lbl,sub,note})=>(
+                ].filter(({k})=>!(curArtikelFlag===false&&k==='rabatt'))
+                .map(({k,lbl,sub,note})=>(
                   <button key={k} onClick={()=>setF('methode')(k)}
                     style={{padding:'10px 6px',borderRadius:8,textAlign:'center',
                       border:`1.5px solid ${form.methode===k?'var(--gruen)':'var(--border)'}`,

@@ -4414,6 +4414,14 @@ const GMBH_DEFAULT_MV = [
   { kat:'Sonstiges',       einheit:'kg', wert:3.00, mwst:7  },
 ];
 
+// ── PER-PRODUKT FLAG: "Wird an Gäste verkauft?"
+function gmbhLoadArtikelFlags(){try{return JSON.parse(localStorage.getItem('gmbh_artikel_flags')||'{}');}catch{return{};}}
+function gmbhSaveArtikelFlags(f){localStorage.setItem('gmbh_artikel_flags',JSON.stringify(f));}
+function gmbhGetArtikelFlag(art){if(!art?.id)return null;const f=gmbhLoadArtikelFlags();const v=f[art.id];return v===undefined?null:Boolean(v);}
+function gmbhSetArtikelFlag(art,value){if(!art?.id)return;const f=gmbhLoadArtikelFlags();if(value===null)delete f[art.id];else f[art.id]=value;gmbhSaveArtikelFlags(f);}
+// Getränke-Kategorie → default YES; alles andere → NO
+function gmbhVerkauftAnGaesteDefault(art,kat){const k=kat||(art?.kategorie?KAT_MAP[art.kategorie]:null);return k==='Getränke';}
+
 
 // ═══════════════════════════════════════════════════════════════
 // GMBH REPORT HELPERS  (Version: REPORT_VERSION Konstante unten)
@@ -4463,7 +4471,7 @@ const calcUstFromNet = (net, vatRate) => {
 // ────────────────────────────────────────────────────────────
 
 // Ist die Position rabattfreibetrag-relevant?
-const isDiscountRelevant = (methode) => methode === 'rabatt';
+const isDiscountRelevant = (methode) => methode === 'rabatt' || methode === 'gast';
 
 // ── getMarketValueSource(w) — Marktwert-Quelle bestimmen (heuristisch)
 // Heuristik:
@@ -4542,8 +4550,10 @@ const getBasisText = (w) => {
   if (w.methode === 'rabatt') {
     return `VK ${n(w.vk)} EUR – MP ${n(w.mp)} EUR`;
   }
+  if (w.methode === 'gast') {
+    return `Gäste-VP ${n(w.gaesteVP)} EUR × 0,96`;
+  }
   if (w.methode === 'marktwert') {
-    const rate = Math.round((parseFloat(w.handlingRate) || 0.15) * 100);
     return `${w.kat || '?'} | ${n(w.mvWert)} EUR/${w.einheit || 'kg'} | ${getMarketValueSource(w)}`;
   }
   if (w.methode === 'ek') {
@@ -4558,7 +4568,7 @@ const buildYtdByPerson = (withdrawals, meals, persons, yr) => {
   return persons.filter(p => p.aktiv).map(p => {
     const pw = withdrawals.filter(w => w.datum?.startsWith(yr) && w.person === p.id);
     const pm = meals.filter(m => m.datum?.startsWith(yr) && m.person === p.id);
-    const rabatt = pw.filter(w => w.methode === 'rabatt').reduce((s, w) => s + (w.vorteil || 0), 0);
+    const rabatt = pw.filter(w => isDiscountRelevant(w.methode)).reduce((s, w) => s + (w.vorteil || 0), 0);
     const markt  = pw.filter(w => w.methode === 'marktwert').reduce((s, w) => s + (w.vorteil || 0), 0);
     const ek     = pw.filter(w => w.methode === 'ek').reduce((s, w) => s + (w.vorteil || 0), 0);
     const sachbezug = pm.reduce((s, m) => s + (m.vorteil || 0), 0);
@@ -4582,7 +4592,7 @@ function gmbhSaveMV(mv){ localStorage.setItem('gmbh_market_values',JSON.stringif
 function gmbhRabattByPerson(withdrawals, persons, yr){
   return persons.filter(p=>p.aktiv).map(p=>{
     const total=withdrawals
-      .filter(w=>w.datum.startsWith(yr)&&w.methode==='rabatt'&&w.person===p.id)
+      .filter(w=>w.datum.startsWith(yr)&&isDiscountRelevant(w.methode)&&w.person===p.id)
       .reduce((s,w)=>s+(w.vorteil||0),0);
     return { ...p, yearRabatt:total, remaining:Math.max(0,GMBH_RABATT_FREIBETRAG-total), exceeded:Math.max(0,total-GMBH_RABATT_FREIBETRAG) };
   });
@@ -4828,7 +4838,7 @@ function GmbhMealsTab({meals,setMeals,persons,cd,cm,curPeriod}){
 function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPeriod,pendingArt,clearPendingArt}){
   const mvList=gmbhLoadMV();
   const personName=id=>persons.find(p=>p.id===id)?.name||id;
-  const methLabel={rabatt:'Warenrabatt',marktwert:'Marktwert',ek:'EK+Handling'};
+  const methLabel={rabatt:'Warenrabatt',marktwert:'Marktwert',ek:'EK+Handling',gast:'Gäste-VK'};
 
   // ── HELPERS
   const ekBrutto=art=>art?roundCurrency(art.preis*(1+(art.mwst||7)/100)):0;
@@ -4888,7 +4898,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
 
   // ── FORM STATE
   const EMPTY={datum:cd,person:persons[0]?.id||'',artikel:'',artId:null,menge:1,einheit:'kg',
-    mwst:7,methode:null,kat:'Gemüse',vk:'',mp:'0',ekBrutto:'',handlingRate:'0.15',tagVegan:false};
+    mwst:7,methode:null,kat:'Gemüse',vk:'',mp:'0',ekBrutto:'',handlingRate:'0.15',tagVegan:false,gaesteVP:''};
   const[form,setForm]=useState({...EMPTY});
   const[showForm,setShowForm]=useState(false);
   const[editId,setEditId]=useState(null); // id of entry being edited
@@ -4898,6 +4908,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
   const timerRef=React.useRef(null);
   const countdownRef=React.useRef(null);
   const[lastSaved,setLastSaved]=useState(null);     // letzter gespeicherter Eintrag für Quick-Repeat
+  const[curArtikelFlag,setCurArtikelFlag]=useState(null); // null | true | false — Flag für aktuellen Artikel
   const setF=k=>v=>setForm(f=>({...f,[k]:v}));
   const curArt=arts.find(a=>a.id===form.artId)||arts.find(a=>a.name===form.artikel)||null;
 
@@ -4937,8 +4948,13 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
 
   // ── SELECT ARTICLE
   const selectArt=a=>{
-    const method=pickDefaultMethod(a);
+    const flag=gmbhGetArtikelFlag(a);
+    setCurArtikelFlag(flag);
     const kat=pickKat(a);
+    let method=null,gaesteVP='';
+    if(flag===true){method='gast';gaesteVP=a.uvp?String(a.uvp):'';}
+    else if(flag===false){const m=pickDefaultMethod(a);method=m==='rabatt'?'marktwert':m||'ek';}
+    // flag===null → method bleibt null → Formular zeigt die Frage
     setForm(f=>({...f,
       artikel:a.name,artId:a.id,
       einheit:a.einheit||f.einheit,
@@ -4946,6 +4962,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
       methode:method,kat,
       vk:a.uvp?String(a.uvp):f.vk,
       ekBrutto:String(ekBrutto(a)||''),
+      gaesteVP,
     }));
     setShowForm(true);setEditId(null);
     setQ('');setDebouncedQ('');
@@ -4953,12 +4970,15 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
 
   // ── EDIT EXISTING ENTRY
   const startEdit=w=>{
+    const art=arts.find(a=>a.id===w.artId)||null;
+    setCurArtikelFlag(art?gmbhGetArtikelFlag(art):null);
     setForm({
       datum:w.datum,person:w.person,artikel:w.artikel,artId:w.artId||null,
       menge:w.menge,einheit:w.einheit,mwst:w.mwst,
       methode:w.methode,kat:w.kat||'Gemüse',
       vk:String(w.vk||''),mp:String(w.mp||'0'),
       ekBrutto:String(w.ekBrutto||''),handlingRate:String(w.handlingRate||'0.15'),
+      tagVegan:w.tagVegan||false,gaesteVP:String(w.gaesteVP||''),
     });
     setEditId(w.id);
     setShowForm(true);
@@ -5010,6 +5030,10 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
       const vk=parseFloat(form.vk)||0,mp=parseFloat(form.mp)||0;
       return roundCurrency(Math.max(0,vk-mp)*menge);
     }
+    if(form.methode==='gast'){
+      const gvp=parseFloat(form.gaesteVP)||0;
+      return roundCurrency(gvp*0.96*menge);
+    }
     if(form.methode==='marktwert'){
       const mengeNorm=normalizeMenge(menge,form.einheit,curMV.einheit);
       return roundCurrency(curMV.wert*mengeNorm);
@@ -5038,6 +5062,9 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
       if((parseFloat(form.vk)||0)<=0)return 'VK/UVP eingeben';
       if((parseFloat(form.mp)||0)<0)return 'Mitarbeiterpreis darf nicht negativ sein';
       if((parseFloat(form.mp)||0)>(parseFloat(form.vk)||0))return 'MP darf nicht > VK';
+    }
+    if(form.methode==='gast'){
+      if((parseFloat(form.gaesteVP)||0)<=0)return 'Gäste-Verkaufspreis eingeben';
     }
     if(form.methode==='ek'){
       const ek=parseFloat(form.ekBrutto)||0;
@@ -5077,6 +5104,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
       kat:form.methode==='marktwert'?form.kat:null,
       vk:form.methode==='rabatt'?parseFloat(form.vk)||0:null,
       mp:form.methode==='rabatt'?parseFloat(form.mp)||0:null,
+      gaesteVP:form.methode==='gast'?parseFloat(form.gaesteVP)||0:null,
       ekBrutto:form.methode==='ek'?parseFloat(form.ekBrutto)||0:null,
       handlingRate:form.methode==='ek'?parseFloat(form.handlingRate)||0.15:null,
       mvWert:form.methode==='marktwert'?curMV.wert:null,
@@ -5142,6 +5170,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
         menge:lastSaved.menge,einheit:lastSaved.einheit,
         methode:lastSaved.methode,kat:lastSaved.kat||'Gemüse',
         vk:String(lastSaved.vk||''),mp:String(lastSaved.mp||'0'),
+        gaesteVP:String(lastSaved.gaesteVP||''),
         ekBrutto:String(lastSaved.ekBrutto||''),
         handlingRate:String(lastSaved.handlingRate||'0.15'),
       }));
@@ -5153,7 +5182,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
   // ── JAHRESSTAND
   const yr=cm.slice(0,4);
   const yearRabatt=withdrawals
-    .filter(w=>w.datum?.slice(0,4)===yr&&w.methode==='rabatt')
+    .filter(w=>w.datum?.slice(0,4)===yr&&isDiscountRelevant(w.methode))
     .reduce((s,w)=>s+(w.vorteil||0),0);
   const FREI=GMBH_RABATT_FREIBETRAG;
   const remaining=Math.max(0,FREI-yearRabatt);
@@ -5212,7 +5241,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
         {(()=>{
           const todayW=withdrawals.filter(w=>w.datum===cd);
           if(todayW.length===0)return null;
-          const todayRabatt=todayW.filter(w=>w.methode==='rabatt').reduce((s,w)=>s+(w.vorteil||0),0);
+          const todayRabatt=todayW.filter(w=>isDiscountRelevant(w.methode)).reduce((s,w)=>s+(w.vorteil||0),0);
           const todayMarktwert=todayW.filter(w=>w.methode==='marktwert').reduce((s,w)=>s+(w.vorteil||0),0);
           const todayEk=todayW.filter(w=>w.methode==='ek').reduce((s,w)=>s+(w.vorteil||0),0);
           const todayGes=roundCurrency(todayRabatt+todayMarktwert+todayEk);
@@ -5394,8 +5423,68 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
                 ))}
               </div>
 
-              {/* Bewertungsmethode */}
-              <div className="sec">Bewertungsmethode</div>
+              {/* Bewertung — Gäste-Flag-Frage oder Methode */}
+              {form.artId&&curArtikelFlag===null?(
+                /* Frage: Wird dieses Produkt an Gäste verkauft? */
+                <div>
+                  <div className="sec">Wird dieses Produkt so an Gäste verkauft?</div>
+                  <div style={{fontSize:11,color:'var(--t3)',marginBottom:10}}>
+                    z. B. eine Flasche Wein oder ein Gericht, das du auch auf der Karte hast
+                  </div>
+                  {(()=>{const deflt=gmbhVerkauftAnGaesteDefault(curArt,form.kat);return(
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                      {[
+                        {v:true,lbl:'Ja',sub:'Preis von der Karte × 0,96'},
+                        {v:false,lbl:'Nein',sub:'Nur intern / EK + Aufschlag'},
+                      ].map(({v,lbl,sub})=>(
+                        <button key={String(v)} onClick={()=>{
+                          gmbhSetArtikelFlag(curArt,v);setCurArtikelFlag(v);
+                          if(v){setForm(f=>({...f,methode:'gast',gaesteVP:curArt?.uvp?String(curArt.uvp):f.gaesteVP}));}
+                          else{const m=pickDefaultMethod(curArt);setForm(f=>({...f,methode:m==='rabatt'?'marktwert':m||'ek'}));}
+                        }}
+                          style={{padding:'14px 8px',borderRadius:8,textAlign:'center',cursor:'pointer',lineHeight:1.4,
+                            border:`1.5px solid ${deflt===v?'var(--gruen)':'var(--border)'}`,
+                            background:deflt===v?'var(--lm)':'var(--s1)',
+                            color:deflt===v?'var(--gruen)':'var(--t1)'}}>
+                          <div style={{fontSize:14,fontWeight:700}}>{lbl}</div>
+                          <div style={{fontSize:10,color:'var(--t3)',marginTop:3}}>{sub}</div>
+                          {deflt===v&&<div style={{fontSize:9,color:'var(--gruen)',marginTop:4,fontWeight:600}}>Empfohlen</div>}
+                        </button>
+                      ))}
+                    </div>
+                  );})()}
+                  <div style={{fontSize:10,color:'var(--t3)',marginTop:8,textAlign:'center'}}>
+                    Antwort wird für dieses Produkt gespeichert
+                  </div>
+                </div>
+              ):(
+              <>
+              {/* Gäste-VK Felder */}
+              {form.methode==='gast'&&(
+                <div>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
+                    <div className="sec" style={{margin:0}}>Gäste-Verkaufspreis (brutto)</div>
+                    {form.artId&&<button onClick={()=>{gmbhSetArtikelFlag(curArt,null);setCurArtikelFlag(null);setF('methode')(null);}}
+                      style={{fontSize:10,color:'var(--t3)',background:'none',border:'none',cursor:'pointer',padding:0,textDecoration:'underline'}}>
+                      Antwort ändern
+                    </button>}
+                  </div>
+                  <input type="number" min="0" step="0.01" inputMode="decimal" value={form.gaesteVP}
+                    onChange={e=>setF('gaesteVP')(e.target.value)} placeholder="0,00" style={inp}/>
+                  <div style={{fontSize:11,color:'var(--t3)',marginTop:6,padding:'6px 10px',background:'var(--lm)',borderRadius:6}}>
+                    Vorteil = Gäste-VP × 0,96 × Menge · zählt zum 1.080 € Jahres-Freibetrag
+                  </div>
+                </div>
+              )}
+              {/* Bewertungsmethode — nur wenn nicht gast */}
+              {form.methode!=='gast'&&(<>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
+                <div className="sec" style={{margin:0}}>Bewertungsmethode</div>
+                {form.artId&&curArtikelFlag!==null&&<button onClick={()=>{gmbhSetArtikelFlag(curArt,null);setCurArtikelFlag(null);setF('methode')(null);}}
+                  style={{fontSize:10,color:'var(--t3)',background:'none',border:'none',cursor:'pointer',padding:0,textDecoration:'underline'}}>
+                  Antwort ändern
+                </button>}
+              </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:6,marginBottom:4}}>
                 {[
                   {k:'rabatt',lbl:'Warenrabatt',sub:'VK − MP',note:'→ 1.080 € Freibetrag'},
@@ -5414,6 +5503,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
                   </button>
                 ))}
               </div>
+              </>)}
 
               {/* Methoden-spezifische Felder */}
               {form.methode==='rabatt'&&(
@@ -5478,6 +5568,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
                   </div>
                 </div>
               )}
+              </>)}
 
               {/* Vegan Tag */}
               <div style={{marginTop:12,display:'flex',alignItems:'center',gap:8,
@@ -5595,7 +5686,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
                     <div className="rn">
                       {w.artikel}
                       {w.isEkAusnahme&&<span style={{color:'var(--amber)',fontSize:10,marginLeft:6,fontWeight:400}}>EK-Ausnahme</span>}
-                      {w.methode==='rabatt'&&<span style={{color:'var(--gruen)',fontSize:10,marginLeft:6,fontWeight:400}}>Freibetrag</span>}
+                      {isDiscountRelevant(w.methode)&&<span style={{color:'var(--gruen)',fontSize:10,marginLeft:6,fontWeight:400}}>Freibetrag</span>}
                       {w.tagVegan&&<span style={{marginLeft:4,display:'inline-flex',verticalAlign:'middle'}}><Icon name="leaf" size={12} color="var(--gruen)"/></span>}
                     </div>
                     <div className="rm">
@@ -5726,6 +5817,7 @@ function buildExportRows({ mode, entries=[], meals=[], meta={} }){
         basis:{
           vkBrutto:w.methode==='rabatt'?(roundCurrency(w.vk)||null):null,
           employeePriceBrutto:w.methode==='rabatt'?(roundCurrency(w.mp)||null):null,
+          gaesteVP:w.methode==='gast'?(roundCurrency(w.gaesteVP)||null):null,
           ekBrutto:w.methode==='ek'?(roundCurrency(w.ekBrutto)||null):null,
           handlingRatePct:w.methode==='ek'?Math.round((parseFloat(w.handlingRate)||0.15)*100):null,
           marketValuePerUnitBrutto:w.methode==='marktwert'?(roundCurrency(w.mvWert)||null):null,
@@ -5794,7 +5886,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
   const mWith=sel?withdrawals.filter(w=>w.datum>=sel.sk&&w.datum<=sel.ek):[];
   const totalMeals=mMeals.reduce((s,m)=>s+(m.vorteil||0),0);
   const totalWith=mWith.reduce((s,w)=>s+(w.vorteil||0),0);
-  const totalDiscount=mWith.filter(w=>w.methode==='rabatt').reduce((s,w)=>s+(w.vorteil||0),0);
+  const totalDiscount=mWith.filter(w=>isDiscountRelevant(w.methode)).reduce((s,w)=>s+(w.vorteil||0),0);
   const totalMarket=mWith.filter(w=>w.methode==='marktwert').reduce((s,w)=>s+(w.vorteil||0),0);
   const totalEk=mWith.filter(w=>w.methode==='ek').reduce((s,w)=>s+(w.vorteil||0),0);
   // ── STILLER INTEGRITÄTSCHECK ── kein UI, nur console.warn
@@ -5814,7 +5906,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
     wList:mWith.filter(w=>w.person===p.id),
     mTotal:mMeals.filter(m=>m.person===p.id).reduce((s,m)=>s+(m.vorteil||0),0),
     wTotal:mWith.filter(w=>w.person===p.id).reduce((s,w)=>s+(w.vorteil||0),0),
-    wRabatt:mWith.filter(w=>w.person===p.id&&w.methode==='rabatt').reduce((s,w)=>s+(w.vorteil||0),0),
+    wRabatt:mWith.filter(w=>w.person===p.id&&isDiscountRelevant(w.methode)).reduce((s,w)=>s+(w.vorteil||0),0),
     wMarkt:mWith.filter(w=>w.person===p.id&&w.methode==='marktwert').reduce((s,w)=>s+(w.vorteil||0),0),
     wEk:mWith.filter(w=>w.person===p.id&&w.methode==='ek').reduce((s,w)=>s+(w.vorteil||0),0),
   }));
@@ -5857,7 +5949,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
           datum:cv(w.datum),person:cv(personName(w.person)),
           artikel:cv(w.artikel),ean:cv(w.ean||''),
           menge:parseFloat(w.menge)||1,einheit:cv(w.einheit),
-          methode:w.methode==='rabatt'?'Warenrabatt':w.methode==='marktwert'?'Marktwert':'EK+Handling',
+          methode:w.methode==='rabatt'?'Warenrabatt':w.methode==='gast'?'Gäste-VK':w.methode==='marktwert'?'Marktwert':'EK+Handling',
           bewertungBrutto:brutto,
           bewertungNetto:calcNetFromGross(brutto,ust),
           ustSatz:ust,
@@ -5865,6 +5957,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
           basis:{
             vkBrutto:w.methode==='rabatt'?(parseFloat(w.vk)||0):null,
             employeePriceBrutto:w.methode==='rabatt'?(parseFloat(w.mp)||0):null,
+            gaesteVP:w.methode==='gast'?(parseFloat(w.gaesteVP)||0):null,
             ekBrutto:w.methode==='ek'?(parseFloat(w.ekBrutto)||0):null,
             handlingRatePct:w.methode==='ek'?Math.round((parseFloat(w.handlingRate)||0.15)*100):null,
             marketValuePerUnitBrutto:w.methode==='marktwert'?(parseFloat(w.mvWert)||0):null,
@@ -5953,9 +6046,10 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
       const netto=calcNetFromGross(brutto,ust);
       const pf=buildPlausibilityFlags(w);
       const isRabatt=w.methode==='rabatt';
+      const isGast=w.methode==='gast';
       const isMarkt=w.methode==='marktwert';
       const isEk=w.methode==='ek';
-      const methLabel=isRabatt?'Warenrabatt':isMarkt?'Marktwert':'EK+Handling';
+      const methLabel=isRabatt?'Warenrabatt':isGast?'Gäste-VK':isMarkt?'Marktwert':'EK+Handling';
       rows.push([
         cv(w.datum),                                       // datum (ISO)
         cv(personName(w.person)),                          // person
@@ -5969,7 +6063,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
         cn(netto),                                         // bewertungNetto
         String(ust),                                       // ustSatz
         cb(isDiscountRelevant(w.methode)),                 // rabattfreibetragRelevant TRUE/FALSE
-        isRabatt?cn(w.vk||0):'',                          // basis_vkBrutto
+        isRabatt?cn(w.vk||0):isGast?cn(w.gaesteVP||0):'',  // basis_vkBrutto / gaesteVP
         isRabatt?cn(w.mp||0):'',                          // basis_employeePriceBrutto
         isEk?cn(w.ekBrutto||0):'',                        // basis_ekBrutto
         isEk?cp(w.handlingRate||0.15):'',                 // basis_handlingRatePct (nur Zahl, kein %)
@@ -6193,7 +6287,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
           const netto=calcNetFromGross(brutto,ust);
           const pf=buildPlausibilityFlags(w);
           const basisTxt=getBasisText(w);
-          const methKurz=w.methode==='rabatt'?'Warenrabatt':w.methode==='marktwert'?'Marktwert':'EK+Handling';
+          const methKurz=w.methode==='rabatt'?'Warenrabatt':w.methode==='gast'?'Gäste-VK':w.methode==='marktwert'?'Marktwert':'EK+Handling';
 
           txt(w.datum,DC[0],y);
           // Artikel kürzen (max 14 Zeichen für die schmälere Spalte)
@@ -6204,7 +6298,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
           txt(`${w.menge||1} ${w.einheit||''}`,DC[3],y);
           txt(methKurz,DC[4],y);
           // Basis als Kurzform in Spalte, volle Basis als Unterzeile
-          const basisKurz=w.methode==='rabatt'?'VK/MP':w.methode==='marktwert'?w.kat||'Kat.':'EK+%';
+          const basisKurz=w.methode==='rabatt'?'VK/MP':w.methode==='gast'?'VP×0,96':w.methode==='marktwert'?w.kat||'Kat.':'EK+%';
           txt(basisKurz,DC[5],y);
           txt(`${fc(brutto)} EUR`,DC[6],y);
           txt(`${fc(netto)} EUR`,DC[7],y);
@@ -6247,6 +6341,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
     doc.setFontSize(7);doc.setFont('helvetica','normal');
     const logik=[
       'Warenrabatt (Freibetrag): Gilt nur wenn ein tatsaechlicher VK/UVP bekannt ist. Vorteil = VK minus Mitarbeiterpreis. Jahresfreibetrag 1.080 EUR pro Person.',
+      'Gaeste-VK (Freibetrag): Fuer Produkte die identisch an Gaeste verkauft werden (§8 Abs.3 EStG). Vorteil = Gaeste-VP x 0,96 x Menge. Zaehlt ebenfalls zum 1.080 EUR Jahresfreibetrag.',
       'Marktwert: Gilt fuer Roh- und Lagerware ohne bekannten UVP. Bewertung nach Kategorie-Referenzwert oder manuellem Override. Kein Jahresfreibetrag.',
       'EK+Handling: Nur als Ausnahme wenn weder VK/UVP noch plausibler Marktwert ermittelbar. Formel: EK-Preis x (1 + Handling-Rate). Wird im Export gekennzeichnet.',
       'Restaurant- und Dienstleistungspreise sind keine zulaessige Bewertungsbasis fuer Warenmitnahmen.',

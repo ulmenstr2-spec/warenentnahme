@@ -5179,14 +5179,10 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
     }
   };
 
-  // ── JAHRESSTAND
+  // ── JAHRESSTAND (strikt pro Kalenderjahr, Attribution per datum.slice(0,4))
+  // yr = immer das aktuelle Kalenderjahr (cm = mKey(today), niemals Abrechnungszeitraum)
   const yr=cm.slice(0,4);
-  const yearRabatt=withdrawals
-    .filter(w=>w.datum?.slice(0,4)===yr&&isDiscountRelevant(w.methode))
-    .reduce((s,w)=>s+(w.vorteil||0),0);
-  const FREI=GMBH_RABATT_FREIBETRAG;
-  const remaining=Math.max(0,FREI-yearRabatt);
-  const exceeded=Math.max(0,yearRabatt-FREI);
+  const personYrRabatt=gmbhRabattByPerson(withdrawals,persons,yr);
 
   // ── ENTRIES THIS PERIOD
   const sk=curPeriod?.sk||cm+'-01';
@@ -5260,19 +5256,24 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
           );
         })()}
 
-        {/* ── JAHRESSTAND */}
-        {yearRabatt>0&&(
+        {/* ── JAHRESSTAND pro Person (Kalenderjahr = datum.slice(0,4)) */}
+        {personYrRabatt.some(p=>p.yearRabatt>0)&&(
           <div style={{marginBottom:14}}>
-            <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'var(--t2)',marginBottom:4}}>
-              <span>Warenrabatt {yr} — Freibetrag</span>
-              <span style={{fontWeight:600,color:exceeded>0?'var(--red)':'var(--text)'}}>{fN(yearRabatt)} / 1.080,00 €</span>
-            </div>
-            <div style={{height:5,borderRadius:3,background:'var(--border)',overflow:'hidden'}}>
-              <div style={{height:'100%',width:`${Math.min(100,yearRabatt/FREI*100)}%`,
-                background:exceeded>0?'var(--red)':'var(--gruen)',borderRadius:3,transition:'width .4s'}}/>
-            </div>
-            {exceeded>0&&<div style={{fontSize:10,color:'var(--red)',marginTop:3}}>Freibetrag überschritten um {fN(exceeded)} €</div>}
-            {exceeded===0&&<div style={{fontSize:10,color:'var(--t3)',marginTop:3}}>Verbleibend: {fN(remaining)} €</div>}
+            <div style={{fontSize:11,color:'var(--t3)',marginBottom:6,fontWeight:600}}>Warenrabatt {yr} — Freibetrag je Person</div>
+            {personYrRabatt.filter(p=>p.yearRabatt>0).map(p=>(
+              <div key={p.id} style={{marginBottom:8}}>
+                <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'var(--t2)',marginBottom:3}}>
+                  <span>{p.name}</span>
+                  <span style={{fontWeight:600,color:p.exceeded>0?'var(--red)':'var(--text)'}}>{fN(p.yearRabatt)} / 1.080,00 €</span>
+                </div>
+                <div style={{height:5,borderRadius:3,background:'var(--border)',overflow:'hidden'}}>
+                  <div style={{height:'100%',width:`${Math.min(100,p.yearRabatt/GMBH_RABATT_FREIBETRAG*100)}%`,
+                    background:p.exceeded>0?'var(--red)':'var(--gruen)',borderRadius:3,transition:'width .4s'}}/>
+                </div>
+                {p.exceeded>0&&<div style={{fontSize:10,color:'var(--red)',marginTop:2}}>Überschreitung: {fN(p.exceeded)} €</div>}
+                {p.exceeded===0&&<div style={{fontSize:10,color:'var(--t3)',marginTop:2}}>Verbleibend: {fN(p.remaining)} €</div>}
+              </div>
+            ))}
           </div>
         )}
 
@@ -5880,7 +5881,13 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
   const[editName,setEditName]=useState(null);
   const[editFirmaMode,setEditFirmaMode]=useState(false);
   const renamePerson=(id,name)=>{const ps=persons.map(p=>p.id===id?{...p,name:name.trim()||p.name}:p);setPersons(ps);gmbhSavePersons(ps);};
+  // yr = Kalenderjahr des Perioden-Starts (für Labels und YTD-Filterung)
+  // Wichtig: Zuordnung jeder Entnahme zum Freibetrag-Konto via datum.slice(0,4),
+  // NICHT über den Abrechnungszeitraum. Perioden können Jahresgrenzen überschreiten.
   const yr=(sel?.sk||now.getFullYear().toString()).slice(0,4);
+  // Erkennung Jahresgrenz-Periode (z.B. 20.12.–19.01.)
+  const yr2=sel?.ek?.slice(0,4)||yr;
+  const isCrossYear=yr!==yr2;
 
   const mMeals=sel?meals.filter(m=>m.datum>=sel.sk&&m.datum<=sel.ek):[];
   const mWith=sel?withdrawals.filter(w=>w.datum>=sel.sk&&w.datum<=sel.ek):[];
@@ -5898,7 +5905,10 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
   },[totalDiscount,totalMarket,totalEk,totalWith,sel]);
 
   const personName=id=>persons.find(p=>p.id===id)?.name||id;
+  // Freibetrag-Jahresstand: pro Kalenderjahr je Person (datum.slice(0,4), kein Carry-over)
   const personRabatt=gmbhRabattByPerson(withdrawals,persons,yr);
+  // Bei Jahresgrenz-Periode: Freibetrag-Stand auch für Folgejahr anzeigen
+  const personRabatt2=isCrossYear?gmbhRabattByPerson(withdrawals,persons,yr2):null;
 
   const byPerson=persons.filter(p=>p.aktiv).map(p=>({
     ...p,
@@ -6213,31 +6223,39 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
     y+=8;
 
     // ── 4. JAHRESÜBERSICHT JE PERSON (YTD) ──────────────────────
-    safeY(240);
-    doc.setFontSize(8.5);doc.setFont('helvetica','bold');
-    txt(`Jahresuebersicht ${yr} je Person (YTD)`,ML,y);y+=5;
-    hline(y,GREEN);y+=3;
-
-    const YC=[ML+2,ML+42,ML+72,ML+102,ML+132,ML+162];
-    doc.setFontSize(6.5);doc.setTextColor(...GRAY);
-    ['Person','Sachbezug','Warenrabatt','Marktwert','EK+Handling','Freibetrag Rest'].forEach((h,i)=>txt(h,YC[i],y));
-    y+=4;hline(y,LGRAY);y+=3;
-    doc.setTextColor(...BLACK);doc.setFont('helvetica','normal');doc.setFontSize(7);
-    ytdByPerson.forEach(p=>{
-      safeY();
-      txt(p.name,YC[0],y);
-      txt(fc(p.sachbezug),YC[1],y);
-      txt(fc(p.rabatt),YC[2],y);
-      txt(fc(p.markt),YC[3],y);
-      txt(fc(p.ek),YC[4],y);
-      doc.setFont('helvetica','bold');
-      const restCol=p.freibetragRest<=0?AMBER:GREEN;
-      doc.setTextColor(...restCol);
-      txt(fc(p.freibetragRest),YC[5],y);
-      doc.setTextColor(...BLACK);doc.setFont('helvetica','normal');
+    // Attribution: per datum.slice(0,4), strikt Kalenderjahr, kein Carry-over
+    const renderYtdTable=(ytdRows,yrLabel)=>{
+      safeY(240);
+      doc.setFontSize(8.5);doc.setFont('helvetica','bold');
+      txt(`Jahresuebersicht ${yrLabel} je Person (YTD)`,ML,y);y+=5;
+      hline(y,GREEN);y+=3;
+      const YC=[ML+2,ML+42,ML+72,ML+102,ML+132,ML+162];
+      doc.setFontSize(6.5);doc.setTextColor(...GRAY);
+      ['Person','Sachbezug','Warenrabatt','Marktwert','EK+Handling','Freibetrag Rest'].forEach((h,i)=>txt(h,YC[i],y));
+      y+=4;hline(y,LGRAY);y+=3;
+      doc.setTextColor(...BLACK);doc.setFont('helvetica','normal');doc.setFontSize(7);
+      ytdRows.forEach(p=>{
+        safeY();
+        txt(p.name,YC[0],y);
+        txt(fc(p.sachbezug),YC[1],y);
+        txt(fc(p.rabatt),YC[2],y);
+        txt(fc(p.markt),YC[3],y);
+        txt(fc(p.ek),YC[4],y);
+        doc.setFont('helvetica','bold');
+        const restCol=p.freibetragRest<=0?AMBER:GREEN;
+        doc.setTextColor(...restCol);
+        txt(fc(p.freibetragRest),YC[5],y);
+        doc.setTextColor(...BLACK);doc.setFont('helvetica','normal');
+        y+=5;
+      });
       y+=5;
-    });
-    y+=5;
+    };
+    renderYtdTable(ytdByPerson,yr);
+    // Bei Jahresgrenz-Periode: zweite Tabelle für Folgejahr
+    if(isCrossYear){
+      const ytdByPerson2=buildYtdByPerson(withdrawals,meals,persons,yr2);
+      renderYtdTable(ytdByPerson2,yr2);
+    }
 
     // ── 5. DETAIL-POSITIONEN JE PERSON ──────────────────────────
     byPerson.forEach(p=>{
@@ -6640,18 +6658,23 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
           </>);
         })()}
 
-        <div className="sec">Warenrabatt {yr} — Jahresstand pro Person</div>
-        {personRabatt.map(p=>(
-          <div key={p.id} className="card" style={{padding:'12px 14px',marginBottom:6}}>
-            <div style={{display:'flex',justifyContent:'space-between',marginBottom:6,fontSize:13}}>
-              <span style={{fontWeight:500}}>{p.name}</span>
-              <span style={{fontWeight:700}}>{fN(p.yearRabatt)} € <span style={{fontWeight:400,color:'var(--t2)',fontSize:11}}>/ 1.080,00 €</span></span>
-            </div>
-            <div style={{height:5,borderRadius:3,background:'var(--border)',overflow:'hidden'}}>
-              <div style={{height:'100%',width:`${Math.min(100,p.yearRabatt/GMBH_RABATT_FREIBETRAG*100)}%`,background:p.exceeded>0?'var(--red)':'var(--gruen)',borderRadius:3}}/>
-            </div>
-            {p.exceeded>0&&<div style={{fontSize:11,color:'var(--red)',marginTop:4,fontWeight:600}}>Freibetrag überschritten um {fN(p.exceeded)} €</div>}
-            {p.exceeded===0&&<div style={{fontSize:11,color:'var(--t2)',marginTop:4}}>Verbleibend: {fN(p.remaining)} €</div>}
+        {/* Freibetrag-Jahresstand: Attribution per Entnahme-Datum, strikt Kalenderjahr */}
+        {[{label:`Warenrabatt ${yr} — Jahresstand je Person`,data:personRabatt},...(isCrossYear&&personRabatt2?[{label:`Warenrabatt ${yr2} — Jahresstand je Person`,data:personRabatt2}]:[])].map(({label,data})=>(
+          <div key={label}>
+            <div className="sec">{label}</div>
+            {data.map(p=>(
+              <div key={p.id} className="card" style={{padding:'12px 14px',marginBottom:6}}>
+                <div style={{display:'flex',justifyContent:'space-between',marginBottom:6,fontSize:13}}>
+                  <span style={{fontWeight:500}}>{p.name}</span>
+                  <span style={{fontWeight:700}}>{fN(p.yearRabatt)} € <span style={{fontWeight:400,color:'var(--t2)',fontSize:11}}>/ 1.080,00 €</span></span>
+                </div>
+                <div style={{height:5,borderRadius:3,background:'var(--border)',overflow:'hidden'}}>
+                  <div style={{height:'100%',width:`${Math.min(100,p.yearRabatt/GMBH_RABATT_FREIBETRAG*100)}%`,background:p.exceeded>0?'var(--red)':'var(--gruen)',borderRadius:3}}/>
+                </div>
+                {p.exceeded>0&&<div style={{fontSize:11,color:'var(--red)',marginTop:4,fontWeight:600}}>Freibetrag überschritten um {fN(p.exceeded)} €</div>}
+                {p.exceeded===0&&<div style={{fontSize:11,color:'var(--t2)',marginTop:4}}>Verbleibend: {fN(p.remaining)} €</div>}
+              </div>
+            ))}
           </div>
         ))}
 

@@ -25,6 +25,10 @@
 
 
 <script>
+// ── BUILD-INFO (Platzhalter werden beim Deploy ersetzt) ───
+window.__APP_BUILD__ = '__BUILD_ID__';
+window.__APP_BUILD_DATE__ = '__BUILD_DATE__';
+
 // ── SERVICE WORKER ────────────────────────────────────────
 window.__swReg = null;
 if('serviceWorker' in navigator){
@@ -954,18 +958,42 @@ function App(){
   // Legacy: syncPin für Abwärtskompatibilität (wird ignoriert wenn authToken gesetzt)
   const syncPin = authToken ? authEmail : '';
 
+  // ── GmbH-Nebendaten aus localStorage (Gäste-Flags, Kategorie-Overrides, Favoriten, Marktwerte)
+  const gmbhExtras=()=>{
+    const g=k=>{try{return JSON.parse(localStorage.getItem(k)||'null');}catch{return null;}};
+    return{gmbhArtikelFlags:g('gmbh_artikel_flags'),gmbhCatOverrides:g('gmbh_category_overrides'),
+      gmbhFavIds:g('gmbh_favs'),gmbhMarketValues:g('gmbh_market_values')};
+  };
+  const applyGmbhExtras=d=>{
+    if(!d)return;
+    const merge=(k,v)=>{
+      if(v==null)return;
+      let cur=null;try{cur=JSON.parse(localStorage.getItem(k)||'null');}catch{}
+      const next=Array.isArray(v)
+        ?[...new Set([...(Array.isArray(cur)?cur:[]),...v])]
+        :(cur&&typeof cur==='object'?{...cur,...v}:v);
+      localStorage.setItem(k,JSON.stringify(next));
+    };
+    merge('gmbh_artikel_flags',d.gmbhArtikelFlags);
+    merge('gmbh_category_overrides',d.gmbhCatOverrides);
+    merge('gmbh_favs',d.gmbhFavIds);
+    // Marktwert-Tabelle: Server-Stand übernehmen (Einstellungs-Charakter)
+    if(d.gmbhMarketValues!=null)localStorage.setItem('gmbh_market_values',JSON.stringify(d.gmbhMarketValues));
+  };
+
   const buildPayload=()=>({
     v:2,
     ts:new Date().toISOString(),
     rechtsform,
     ents,meals,hh,favs,
     periodDay,
-    gmbhMeals,gmbhWithdrawals,gmbhPersons
+    gmbhMeals,gmbhWithdrawals,gmbhPersons,
+    ...gmbhExtras()
   });
 
   // ── BACKUP & RESTORE (App-Ebene, werden als Props an ImportTab übergeben)
   const backupData=()=>{
-    const data={version:2,date:new Date().toISOString(),rechtsform,arts,ents,meals,hh,favs,gmbhMeals,gmbhWithdrawals,gmbhPersons};
+    const data={version:2,date:new Date().toISOString(),rechtsform,arts,ents,meals,hh,favs,gmbhMeals,gmbhWithdrawals,gmbhPersons,...gmbhExtras()};
     const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
@@ -991,6 +1019,7 @@ function App(){
         if(d.gmbhWithdrawals)setGmbhWithdrawals(d.gmbhWithdrawals);
         if(d.gmbhPersons)setGmbhPersons(d.gmbhPersons);
         if(d.rechtsform)setRechtsform(d.rechtsform);
+        applyGmbhExtras(d); // Gäste-Flags, Kategorie-Overrides, Favoriten, Marktwerte
         showT('✓ Backup wiederhergestellt');
       }catch(ex){showT('❌ '+ex.message);}
     };
@@ -1103,6 +1132,7 @@ function App(){
           if(d.periodDay&&d.periodDay!==1)setPeriodDay(d.periodDay);
           if(d.gmbhPersons?.length)setGmbhPersons(d.gmbhPersons);
           if(d.rechtsform)setRechtsform(d.rechtsform);
+          applyGmbhExtras(d); // Gäste-Flags, Kategorie-Overrides, Favoriten, Marktwerte
         }
         const ts=new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
         setSyncLastAt(ts);
@@ -1256,7 +1286,7 @@ function App(){
       `---\n` +
       `(Mein Feedback)\n\n\n` +
       `---\n` +
-      `App-Version: 1.1-beta\n` +
+      `App-Version: ${window.__APP_BUILD__&&!window.__APP_BUILD__.startsWith('__')?`${window.__APP_BUILD_DATE__} (${window.__APP_BUILD__.slice(0,7)})`:'lokal'}\n` +
       `Artikel: ${arts_count}, Einträge: ${ents_count}\n` +
       `Gerät: ${navigator.userAgent.slice(0,60)}\n`
     );
@@ -2085,6 +2115,13 @@ function App(){
         <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
       </svg>
     </button>
+
+    {/* ── VERSIONSANZEIGE ── */}
+    <div style={{textAlign:'center',fontSize:10,color:'var(--t3)',padding:'10px 0 6px',opacity:.75}}>
+      {window.__APP_BUILD__&&!window.__APP_BUILD__.startsWith('__')
+        ?`Version ${window.__APP_BUILD_DATE__} · ${window.__APP_BUILD__.slice(0,7)}`
+        :'Lokale Entwicklungsversion'}
+    </div>
 
     <nav className="nav">
       {TABS.map(([id,lbl,ic])=>(
@@ -4426,6 +4463,18 @@ const GMBH_DEFAULT_MV = [
   { kat:'Sonstiges',       einheit:'kg', wert:3.00, mwst:7  },
 ];
 
+// ── JAHRESWECHSEL-CHECK: Warnung wenn hinterlegte BMF-Werte veraltet sind
+function GmbhJahrHinweis({jahr}){
+  if(!(jahr>GMBH_SACHBEZUG_JAHR))return null;
+  return(
+    <div style={{background:'rgba(240,180,58,.12)',border:'1px solid rgba(240,180,58,.4)',
+      borderRadius:10,padding:'10px 12px',marginBottom:12,fontSize:12,lineHeight:1.5}}>
+      ⚠ <strong>Werte prüfen:</strong> Sachbezugswerte und Freibetrag sind für {GMBH_SACHBEZUG_JAHR} hinterlegt,
+      aktuell ist {jahr}. Die BMF-Werte ändern sich jährlich — bitte App-Update einspielen, sonst wird mit veralteten Beträgen gerechnet.
+    </div>
+  );
+}
+
 // ── PER-PRODUKT FLAG: "Wird an Gäste verkauft?"
 function gmbhLoadArtikelFlags(){try{return JSON.parse(localStorage.getItem('gmbh_artikel_flags')||'{}');}catch{return{};}}
 function gmbhSaveArtikelFlags(f){localStorage.setItem('gmbh_artikel_flags',JSON.stringify(f));}
@@ -4631,6 +4680,7 @@ function GmbhHomeTab({meals,withdrawals,persons,now,setTab,curPeriod}){
         <div className="hdr-title">Über<em>sicht</em></div>
       </div>
       <div className="cnt">
+        <GmbhJahrHinweis jahr={parseInt(cm.slice(0,4))}/>
         <div className="hero">
           <div className="hero-lbl">Steuerwert Personalessen {cm.slice(5)}/{cm.slice(0,4)}</div>
           <div className="hero-amt">{fN(totalMeals+totalWith)}<sup> €</sup></div>
@@ -4740,10 +4790,11 @@ function GmbhMealsTab({meals,setMeals,persons,cd,cm,curPeriod}){
   return(
     <div>
       <div className="hdr">
-        <div className="hdr-eye">GmbH Sachbezug 2026</div>
+        <div className="hdr-eye">GmbH Sachbezug {GMBH_SACHBEZUG_JAHR}</div>
         <div className="hdr-title">Mahl<em>zeiten</em></div>
       </div>
       <div className="cnt">
+        <GmbhJahrHinweis jahr={parseInt(cm.slice(0,4))}/>
         <div className="hero">
           <div className="hero-lbl">Steuerwert Personalessen {cm.slice(5)}/{cm.slice(0,4)}</div>
           <div className="hero-amt">{fN(total)}<sup> €</sup></div>
@@ -5107,6 +5158,18 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
   if(form.methode==='marktwert'&&(form.einheit==='stk'||form.einheit==='Stk')&&
     (form.kat==='Gemüse'||form.kat==='Obst'||form.kat==='Fleisch'||form.kat==='Fisch'))
     warnings.push('Einheit prüfen: '+form.kat+' wird üblicherweise in kg erfasst.');
+  // Freibetrag-Überschreitung live prüfen (Kalenderjahr des Eintragsdatums)
+  if(isDiscountRelevant(form.methode)&&form.person&&vorteil>0){
+    const yrE=(form.datum||'').slice(0,4);
+    const bisher=withdrawals
+      .filter(w=>w.datum?.startsWith(yrE)&&w.person===form.person&&isDiscountRelevant(w.methode)&&w.id!==editId)
+      .reduce((s,w)=>s+(w.vorteil||0),0);
+    const danach=bisher+vorteil;
+    if(danach>GMBH_RABATT_FREIBETRAG)
+      warnings.push(`⚠ Mit diesem Eintrag überschreitet ${personName(form.person)} den Jahres-Freibetrag (${fN(GMBH_RABATT_FREIBETRAG)} €) um ${fN(danach-GMBH_RABATT_FREIBETRAG)} € — der übersteigende Betrag ist lohnsteuerpflichtig.`);
+    else if(danach>GMBH_RABATT_FREIBETRAG*0.9)
+      warnings.push(`Hinweis: Nach diesem Eintrag verbleiben ${personName(form.person)} noch ${fN(GMBH_RABATT_FREIBETRAG-danach)} € Freibetrag für ${yrE}.`);
+  }
 
   // ── SAVE / UPDATE
   const add=()=>{
@@ -5116,7 +5179,11 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
     const entry={
       id:editId||'gw_'+Date.now(),datum:form.datum,monat:form.datum.slice(0,7),
       person:form.person,artikel:form.artikel,artId:form.artId||null,
-      ean:curArt?.eans?.[0]||null,menge:parseFloat(form.menge)||1,
+      ean:curArt?.eans?.[0]||null,
+      // Marktwert: Menge auf MV-Einheit normalisieren (500 g → 0.5 kg), sonst Original
+      menge:form.methode==='marktwert'
+        ?normalizeMenge(parseFloat(form.menge)||1,form.einheit,curMV.einheit)
+        :(parseFloat(form.menge)||1),
       einheit:form.methode==='marktwert'?curMV.einheit:form.einheit,
       mwst:parseInt(form.mwst)||7,methode:form.methode,
       kat:form.methode==='marktwert'?form.kat:null,
@@ -5212,6 +5279,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
     const mv=mvList.find(m=>m.kat===kat)||mvList[0];
     const mengeNorm=normalizeMenge(parseFloat(w.menge)||1,w.einheit,mv.einheit);
     const e={...w,methode:'marktwert',kat,mvWert:mv.wert,vk:null,mp:null,
+      menge:mengeNorm,einheit:mv.einheit,
       vorteil:roundCurrency(mv.wert*mengeNorm),updatedAt:new Date().toISOString()};
     e.evaluationTrace=buildEvaluationTrace(e);
     return e;
@@ -5314,6 +5382,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
         <div className="hdr-title">Waren<em>mitnahme</em></div>
       </div>
       <div className="cnt">
+        <GmbhJahrHinweis jahr={parseInt(cm.slice(0,4))}/>
 
         {/* ── HEUTE-WIDGET: Warenmitnahmen heute */}
         {(()=>{

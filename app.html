@@ -922,6 +922,20 @@ function App(){
   const[ents,setEnts]=useSt('gt_ents',[]);
   const[meals,setMeals]=useSt('gt_meals',[]);
   const[favs,setFavs]=useSt('gt_favs',[]);
+
+  // rechtsform: 'eu' = Einzelunternehmen/PG, 'gmbh' = GmbH/UG
+  // WICHTIG: GmbH-State muss VOR buildPayload/Sync-Effekten deklariert sein —
+  // sonst TDZ-Fehler ("Cannot access before initialization") im kompilierten Code
+  const[rechtsform,setRechtsform]=useSt('gt_rechtsform','eu');
+  const[gmbhMeals,setGmbhMeals]=useSt('gmbh_meals',[]);
+  const[gmbhWithdrawals,setGmbhWithdrawals]=useSt('gmbh_withdrawals',[]);
+  const[gmbhPersons,setGmbhPersons]=useSt('gmbh_persons',[{id:'gf1',name:'Gesellschafter-Geschäftsführer',aktiv:true}]);
+  const[pendingGmbhArt,setPendingGmbhArt]=useState(null);
+  // Migration: gmbh_firma wurde früher als raw string gespeichert, jetzt als JSON
+  // Einmalig beim ersten Laden konvertieren, damit useSt es lesen kann
+  try{const _f=localStorage.getItem('gmbh_firma');if(_f&&!_f.startsWith('"'))localStorage.setItem('gmbh_firma',JSON.stringify(_f));}catch{}
+  const[gmbhFirma,setGmbhFirma]=useSt('gmbh_firma','');
+  const[gmbhPeriodDay,setGmbhPeriodDay]=useSt('gmbh_periodDay',20);
   // Haushalt: Inhaber + optionale Personen
   const[periodDay,setPeriodDay]=useSt('gt_periodDay',1);
   // Debug: periodDay beim Start loggen
@@ -1416,20 +1430,6 @@ function App(){
     const done=localStorage.getItem('gt_onb_done');
     return (!done)?0:-1;
   });
-  // rechtsform: 'eu' = Einzelunternehmen/PG, 'gmbh' = GmbH/UG
-  const[rechtsform,setRechtsform]=useSt('gt_rechtsform','eu');
-
-  // ── GmbH State ──────────────────────────────────────────────
-  const[gmbhMeals,setGmbhMeals]=useSt('gmbh_meals',[]);
-  const[gmbhWithdrawals,setGmbhWithdrawals]=useSt('gmbh_withdrawals',[]);
-  const[gmbhPersons,setGmbhPersons]=useSt('gmbh_persons',[{id:'gf1',name:'Gesellschafter-Geschäftsführer',aktiv:true}]);
-  const[pendingGmbhArt,setPendingGmbhArt]=useState(null);
-  // Migration: gmbh_firma wurde früher als raw string gespeichert, jetzt als JSON
-  // Einmalig beim ersten Laden konvertieren, damit useSt es lesen kann
-  try{const _f=localStorage.getItem('gmbh_firma');if(_f&&!_f.startsWith('"'))localStorage.setItem('gmbh_firma',JSON.stringify(_f));}catch{}
-  const[gmbhFirma,setGmbhFirma]=useSt('gmbh_firma','');
-  const[gmbhPeriodDay,setGmbhPeriodDay]=useSt('gmbh_periodDay',20);
-
   // GmbH-Abrechnungsperiode — MUSS gmbhPeriodDay nutzen (gleiche Einstellung
   // wie der GmbH-Bericht), nicht das periodDay des EU-Modus. Sonst zeigen
   // Übersicht/Mahlzeiten/Mitnahmen einen anderen Zeitraum als der Bericht.

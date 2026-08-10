@@ -986,14 +986,14 @@ function App(){
     ts:new Date().toISOString(),
     rechtsform,
     ents,meals,hh,favs,
-    periodDay,
+    periodDay,gmbhPeriodDay,
     gmbhMeals,gmbhWithdrawals,gmbhPersons,
     ...gmbhExtras()
   });
 
   // ── BACKUP & RESTORE (App-Ebene, werden als Props an ImportTab übergeben)
   const backupData=()=>{
-    const data={version:2,date:new Date().toISOString(),rechtsform,arts,ents,meals,hh,favs,gmbhMeals,gmbhWithdrawals,gmbhPersons,...gmbhExtras()};
+    const data={version:2,date:new Date().toISOString(),rechtsform,arts,ents,meals,hh,favs,periodDay,gmbhPeriodDay,gmbhMeals,gmbhWithdrawals,gmbhPersons,...gmbhExtras()};
     const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
@@ -1019,6 +1019,8 @@ function App(){
         if(d.gmbhWithdrawals)setGmbhWithdrawals(d.gmbhWithdrawals);
         if(d.gmbhPersons)setGmbhPersons(d.gmbhPersons);
         if(d.rechtsform)setRechtsform(d.rechtsform);
+        if(d.periodDay)setPeriodDay(d.periodDay);
+        if(d.gmbhPeriodDay)setGmbhPeriodDay(d.gmbhPeriodDay);
         applyGmbhExtras(d); // Gäste-Flags, Kategorie-Overrides, Favoriten, Marktwerte
         showT('✓ Backup wiederhergestellt');
       }catch(ex){showT('❌ '+ex.message);}
@@ -1130,6 +1132,7 @@ function App(){
           if(d.hh)setHH(d.hh);
           if(d.favs?.length)setFavs(d.favs);
           if(d.periodDay&&d.periodDay!==1)setPeriodDay(d.periodDay);
+          if(d.gmbhPeriodDay)setGmbhPeriodDay(d.gmbhPeriodDay);
           if(d.gmbhPersons?.length)setGmbhPersons(d.gmbhPersons);
           if(d.rechtsform)setRechtsform(d.rechtsform);
           applyGmbhExtras(d); // Gäste-Flags, Kategorie-Overrides, Favoriten, Marktwerte
@@ -1427,6 +1430,18 @@ function App(){
   const[gmbhFirma,setGmbhFirma]=useSt('gmbh_firma','');
   const[gmbhPeriodDay,setGmbhPeriodDay]=useSt('gmbh_periodDay',20);
 
+  // GmbH-Abrechnungsperiode — MUSS gmbhPeriodDay nutzen (gleiche Einstellung
+  // wie der GmbH-Bericht), nicht das periodDay des EU-Modus. Sonst zeigen
+  // Übersicht/Mahlzeiten/Mitnahmen einen anderen Zeitraum als der Bericht.
+  const gmbhCurPeriod=useMemo(()=>{
+    const d=gmbhPeriodDay||1;
+    let start=new Date(now.getFullYear(),now.getMonth(),d);
+    if(start>now) start=new Date(start.getFullYear(),start.getMonth()-1,d);
+    const end=new Date(start.getFullYear(),start.getMonth()+1,d-1);
+    const dStr=x=>`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;
+    return{sk:dStr(start),ek:dStr(end)};
+  },[gmbhPeriodDay,now.toDateString()]);
+
   // ── MODUS-WECHSEL: Transiente States zurücksetzen ────────
   // Verhindert, dass EU-Modal oder GmbH-Pending-Artikel
   // beim Wechsel EU↔GmbH "überleben".
@@ -1464,9 +1479,9 @@ function App(){
     </div>}
     { rechtsform==='gmbh'
         ? <>
-        {tab==='home'&&<GmbhHomeTab meals={gmbhMeals} withdrawals={gmbhWithdrawals} persons={gmbhPersons} now={dKey(now)} setTab={setTab} curPeriod={curPeriod}/>}
-        {tab==='meals'&&<GmbhMealsTab meals={gmbhMeals} setMeals={setGmbhMeals} persons={gmbhPersons} cd={cd} cm={cm} curPeriod={curPeriod}/>}
-        {tab==='add'&&<GmbhWithdrawTab withdrawals={gmbhWithdrawals} setWithdrawals={setGmbhWithdrawals} persons={gmbhPersons} arts={arts} cd={cd} cm={cm} curPeriod={curPeriod} pendingArt={pendingGmbhArt} clearPendingArt={()=>setPendingGmbhArt(null)}/>}
+        {tab==='home'&&<GmbhHomeTab meals={gmbhMeals} withdrawals={gmbhWithdrawals} persons={gmbhPersons} now={dKey(now)} setTab={setTab} curPeriod={gmbhCurPeriod}/>}
+        {tab==='meals'&&<GmbhMealsTab meals={gmbhMeals} setMeals={setGmbhMeals} persons={gmbhPersons} cd={cd} cm={cm} curPeriod={gmbhCurPeriod}/>}
+        {tab==='add'&&<GmbhWithdrawTab withdrawals={gmbhWithdrawals} setWithdrawals={setGmbhWithdrawals} persons={gmbhPersons} arts={arts} cd={cd} cm={cm} curPeriod={gmbhCurPeriod} pendingArt={pendingGmbhArt} clearPendingArt={()=>setPendingGmbhArt(null)}/>}
         {tab==='scan'&&<ScanTab arts={arts} eanIndex={eanIndex}
           onSel={a=>{setPendingGmbhArt({...a,_fromScan:true});setTab('add');}}
           onNotFound={ean=>{setPendingGmbhArt({_fromScan:true,_notFound:true,_scannedEAN:ean,name:'',id:null});setTab('add');}}
@@ -5268,10 +5283,28 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
 
   // ── MIGRATION: Warenrabatt-Einträge von "Nein"-Artikeln → Marktwert (nur mit Bestätigung)
   const[migrateList,setMigrateList]=useState(null); // null | betroffene Einträge
+  const[migrateSkipped,setMigrateSkipped]=useState(0); // Einträge mit nicht umrechenbarer Einheit
+  // Einheiten-Kompatibilität: gleich oder bekannte Umrechnung (kg↔g, l↔ml/cl)
+  const unitCompatible=(ei,em)=>{
+    const a=(ei||'').toLowerCase().trim(),b=(em||'').toLowerCase().trim();
+    if(!a||!b||a===b)return true;
+    const pairs=[['kg','g'],['l','ml'],['l','cl']];
+    return pairs.some(([x,y])=>(a===x&&b===y)||(a===y&&b===x));
+  };
   useEffect(()=>{
     const flags=gmbhLoadArtikelFlags();
     const affected=withdrawals.filter(w=>w.methode==='rabatt'&&w.artId&&flags[w.artId]===false);
-    if(affected.length>0)setMigrateList(affected);
+    if(!affected.length)return;
+    // Nur Einträge anbieten deren Einheit sich sauber in die MV-Einheit umrechnen lässt
+    // (z.B. NICHT "2 Stk" gegen einen kg-Preis bewerten)
+    const compat=affected.filter(w=>{
+      const art=arts.find(a=>a.id===w.artId)||null;
+      const kat=art?pickKat(art):'Gemüse';
+      const mv=mvList.find(m=>m.kat===kat)||mvList[0];
+      return unitCompatible(w.einheit,mv.einheit);
+    });
+    setMigrateSkipped(affected.length-compat.length);
+    if(compat.length>0)setMigrateList(compat);
   },[]);
   const migrateConvert=w=>{
     const art=arts.find(a=>a.id===w.artId)||null;
@@ -5371,6 +5404,9 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
             <div style={{fontSize:11,color:'var(--t2)',margin:'8px 0 14px',textAlign:'right'}}>
               Summe: <span style={{textDecoration:'line-through'}}>{fN(sumOld)} €</span> → <strong>{fN(sumNeu)} €</strong> · zählt nicht mehr zum Freibetrag
             </div>
+            {migrateSkipped>0&&<div style={{fontSize:11,color:'var(--amber)',marginBottom:12,lineHeight:1.4}}>
+              {migrateSkipped===1?'1 weiterer Eintrag kann':'Weitere '+migrateSkipped+' Einträge können'} wegen der Einheit (z. B. Stück) nicht automatisch umgerechnet werden — bitte manuell bearbeiten.
+            </div>}
             <button className="btn btn-l" style={{width:'100%'}} onClick={runMigration}>Jetzt auf Marktwert umstellen</button>
             <button style={{width:'100%',background:'none',border:'none',color:'var(--t2)',fontSize:12,
               marginTop:10,cursor:'pointer',padding:8}} onClick={()=>setMigrateList(null)}>Später erinnern</button>

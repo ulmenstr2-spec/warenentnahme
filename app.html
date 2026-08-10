@@ -1332,7 +1332,7 @@ function App(){
 
   const addEnt=(art,qty,customPreis,customEinheit)=>{
     const preis=customPreis||art.preis;
-    const einheit=customEinheit||art.einheit;
+    const einheit=customEinheit||pieceEinheit(art.einheit);
     if(editTarget){
       // Bearbeitung: bestehenden Eintrag ersetzen, Datum beibehalten
       setEnts(p=>p.map(e=>e.id===editTarget?{...e,menge:qty,preis,einheit,wert:roundCurrency(preis*qty)}:e));
@@ -4490,6 +4490,20 @@ function GmbhJahrHinweis({jahr}){
   );
 }
 
+// ── GEBINDE-EINHEIT → Entnahme-Einheit
+// BNN-Preislisten liefern Gebinde wie "12 FL 0,7" (Kiste mit 12 Flaschen).
+// Für die Entnahme zählt das Einzelstück: "12 FL 0,7" → "Fl."
+function pieceEinheit(e){
+  if(!e)return e;
+  const s=String(e).trim();
+  const m=s.match(/^\d+\s*(FLA|FL|GLA|GL|DOS|DS|DO|BTL|BT|PKG|PK|STK|ST|KAR|KT|EIM|SCH|TAF|TA|BEC|BE)\b/i);
+  if(!m)return s;
+  const map={FL:'Fl.',FLA:'Fl.',GL:'Glas',GLA:'Glas',DS:'Dose',DO:'Dose',DOS:'Dose',
+    BTL:'Btl.',BT:'Btl.',PK:'Pkg.',PKG:'Pkg.',ST:'Stk',STK:'Stk',
+    KT:'Krt.',KAR:'Krt.',EIM:'Eimer',SCH:'Schale',TA:'Tafel',TAF:'Tafel',BE:'Becher',BEC:'Becher'};
+  return map[m[1].toUpperCase()]||'Stk';
+}
+
 // ── PER-PRODUKT FLAG: "Wird an Gäste verkauft?"
 function gmbhLoadArtikelFlags(){try{return JSON.parse(localStorage.getItem('gmbh_artikel_flags')||'{}');}catch{return{};}}
 function gmbhSaveArtikelFlags(f){localStorage.setItem('gmbh_artikel_flags',JSON.stringify(f));}
@@ -5035,7 +5049,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
     // flag===null → method bleibt null → Formular zeigt die Frage
     setForm(f=>({...f,
       artikel:a.name,artId:a.id,
-      einheit:a.einheit||f.einheit,
+      einheit:pieceEinheit(a.einheit)||f.einheit,
       mwst:a.mwst||f.mwst,
       methode:method,kat,
       vk:a.uvp?String(a.uvp):'',
@@ -5393,7 +5407,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
                 padding:'8px 10px',background:'var(--s2)',borderRadius:8,marginBottom:6,fontSize:12,gap:8}}>
                 <div style={{minWidth:0}}>
                   <div style={{fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{old.artikel}</div>
-                  <div style={{fontSize:10,color:'var(--t3)'}}>{fmtD(old.datum)} · {personName(old.person)} · {old.menge} {old.einheit}</div>
+                  <div style={{fontSize:10,color:'var(--t3)'}}>{fmtD(old.datum)} · {personName(old.person)} · {old.menge} {pieceEinheit(old.einheit)}</div>
                 </div>
                 <div style={{textAlign:'right',fontSize:11,flexShrink:0}}>
                   <span style={{color:'var(--t3)',textDecoration:'line-through'}}>{fN(old.vorteil)} €</span>
@@ -5879,7 +5893,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
                       {w.tagVegan&&<span style={{marginLeft:4,display:'inline-flex',verticalAlign:'middle'}}><Icon name="leaf" size={12} color="var(--gruen)"/></span>}
                     </div>
                     <div className="rm">
-                      {fmtD(w.datum)} · {personName(w.person)} · {w.menge} {w.einheit} · {methLabel[w.methode]||w.methode}
+                      {fmtD(w.datum)} · {personName(w.person)} · {w.menge} {pieceEinheit(w.einheit)} · {methLabel[w.methode]||w.methode}
                     </div>
                   </div>
                   <div className="rr">
@@ -6295,6 +6309,89 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
     triggerDownload(blob,`gmbh-bericht-${sel?.sk||'export'}.csv`);
   };
 
+  const exportXLSX=()=>{
+    if(!sel||!window.XLSX)return;
+    const WB=window.XLSX.utils.book_new();
+    // Mahlzeiten-USt: ab 01.01.2026 → 7 % (Steueränderungsgesetz 2025), davor 19 %
+    const mealUst=d=>d>='2026-01-01'?7:19;
+    const methLbl={rabatt:'Warenrabatt',gast:'Gäste-VK',marktwert:'Marktwert',ek:'EK+Handling'};
+
+    // ── Sheet 1: Warenmitnahmen
+    const wsData=[['Datum','Person','Artikel','Menge','Einheit','Methode','MwSt %','Brutto €','Netto €','USt-Betrag €','Freibetrag-relevant']];
+    mWith.forEach(w=>{
+      const ust=w.mwst||7;
+      const n=calcNetFromGross(w.vorteil||0,ust);
+      wsData.push([w.datum,personName(w.person),w.artikel,w.menge||1,pieceEinheit(w.einheit),
+        methLbl[w.methode]||w.methode,ust,roundCurrency(w.vorteil||0),n,roundCurrency((w.vorteil||0)-n),
+        isDiscountRelevant(w.methode)?'JA':'NEIN']);
+    });
+    const wwb7=roundCurrency(mWith.filter(w=>(w.mwst||7)===7).reduce((s,w)=>s+(w.vorteil||0),0));
+    const wwb19=roundCurrency(mWith.filter(w=>(w.mwst||7)===19).reduce((s,w)=>s+(w.vorteil||0),0));
+    const wwn7=calcNetFromGross(wwb7,7),wwn19=calcNetFromGross(wwb19,19);
+    wsData.push([]);
+    wsData.push(['','','','','','Summe 7%','',wwb7,wwn7,roundCurrency(wwb7-wwn7),'']);
+    wsData.push(['','','','','','Summe 19%','',wwb19,wwn19,roundCurrency(wwb19-wwn19),'']);
+    wsData.push(['','','','','','GESAMT','',roundCurrency(wwb7+wwb19),roundCurrency(wwn7+wwn19),roundCurrency((wwb7-wwn7)+(wwb19-wwn19)),'']);
+    const ws1=window.XLSX.utils.aoa_to_sheet(wsData);
+    ws1['!cols']=[{wch:11},{wch:16},{wch:34},{wch:7},{wch:8},{wch:13},{wch:7},{wch:10},{wch:10},{wch:12},{wch:10}];
+    window.XLSX.utils.book_append_sheet(WB,ws1,'Warenmitnahmen');
+
+    // ── Sheet 2: Mahlzeiten (Sachbezug)
+    if(mMeals.length){
+      const msData=[['Datum','Person','Art','USt %','Brutto €','Netto €','USt-Betrag €']];
+      mMeals.forEach(m=>{
+        const ust=mealUst(m.datum);
+        const n=calcNetFromGross(m.vorteil||0,ust);
+        msData.push([m.datum,personName(m.person),m.label,ust,roundCurrency(m.vorteil||0),n,roundCurrency((m.vorteil||0)-n)]);
+      });
+      const mtot=roundCurrency(mMeals.reduce((s,m)=>s+(m.vorteil||0),0));
+      msData.push([]);
+      msData.push(['','','Gesamt','',mtot,'','']);
+      const ws2=window.XLSX.utils.aoa_to_sheet(msData);
+      ws2['!cols']=[{wch:11},{wch:16},{wch:18},{wch:7},{wch:10},{wch:10},{wch:12}];
+      window.XLSX.utils.book_append_sheet(WB,ws2,'Mahlzeiten');
+    }
+
+    // ── Sheet 3: USt-Aufschlüsselung (Warenmitnahmen + Sachbezug, identische Logik wie PDF)
+    const xb7=roundCurrency(mMeals.filter(m=>mealUst(m.datum)===7).reduce((s,m)=>s+(m.vorteil||0),0)+wwb7);
+    const xb19=roundCurrency(mMeals.filter(m=>mealUst(m.datum)===19).reduce((s,m)=>s+(m.vorteil||0),0)+wwb19);
+    const xn7=calcNetFromGross(xb7,7),xn19=calcNetFromGross(xb19,19);
+    const uData=[
+      ['USt-Aufschlüsselung — Sachzuwendungen gesamt (Warenmitnahmen + Sachbezug Mahlzeiten)'],
+      ['Zeitraum',sel.lbl],['Firma',firma||''],['Erstellt',new Date().toLocaleDateString('de-DE')],
+      [],
+      ['USt-Satz','Brutto (EUR)','Netto (EUR)','USt-Betrag (EUR)'],
+      ['7 %',xb7,xn7,roundCurrency(xb7-xn7)],
+      ['19 %',xb19,xn19,roundCurrency(xb19-xn19)],
+      ['Gesamt',roundCurrency(xb7+xb19),roundCurrency(xn7+xn19),roundCurrency((xb7-xn7)+(xb19-xn19))],
+      [],
+      ['Hinweis: Sachbezug Mahlzeiten ab 01.01.2026 mit 7 % USt (Steueränderungsgesetz 2025), davor 19 %.'],
+    ];
+    const ws3=window.XLSX.utils.aoa_to_sheet(uData);
+    ws3['!cols']=[{wch:14},{wch:14},{wch:14},{wch:16}];
+    window.XLSX.utils.book_append_sheet(WB,ws3,'USt-Aufschlüsselung');
+
+    // ── Sheet 4: Zusammenfassung + Freibetrag je Person
+    const sumData=[
+      ['GmbH / UG — Sachzuwendungs-Bericht'],
+      ['Zeitraum',sel.lbl],['Firma',firma||''],['Erstellt',new Date().toLocaleDateString('de-DE')],
+      ['Report-Version',GMBH_REPORT_VERSION],
+      [],
+      ['Mahlzeiten (Sachbezug)',roundCurrency(mMeals.reduce((s,m)=>s+(m.vorteil||0),0))],
+      ['Warenmitnahmen',roundCurrency(mWith.reduce((s,w)=>s+(w.vorteil||0),0))],
+      ['Gesamt',roundCurrency(mMeals.reduce((s,m)=>s+(m.vorteil||0),0)+mWith.reduce((s,w)=>s+(w.vorteil||0),0))],
+      [],
+      [`Warenrabatt-Freibetrag ${yr} je Person (${fN(GMBH_RABATT_FREIBETRAG)} €/Jahr)`],
+      ['Person','Verbraucht €','Verbleibend €','Überschritten €'],
+      ...personRabatt.map(p=>[p.name,p.yearRabatt,p.remaining,p.exceeded||0]),
+    ];
+    const ws4=window.XLSX.utils.aoa_to_sheet(sumData);
+    ws4['!cols']=[{wch:28},{wch:14},{wch:14},{wch:16}];
+    window.XLSX.utils.book_append_sheet(WB,ws4,'Zusammenfassung');
+
+    window.XLSX.writeFile(WB,`gmbh-bericht-${sel.sk}-${sel.ek}.xlsx`);
+  };
+
   const exportPDF=()=>{
     const {jsPDF}=window.jspdf;
     const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
@@ -6501,7 +6598,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
           txt(artTrunc,DC[1],y);
           // EAN — wenn vorhanden; leer lassen wenn nicht
           txt(w.ean?String(w.ean):'',DC[2],y);
-          txt(`${w.menge||1} ${w.einheit||''}`,DC[3],y);
+          txt(`${w.menge||1} ${pieceEinheit(w.einheit)||''}`,DC[3],y);
           txt(methKurz,DC[4],y);
           // Basis als Kurzform in Spalte, volle Basis als Unterzeile
           const basisKurz=w.methode==='rabatt'?'VK/MP':w.methode==='gast'?'VP×0,96':w.methode==='marktwert'?w.kat||'Kat.':'EK+%';
@@ -6888,12 +6985,18 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
         )}
 
         <div className="sec">Export</div>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:12}}>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10,marginBottom:12}}>
           <button onClick={exportCSV}
             style={{padding:'12px',borderRadius:10,border:'1.5px solid var(--gruen)',background:'transparent',
               color:'var(--gruen)',fontSize:13,fontWeight:600,cursor:'pointer',
               display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
             <Icon name="download" size={15} color="var(--gruen)"/> CSV
+          </button>
+          <button onClick={exportXLSX}
+            style={{padding:'12px',borderRadius:10,border:'1.5px solid var(--gruen)',background:'rgba(168,208,96,.1)',
+              color:'var(--gruen)',fontSize:13,fontWeight:600,cursor:'pointer',
+              display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
+            <Icon name="download" size={15} color="var(--gruen)"/> Excel
           </button>
           <button onClick={exportPDF}
             style={{padding:'12px',borderRadius:10,border:'none',background:'var(--gruen)',

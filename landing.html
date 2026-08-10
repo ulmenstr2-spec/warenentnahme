@@ -21,7 +21,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;0,900;1,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -96,6 +95,9 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* Icons: Inline-SVG-Sprite, keine externe Bibliothek */
+.ico { width: 1em; height: 1em; display: inline-block; vertical-align: middle;
+  fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 html { scroll-behavior: smooth; }
 body {
   font-family: 'Figtree', sans-serif;
@@ -470,6 +472,7 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
 </style>
 </head>
 <body>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></symbol><symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></symbol><symbol id="i-utensils" viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /> <path d="M7 2v20" /> <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></symbol><symbol id="i-shopping-bag" viewBox="0 0 24 24"><path d="M16 10a4 4 0 0 1-8 0" /> <path d="M3.103 6.034h17.794" /> <path d="M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z" /></symbol><symbol id="i-smartphone" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2" /> <path d="M12 18h.01" /></symbol><symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3v18" /> <path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /> <path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /> <path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /> <path d="M7 21h10" /></symbol><symbol id="i-folder-open" viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2" /></symbol><symbol id="i-file-text" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" /> <path d="M14 2v5a1 1 0 0 0 1 1h5" /> <path d="M10 9H8" /> <path d="M16 13H8" /> <path d="M16 17H8" /></symbol><symbol id="i-file-down" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" /> <path d="M14 2v5a1 1 0 0 0 1 1h5" /> <path d="M12 18v-6" /> <path d="m9 15 3 3 3-3" /></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M12 15V3" /> <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /> <path d="m7 10 5 5 5-5" /></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" /></symbol><symbol id="i-check-circle" viewBox="0 0 24 24"><path d="M21.801 10A10 10 0 1 1 17 3.335" /> <path d="m9 11 3 3L22 4" /></symbol><symbol id="i-bar-chart-2" viewBox="0 0 24 24"><path d="M5 21v-6" /> <path d="M12 21V3" /> <path d="M19 21V9" /></symbol></svg>
 <div id="cursor-glow"></div>
 <nav>
   <a href="/" class="nav-logo">
@@ -504,9 +507,9 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
         <a href="#warum" class="btn-secondary">Die Geschichte</a>
       </div>
       <div class="hero-note animate a5">
-        <span><i data-lucide="check" style="width:14px;height:14px;color:var(--lime)"></i> Keine Kreditkarte</span>
-        <span><i data-lucide="check" style="width:14px;height:14px;color:var(--lime)"></i> Selbstständige & GmbH</span>
-        <span><i data-lucide="check" style="width:14px;height:14px;color:var(--lime)"></i> PDF-Export</span>
+        <span><svg class="ico" style="width:14px;height:14px;color:var(--lime)" aria-hidden="true"><use href="#i-check"/></svg> Keine Kreditkarte</span>
+        <span><svg class="ico" style="width:14px;height:14px;color:var(--lime)" aria-hidden="true"><use href="#i-check"/></svg> Selbstständige & GmbH</span>
+        <span><svg class="ico" style="width:14px;height:14px;color:var(--lime)" aria-hidden="true"><use href="#i-check"/></svg> PDF-Export</span>
       </div>
     </div>
     <div class="hero-visual animate a3">
@@ -526,7 +529,7 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
           <div class="card-entries">
             <div class="card-entry">
               <div class="entry-left">
-                <div class="entry-icon"><i data-lucide="utensils" style="width:16px;height:16px"></i></div>
+                <div class="entry-icon"><svg class="ico" style="width:16px;height:16px" aria-hidden="true"><use href="#i-utensils"/></svg></div>
                 <div>
                   <div class="entry-name">Frühstück + Mittag + Abend</div>
                   <div class="entry-date">Gesamtmonat · Pauschbetrag</div>
@@ -536,7 +539,7 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
             </div>
             <div class="card-entry">
               <div class="entry-left">
-                <div class="entry-icon"><i data-lucide="shopping-bag" style="width:16px;height:16px"></i></div>
+                <div class="entry-icon"><svg class="ico" style="width:16px;height:16px" aria-hidden="true"><use href="#i-shopping-bag"/></svg></div>
                 <div>
                   <div class="entry-name">Warenmitnahme · Diverse</div>
                   <div class="entry-date">12 Vorgänge · Marktwert</div>
@@ -547,8 +550,8 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
           </div>
         </div>
         <div class="hero-card-footer">
-          <span class="footer-label"><i data-lucide="check-circle" style="width:14px;height:14px"></i> Bereit für Steuerberater</span>
-          <button class="footer-btn"><i data-lucide="download" style="width:13px;height:13px"></i> PDF Export</button>
+          <span class="footer-label"><svg class="ico" style="width:14px;height:14px" aria-hidden="true"><use href="#i-check-circle"/></svg> Bereit für Steuerberater</span>
+          <button class="footer-btn"><svg class="ico" style="width:13px;height:13px" aria-hidden="true"><use href="#i-download"/></svg> PDF Export</button>
         </div>
       </div>
     </div>
@@ -563,17 +566,17 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
     <p class="section-sub">Wer als Inhaber im eigenen Betrieb isst oder Waren entnimmt, löst damit steuerliche Vorgänge aus — ertrag- und umsatzsteuerlich. Das ist kein Drama, gehört aber aufgezeichnet.</p>
     <div class="problem-grid">
       <div class="problem-card reveal reveal-delay-1">
-        <div class="problem-icon"><i data-lucide="file-text" style="width:22px;height:22px"></i></div>
+        <div class="problem-icon"><svg class="ico" style="width:22px;height:22px" aria-hidden="true"><use href="#i-file-text"/></svg></div>
         <div class="problem-title">Das Finanzamt möchte das sehen</div>
         <p class="problem-text">Ob Einzelunternehmer, GbR oder GmbH-Gesellschafter-Geschäftsführer — wer im eigenen Betrieb isst oder Waren entnimmt, sollte das steuerlich erfassen. Wer nichts aufschreibt, riskiert bei einer Prüfung, dass das Finanzamt selbst schätzt.</p>
       </div>
       <div class="problem-card reveal reveal-delay-2">
-        <div class="problem-icon"><i data-lucide="scale" style="width:22px;height:22px"></i></div>
+        <div class="problem-icon"><svg class="ico" style="width:22px;height:22px" aria-hidden="true"><use href="#i-scale"/></svg></div>
         <div class="problem-title">Pauschbeträge statt Einzelnachweis</div>
         <p class="problem-text">Als Einzelunternehmer oder Gesellschafter einer Personengesellschaft kannst du amtliche Sachentnahmepauschalen nutzen — du musst nicht jeden Teller einzeln bewerten. Das vereinfacht die ganze Sache erheblich.</p>
       </div>
       <div class="problem-card reveal reveal-delay-3">
-        <div class="problem-icon"><i data-lucide="folder-open" style="width:22px;height:22px"></i></div>
+        <div class="problem-icon"><svg class="ico" style="width:22px;height:22px" aria-hidden="true"><use href="#i-folder-open"/></svg></div>
         <div class="problem-title">Sauber übergeben an die Kanzlei</div>
         <p class="problem-text">Dein Steuerberater braucht eine nachvollziehbare Aufstellung — nicht deine Notizen auf einem Bierdeckel. Die App liefert das als PDF oder Excel, jederzeit auf Knopfdruck.</p>
       </div>
@@ -619,32 +622,32 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
   </div>
   <div class="features-grid">
     <div class="feature">
-      <div class="feature-icon"><i data-lucide="utensils" style="width:20px;height:20px"></i></div>
+      <div class="feature-icon"><svg class="ico" style="width:20px;height:20px" aria-hidden="true"><use href="#i-utensils"/></svg></div>
       <div class="feature-title">Sachentnahmen erfassen</div>
       <p class="feature-text">Für Einzelunternehmer und Personengesellschaften: monatliche Aufzeichnung auf Basis der BMF-Sachentnahmepauschalen. Mahlzeiten auswählen, Steuerwert wird automatisch ermittelt.</p>
     </div>
     <div class="feature">
-      <div class="feature-icon"><i data-lucide="shopping-bag" style="width:20px;height:20px"></i></div>
+      <div class="feature-icon"><svg class="ico" style="width:20px;height:20px" aria-hidden="true"><use href="#i-shopping-bag"/></svg></div>
       <div class="feature-title">Warenmitnahmen & Einzelbewertung</div>
       <p class="feature-text">Für GmbH-Gesellschafter-Geschäftsführer: strukturierte Einzelerfassung von Mahlzeiten und Warenentnahmen je Vorgang — als Grundlage für die steuerliche Einordnung durch deine Kanzlei.</p>
     </div>
     <div class="feature">
-      <div class="feature-icon"><i data-lucide="file-down" style="width:20px;height:20px"></i></div>
+      <div class="feature-icon"><svg class="ico" style="width:20px;height:20px" aria-hidden="true"><use href="#i-file-down"/></svg></div>
       <div class="feature-title">PDF & Excel Export</div>
       <p class="feature-text">Mit einem Klick eine saubere Aufstellung für deinen Steuerberater exportieren. PDF und XLSX, fertig formatiert — so wie Kanzleien es kennen.</p>
     </div>
     <div class="feature">
-      <div class="feature-icon"><i data-lucide="bar-chart-2" style="width:20px;height:20px"></i></div>
+      <div class="feature-icon"><svg class="ico" style="width:20px;height:20px" aria-hidden="true"><use href="#i-bar-chart-2"/></svg></div>
       <div class="feature-title">Jahresauswertung</div>
       <p class="feature-text">Monats- und Jahresübersicht auf einen Blick. Du weißt immer wo du stehst — keine bösen Überraschungen am Jahresende.</p>
     </div>
     <div class="feature">
-      <div class="feature-icon"><i data-lucide="cloud" style="width:20px;height:20px"></i></div>
+      <div class="feature-icon"><svg class="ico" style="width:20px;height:20px" aria-hidden="true"><use href="#i-cloud"/></svg></div>
       <div class="feature-title">Cloud-Sync</div>
       <p class="feature-text">Deine Daten sind auf allen Geräten synchron. In der Küche am Handy erfassen, am PC den Export erstellen — alles auf dem gleichen Stand.</p>
     </div>
     <div class="feature">
-      <div class="feature-icon"><i data-lucide="smartphone" style="width:20px;height:20px"></i></div>
+      <div class="feature-icon"><svg class="ico" style="width:20px;height:20px" aria-hidden="true"><use href="#i-smartphone"/></svg></div>
       <div class="feature-title">Handy-App ohne App Store</div>
       <p class="feature-text">Als PWA direkt installierbar — einfach im Browser öffnen und zum Homescreen hinzufügen. Funktioniert auch offline, kein App Store nötig.</p>
     </div>
@@ -662,11 +665,11 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
         <div class="mode-title">Sachentnahme-Modus</div>
         <p class="mode-text">Du isst als Inhaber oder Mitunternehmer in deinem Betrieb — das ist steuerlich eine Sachentnahme. Zur Vereinfachung gibt es amtliche Pauschbeträge vom BMF, die du statt einer Einzelbewertung nutzen kannst. Ob das in deinem Fall sinnvoll ist, klärt dein Steuerberater.</p>
         <ul class="mode-list">
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> BMF-Sachentnahmepauschalen hinterlegt, regelmäßig aktualisiert</li>
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> Frühstück, Mittag, Abend einzeln wählbar</li>
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> Mit und ohne Getränke</li>
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> Auch Warenentnahmen erfassbar</li>
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> Monatsübersicht & PDF-Export</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> BMF-Sachentnahmepauschalen hinterlegt, regelmäßig aktualisiert</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Frühstück, Mittag, Abend einzeln wählbar</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Mit und ohne Getränke</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Auch Warenentnahmen erfassbar</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Monatsübersicht & PDF-Export</li>
         </ul>
       </div>
       <div class="mode-card gmbh">
@@ -674,10 +677,10 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
         <div class="mode-title">Einzelerfassungs-Modus</div>
         <p class="mode-text">Bei einer GmbH funktioniert das etwas anders: Mahlzeiten und Warenübergaben an den Gesellschafter-Geschäftsführer sind keine Entnahmen, sondern Leistungen der GmbH — in der Regel steuerlich als geldwerter Vorteil einzustufen. Die App hilft dir, jeden Vorgang sauber aufzuzeichnen. Die steuerliche Einordnung macht deine Kanzlei.</p>
         <ul class="mode-list">
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> Einzelerfassung mit Datum, Typ und Wertangabe</li>
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> Amtliche Richtwerte 2026 als Orientierung hinterlegt</li>
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> Detaillierter PDF-Bericht je Monat</li>
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> Steuerliche Einordnung durch Steuerberater empfohlen</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Einzelerfassung mit Datum, Typ und Wertangabe</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Amtliche Richtwerte 2026 als Orientierung hinterlegt</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Detaillierter PDF-Bericht je Monat</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Steuerliche Einordnung durch Steuerberater empfohlen</li>
         </ul>
       </div>
     </div>
@@ -697,11 +700,11 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
         <div class="plan-price">0 €<span> /Monat</span></div>
         <div class="plan-note">Vollständig kostenlos in der Beta</div>
         <ul class="plan-list">
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> Selbstständigen-Modus & GmbH-Modus</li>
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> PDF & Excel Export</li>
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> Cloud-Sync</li>
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> Monats- & Jahresauswertung</li>
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> Offline-fähig (PWA)</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Selbstständigen-Modus & GmbH-Modus</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> PDF & Excel Export</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Cloud-Sync</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Monats- & Jahresauswertung</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Offline-fähig (PWA)</li>
         </ul>
         <a href="https://www.warenentnahme.de/app/" class="plan-cta free">Jetzt starten</a>
       </div>
@@ -711,11 +714,11 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
         <div class="plan-price">9 €<span> /Monat · netto</span></div>
         <div class="plan-note">Nach der Beta-Phase</div>
         <ul class="plan-list">
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> Alles aus Kostenlos</li>
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> Foto- & EAN-Scan (KI)</li>
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> Rechnungs-Scan (KI)</li>
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> Prioritäts-Support</li>
-          <li><i data-lucide="check" style="width:15px;height:15px"></i> Früher Zugang zu neuen Features</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Alles aus Kostenlos</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Foto- & EAN-Scan (KI)</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Rechnungs-Scan (KI)</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Prioritäts-Support</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Früher Zugang zu neuen Features</li>
         </ul>
         <a href="https://www.warenentnahme.de/app/" class="plan-cta premium">Jetzt kostenlos testen</a>
       </div>
@@ -732,7 +735,7 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
           Was ist eine Sachentnahme — und was hat das mit mir zu tun?
-          <span class="faq-chevron"><i data-lucide="chevron-down" style="width:14px;height:14px"></i></span>
+          <span class="faq-chevron"><svg class="ico" style="width:14px;height:14px" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
         </button>
         <div class="faq-answer">
           <div class="faq-answer-inner">
@@ -743,7 +746,7 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
           Was bringt mir die Aufzeichnung — und was passiert ohne?
-          <span class="faq-chevron"><i data-lucide="chevron-down" style="width:14px;height:14px"></i></span>
+          <span class="faq-chevron"><svg class="ico" style="width:14px;height:14px" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
         </button>
         <div class="faq-answer">
           <div class="faq-answer-inner">
@@ -755,7 +758,7 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
           Was sind BMF-Sachentnahmepauschalen?
-          <span class="faq-chevron"><i data-lucide="chevron-down" style="width:14px;height:14px"></i></span>
+          <span class="faq-chevron"><svg class="ico" style="width:14px;height:14px" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
         </button>
         <div class="faq-answer">
           <div class="faq-answer-inner">
@@ -767,7 +770,7 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
           Was ist der Unterschied zwischen dem Sachentnahme-Modus und dem GmbH-Modus?
-          <span class="faq-chevron"><i data-lucide="chevron-down" style="width:14px;height:14px"></i></span>
+          <span class="faq-chevron"><svg class="ico" style="width:14px;height:14px" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
         </button>
         <div class="faq-answer">
           <div class="faq-answer-inner">
@@ -779,7 +782,7 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
           Ist die App wirklich kostenlos?
-          <span class="faq-chevron"><i data-lucide="chevron-down" style="width:14px;height:14px"></i></span>
+          <span class="faq-chevron"><svg class="ico" style="width:14px;height:14px" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
         </button>
         <div class="faq-answer">
           <div class="faq-answer-inner">
@@ -790,7 +793,7 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
       <div class="faq-item">
         <button class="faq-question" onclick="toggleFaq(this)">
           Funktioniert die App auch auf dem Handy?
-          <span class="faq-chevron"><i data-lucide="chevron-down" style="width:14px;height:14px"></i></span>
+          <span class="faq-chevron"><svg class="ico" style="width:14px;height:14px" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
         </button>
         <div class="faq-answer">
           <div class="faq-answer-inner">
@@ -829,8 +832,6 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
 </footer>
 
 <script>
-lucide.createIcons();
-
 /* ── FAQ ── */
 function toggleFaq(btn) {
   const item = btn.closest('.faq-item');
@@ -846,7 +847,15 @@ function toggleFaq(btn) {
   }
 }
 
+/* Jeder Effekt läuft gekapselt — schlägt einer fehl, laufen die
+   übrigen weiter. (Vorher riss ein fehlendes CDN-Skript die ganze
+   Seiten-Interaktion mit: FAQ, Karten-Effekte und Einblendungen.) */
+function safe(name, fn) {
+  try { fn(); } catch (err) { console.warn('[landing] ' + name + ':', err); }
+}
+
 /* ── CURSOR GLOW ── */
+safe('cursor-glow', () => {
 const glow = document.getElementById('cursor-glow');
 let glowX = 0, glowY = 0, curX = 0, curY = 0;
 document.addEventListener('mousemove', e => { curX = e.clientX; curY = e.clientY; });
@@ -859,8 +868,10 @@ document.addEventListener('mousemove', e => { curX = e.clientX; curY = e.clientY
   }
   requestAnimationFrame(animateGlow);
 })();
+});
 
 /* ── MAGNETIC BUTTONS ── */
+safe('magnetic-buttons', () => {
 document.querySelectorAll('.btn-primary, .btn-white').forEach(btn => {
   btn.addEventListener('mousemove', e => {
     const r = btn.getBoundingClientRect();
@@ -872,8 +883,10 @@ document.querySelectorAll('.btn-primary, .btn-white').forEach(btn => {
     btn.style.transform = '';
   });
 });
+});
 
 /* ── TILT ON MODE & PROBLEM CARDS ── */
+safe('card-tilt', () => {
 document.querySelectorAll('.mode-card, .problem-card').forEach(card => {
   card.addEventListener('mousemove', e => {
     const r = card.getBoundingClientRect();
@@ -887,8 +900,10 @@ document.querySelectorAll('.mode-card, .problem-card').forEach(card => {
     card.style.boxShadow = '';
   });
 });
+});
 
 /* ── SCROLL REVEAL ── */
+safe('scroll-reveal', () => {
 const revealEls = document.querySelectorAll('.reveal');
 if ('IntersectionObserver' in window) {
   const observer = new IntersectionObserver((entries) => {
@@ -900,6 +915,7 @@ if ('IntersectionObserver' in window) {
 } else {
   revealEls.forEach(el => el.classList.add('visible'));
 }
+});
 
 </script>
 </body>

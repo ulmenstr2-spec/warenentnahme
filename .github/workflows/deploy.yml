@@ -10,6 +10,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install esbuild
+        run: npm install --no-package-lock --no-save esbuild
+
       - name: Build deploy structure
         run: |
           mkdir -p dist/root dist/app
@@ -21,6 +28,11 @@ jobs:
           sed -e "s/__BUILD_ID__/${{ github.sha }}/g" \
               -e "s/__BUILD_DATE__/$BUILD_DATE/g" \
               app.html > dist/app/index.html
+
+          # JSX vorkompilieren: Babel läuft nicht mehr im Browser.
+          # Schlägt der Build fehl (Syntaxfehler), bricht der Deploy hier ab.
+          node build.mjs dist/app/index.html
+
           cp manifest.json   dist/app/manifest.json
           cp splash-logo.png dist/app/splash-logo.png
 

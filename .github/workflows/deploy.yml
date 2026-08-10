@@ -23,6 +23,8 @@ jobs:
 
           cp landing.html  dist/root/index.html
           cp htaccess.txt  dist/root/.htaccess
+          cp impressum.html datenschutz.html pauschbetraege.html robots.txt sitemap.xml dist/root/
+          cp favicon.png og-image.png josef.jpg splash-logo.png dist/root/
 
           BUILD_DATE=$(TZ=Europe/Berlin date +"%d.%m.%Y %H:%M")
           sed -e "s/__BUILD_ID__/${{ github.sha }}/g" \

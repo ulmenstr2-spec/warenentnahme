@@ -95,7 +95,8 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 
 /* NAV */
 .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:var(--nh);background:rgba(247,249,244,0.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(6,1fr);z-index:100;padding-bottom:env(safe-area-inset-bottom,0);}
-.nb{border:none;background:none;color:var(--t3);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;transition:color .2s;padding:8px 4px;position:relative;}
+.nb{border:none;background:none;color:var(--t3);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;transition:color .2s;padding:8px 2px;position:relative;min-width:0;}
+.nb span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .nb.on{color:var(--green);}
 .nb.on::before{content:'';position:absolute;top:0;left:25%;right:25%;height:2px;background:var(--green);border-radius:0 0 2px 2px;}
 .nb svg{width:20px;height:20px;stroke-width:1.5;}
@@ -1411,7 +1412,7 @@ function App(){
 
 // ── TAB-NAVIGATION
   const TABS = rechtsform==='gmbh'
-    ? [['home','Übersicht',Ic.home],['meals','Mahlzeiten',Ic.fork],['add','Mitnahmen',Ic.plus],['scan','Scan',Ic.scan],['report','Bericht',Ic.chart],['settings','Einstellungen',Ic.cog],['import','Import',Ic.up]]
+    ? [['home','Start',Ic.home],['meals','Essen',Ic.fork],['add','Waren',Ic.plus],['scan','Scan',Ic.scan],['report','Bericht',Ic.chart],['settings','Setup',Ic.cog],['import','Import',Ic.up]]
     : [['home','Abrechnung',Ic.home],['meals','Essen',Ic.fork],['scan','Scan',Ic.scan],['add','Erfassen',Ic.plus],['report','Bericht',Ic.chart],['import','Import',Ic.cog]];
 
   const[showInstall,setShowInstall]=useSt('gt_install_shown',false);
@@ -2138,7 +2139,7 @@ function App(){
         :'Lokale Entwicklungsversion'}
     </div>
 
-    <nav className="nav">
+    <nav className="nav" style={{gridTemplateColumns:`repeat(${TABS.length},1fr)`}}>
       {TABS.map(([id,lbl,ic])=>(
         <button key={id} className={`nb ${tab===id?'on':''}`} onClick={()=>setTab(id)}>
           {ic}<span>{lbl}</span>

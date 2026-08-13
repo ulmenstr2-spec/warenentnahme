@@ -14,7 +14,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js" crossorigin="anonymous"></script>
 
 <meta name="theme-color" content="#f7f9f4">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1413,7 +1412,7 @@ function App(){
 // ── TAB-NAVIGATION
   const TABS = rechtsform==='gmbh'
     ? [['home','Start',Ic.home],['meals','Essen',Ic.fork],['add','Waren',Ic.plus],['scan','Scan',Ic.scan],['report','Bericht',Ic.chart],['settings','Setup',Ic.cog],['import','Import',Ic.up]]
-    : [['home','Abrechnung',Ic.home],['meals','Essen',Ic.fork],['scan','Scan',Ic.scan],['add','Erfassen',Ic.plus],['report','Bericht',Ic.chart],['import','Import',Ic.cog]];
+    : [['home','Start',Ic.home],['meals','Essen',Ic.fork],['scan','Scan',Ic.scan],['add','Erfassen',Ic.plus],['report','Bericht',Ic.chart],['import','Import',Ic.cog]];
 
   const[showInstall,setShowInstall]=useSt('gt_install_shown',false);
   const[swUpdate,setSwUpdate]=useState(false); // Service Worker Update verfügbar

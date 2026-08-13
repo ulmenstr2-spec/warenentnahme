@@ -23,7 +23,9 @@ jobs:
 
           cp landing.html  dist/root/index.html
           cp htaccess.txt  dist/root/.htaccess
-          cp impressum.html datenschutz.html pauschbetraege.html robots.txt sitemap.xml dist/root/
+          # AVV-ENTWURF.md wird bewusst NICHT deployt (ungeprüfter Vertragstext)
+          cp impressum.html datenschutz.html pauschbetraege.html fuer-steuerberater.html dist/root/
+          cp robots.txt sitemap.xml dist/root/
           cp favicon.png og-image.png josef.jpg splash-logo.png dist/root/
           cp app-uebersicht.png app-mahlzeiten.png app-bericht.png dist/root/
 

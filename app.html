@@ -1412,7 +1412,7 @@ function App(){
 // ── TAB-NAVIGATION
   const TABS = rechtsform==='gmbh'
     ? [['home','Start',Ic.home],['meals','Essen',Ic.fork],['add','Waren',Ic.plus],['scan','Scan',Ic.scan],['report','Bericht',Ic.chart],['settings','Setup',Ic.cog],['import','Import',Ic.up]]
-    : [['home','Abrechnung',Ic.home],['meals','Essen',Ic.fork],['scan','Scan',Ic.scan],['add','Erfassen',Ic.plus],['report','Bericht',Ic.chart],['import','Import',Ic.cog]];
+    : [['home','Start',Ic.home],['meals','Essen',Ic.fork],['scan','Scan',Ic.scan],['add','Erfassen',Ic.plus],['report','Bericht',Ic.chart],['import','Import',Ic.cog]];
 
   const[showInstall,setShowInstall]=useSt('gt_install_shown',false);
   const[swUpdate,setSwUpdate]=useState(false); // Service Worker Update verfügbar

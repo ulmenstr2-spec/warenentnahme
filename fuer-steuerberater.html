@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Für Steuerberater: Mandanten-Aufzeichnungen zu Sachentnahmen | warenentnahme.de</title>
+<meta name="description" content="Informationen für Kanzleien: Wie Mandanten mit warenentnahme.de Sachentnahmen und Eigenverbrauch aufzeichnen, welche Exportformate Sie erhalten (PDF, Excel, CSV, JSON), wo die Daten liegen und wie die Bewertung nachvollziehbar bleibt.">
+<meta property="og:title" content="Für Steuerberater – warenentnahme.de">
+<meta property="og:description" content="Exportformate, Datenhaltung und Nachvollziehbarkeit der Mandanten-Aufzeichnungen auf einen Blick.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://www.warenentnahme.de/fuer-steuerberater.html">
+<meta property="og:image" content="https://www.warenentnahme.de/og-image.png">
+<meta property="og:locale" content="de_DE">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.warenentnahme.de/og-image.png">
+<meta name="theme-color" content="#2d5a1b">
+<link rel="icon" type="image/png" href="./favicon.png">
+<link rel="apple-touch-icon" href="./favicon.png">
+<link rel="canonical" href="https://www.warenentnahme.de/fuer-steuerberater.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;0,900;1,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Für Steuerberater: Mandanten-Aufzeichnungen zu Sachentnahmen und Eigenverbrauch",
+  "description": "Exportformate, Datenhaltung, Datenschutz und Nachvollziehbarkeit der mit warenentnahme.de erstellten Aufzeichnungen.",
+  "inLanguage": "de",
+  "author": { "@type": "Person", "name": "Josef Czerwinski" },
+  "publisher": { "@type": "Organization", "name": "warenentnahme.de", "url": "https://www.warenentnahme.de/" },
+  "mainEntityOfPage": "https://www.warenentnahme.de/fuer-steuerberater.html"
+}
+</script>
+<style>
+:root {
+  --green-dark:#1a2e0e; --green:#2d5a1b; --green-mid:#3d7a25; --green-light:#4a9630;
+  --lime:#8fc03a; --cream:#f5f2ea; --cream-dark:#ede9df; --text:#1a2612;
+  --text-mid:#3d4a30; --text-soft:#6a7a58; --border:#d8e0cc; --white:#fff;
+  --amber:#8a6410; --amber-bg:#fdf6e3; --amber-br:#e8d9a8;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{font-family:'Figtree',sans-serif;background:var(--cream);color:var(--text);line-height:1.7;-webkit-font-smoothing:antialiased}
+.display{font-family:'Fraunces',serif;line-height:1.1;letter-spacing:-1px}
+
+nav{position:sticky;top:0;z-index:50;background:rgba(245,242,234,0.94);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:9px;text-decoration:none}
+.nav-logo img{height:30px;width:30px;border-radius:8px;display:block}
+.nav-logo-text{font-family:'Fraunces',serif;font-size:19px;font-weight:700;color:var(--green);letter-spacing:-.2px}
+.nav-logo-de{color:var(--text-soft);font-weight:400}
+.nav-cta{background:var(--green);color:#fff;font-size:14px;font-weight:600;padding:9px 18px;border-radius:10px;text-decoration:none;white-space:nowrap;transition:background .2s}
+.nav-cta:hover{background:var(--green-light)}
+
+main{max-width:820px;margin:0 auto;padding:48px 24px 96px}
+.crumb{font-size:13px;color:var(--text-soft);margin-bottom:28px}
+.crumb a{color:var(--green);text-decoration:none}
+.crumb a:hover{text-decoration:underline}
+
+h1{font-size:clamp(32px,5vw,46px);margin-bottom:18px}
+h1 em{font-style:italic;color:var(--green-mid)}
+.lead{font-size:19px;color:var(--text-mid);margin-bottom:36px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+
+h2{font-family:'Fraunces',serif;font-size:28px;font-weight:700;letter-spacing:-.5px;margin:48px 0 14px;color:var(--text)}
+h3{font-family:'Fraunces',serif;font-size:19px;font-weight:700;margin:30px 0 8px;color:var(--green)}
+p{margin-bottom:16px;color:var(--text-mid)}
+p strong,li strong,td strong{color:var(--text);font-weight:600}
+ul{margin:0 0 18px 22px;color:var(--text-mid)}
+li{margin-bottom:7px}
+a{color:var(--green)}
+
+.facts{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:30px 0 8px}
+.fact{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:18px 20px}
+.fact-k{font-size:11.5px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-soft);margin-bottom:6px}
+.fact-v{font-size:15px;font-weight:600;color:var(--text);line-height:1.5}
+
+.table-wrap{overflow-x:auto;margin:18px 0 8px;border:1px solid var(--border);border-radius:14px;background:var(--white)}
+table{width:100%;border-collapse:collapse;min-width:560px}
+th,td{padding:13px 18px;text-align:left;border-bottom:1px solid var(--border);font-size:14.5px;vertical-align:top}
+thead th{background:var(--cream-dark);font-size:11.5px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-mid);white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:var(--cream-dark);padding:2px 6px;border-radius:5px;color:var(--green-dark)}
+
+.callout{border-radius:14px;padding:18px 22px;margin:26px 0;font-size:15px;line-height:1.65}
+.callout p{margin-bottom:0;color:inherit}
+.callout p + p{margin-top:10px}
+.callout.warn{background:var(--amber-bg);border:1px solid var(--amber-br);color:var(--amber)}
+.callout.warn strong{color:var(--amber)}
+.callout.info{background:rgba(143,192,58,0.1);border:1px solid rgba(143,192,58,0.35);color:var(--text-mid)}
+
+.cta{background:linear-gradient(135deg,var(--green) 0%,var(--green-dark) 100%);border-radius:18px;padding:36px 32px;margin:56px 0 0;text-align:center;color:#fff}
+.cta h2{font-size:26px;color:#fff;margin:0 0 10px}
+.cta p{color:rgba(255,255,255,0.85);margin-bottom:22px;font-size:16px}
+.cta a{display:inline-block;background:var(--lime);color:var(--green-dark);font-weight:700;font-size:16px;
+  padding:14px 30px;border-radius:12px;text-decoration:none;transition:transform .2s}
+.cta a:hover{transform:translateY(-2px)}
+
+footer{border-top:1px solid var(--border);background:var(--cream-dark)}
+.footer-inner{max-width:820px;margin:0 auto;padding:28px 24px;display:flex;flex-wrap:wrap;gap:16px;
+  justify-content:space-between;align-items:center;font-size:13px;color:var(--text-soft)}
+.footer-inner a{color:var(--text-mid);text-decoration:none;margin-left:16px}
+.footer-inner a:first-child{margin-left:0}
+.footer-inner a:hover{color:var(--green)}
+
+@media(max-width:600px){
+  nav{padding:0 16px}
+  .nav-logo-de{display:none}
+  .nav-cta{padding:9px 14px;font-size:13px}
+  main{padding:32px 20px 72px}
+  .facts{grid-template-columns:1fr}
+  th,td{padding:11px 14px;font-size:14px}
+  .footer-inner{flex-direction:column;text-align:center}
+  .footer-inner a{margin:0 8px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="./" class="nav-logo">
+    <img src="./favicon.png" alt="" width="30" height="30" aria-hidden="true">
+    <span class="nav-logo-text">warenentnahme<span class="nav-logo-de">.de</span></span>
+  </a>
+  <a href="mailto:hallo@warenentnahme.de?subject=Anfrage%20Kanzlei" class="nav-cta">Kanzlei-Anfrage</a>
+</nav>
+
+<main>
+  <nav class="crumb" aria-label="Brotkrumen"><a href="./">Startseite</a> › Für Steuerberater</nav>
+
+  <h1 class="display">Für Steuerberater und <em>Kanzleien</em></h1>
+  <p class="lead">Wenn Ihr Mandant aus der Gastronomie mit warenentnahme.de aufzeichnet, bekommen Sie eine strukturierte Monatsaufstellung statt loser Notizen. Diese Seite fasst zusammen, was die App tut, was sie bewusst nicht tut, welche Formate Sie erhalten und wo die Daten liegen.</p>
+
+  <div class="facts">
+    <div class="fact"><div class="fact-k">Serverstandort</div><div class="fact-v">Deutschland (IONOS SE)</div></div>
+    <div class="fact"><div class="fact-k">Tracking</div><div class="fact-v">Keine Analyse- oder Werbe-Cookies</div></div>
+    <div class="fact"><div class="fact-k">Exportformate</div><div class="fact-v">PDF, Excel (XLSX), CSV, JSON</div></div>
+    <div class="fact"><div class="fact-k">Auftragsverarbeitung</div><div class="fact-v">AVV nach Art. 28 DSGVO auf Anfrage</div></div>
+  </div>
+
+  <h2>Was die App leistet — und was nicht</h2>
+  <p>warenentnahme.de ist eine <strong>Aufzeichnungshilfe</strong>. Sie erfasst Sachentnahmen, Warenmitnahmen und Mahlzeiten strukturiert, bewertet sie nach den vom Mandanten gewählten Vorgaben und stellt daraus eine prüffähige Aufstellung bereit.</p>
+
+  <div class="callout warn">
+    <p><strong>Keine Steuerberatung.</strong> Die App nimmt keine steuerliche Einordnung vor und stellt keine Beratung im Sinne des StBerG dar. Die Beurteilung des Einzelfalls — insbesondere Wahl der Bewertungsmethode, Behandlung von Zuwendungen an Gesellschafter-Geschäftsführer und die lohnsteuerliche Würdigung — bleibt vollständig bei Ihnen.</p>
+  </div>
+
+  <h3>Zwei Aufzeichnungsarten</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Rechtsform</th><th>Vorgehen in der App</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Einzelunternehmen, GbR, OHG</strong></td>
+          <td>Monatliche Aufzeichnung auf Basis der Pauschbeträge für unentgeltliche Wertabgaben, aufgeteilt nach 7 % und 19 %. Personen im Haushalt werden berücksichtigt, Kinder mit halbem Satz. Warenentnahmen können zusätzlich einzeln erfasst werden.</td>
+        </tr>
+        <tr>
+          <td><strong>GmbH / UG (Gesellschafter-GF)</strong></td>
+          <td>Einzelerfassung je Vorgang mit Datum, Person, Artikel, Menge und Bewertungsmethode. Vier Methoden stehen zur Wahl: Warenrabatt (VK − Mitarbeiterpreis), Gäste-Verkaufspreis × 0,96, Marktwert nach Kategorie sowie EK zuzüglich Handlingaufschlag als Ausnahme. Der Jahresfreibetrag nach § 8 Abs. 3 EStG wird je Person und Kalenderjahr mitgeführt.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Was Sie als Kanzlei erhalten</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Format</th><th>Inhalt</th></tr></thead>
+      <tbody>
+        <tr><td><strong>PDF</strong></td><td>Monatsbericht mit Kopfdaten (Betrieb, Zeitraum, Erstellungszeitpunkt, Berichtsversion), Einzelpositionen, USt-Aufschlüsselung nach 7 % / 19 % mit Brutto, Netto und Steuerbetrag sowie Jahresübersicht je Person.</td></tr>
+        <tr><td><strong>Excel (XLSX)</strong></td><td>Vier Blätter: Warenmitnahmen mit Summen je Steuersatz, Mahlzeiten, USt-Aufschlüsselung, Zusammenfassung inklusive Freibetragsstand je Person.</td></tr>
+        <tr><td><strong>CSV</strong></td><td>Semikolon-getrennt, UTF-8 mit BOM, Dezimalpunkt, Kopfzeile in Zeile 1 ohne vorangestellte Metadaten — für den Import in Kanzleisoftware.</td></tr>
+        <tr><td><strong>JSON</strong></td><td>Vollständiger Archivstand inklusive Bewertungsgrundlagen und Zeitstempeln, für die revisionssichere Ablage.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Nachvollziehbarkeit der Bewertung</h3>
+  <p>Jede Position führt die verwendete Bewertungsgrundlage mit: bei Warenrabatt <code>vkBrutto</code> und <code>employeePriceBrutto</code>, bei Marktwert <code>marketValuePerUnitBrutto</code> samt Kategorie und Herkunft des Wertes, bei EK-Ausnahme <code>ekBrutto</code> und <code>handlingRatePct</code>. Zusätzlich werden Anlage- und Änderungszeitpunkt, die Berichtsversion sowie ein Plausibilitätshinweis gespeichert, etwa wenn ein Marktwert deutlich unter dem Einkaufspreis liegt. Nachträgliche Änderungen an einer Position sind am abweichenden Änderungszeitpunkt erkennbar.</p>
+
+  <h2>Datenschutz und Datenhaltung</h2>
+  <ul>
+    <li><strong>Speicherort:</strong> Die Daten liegen lokal auf dem Gerät des Mandanten. Nur wenn er die Synchronisation aktiv einschaltet, werden sie zusätzlich auf Servern der IONOS SE in Deutschland gespeichert.</li>
+    <li><strong>Zugriff:</strong> Der Zugang erfolgt über E-Mail-Adresse und selbst gewählte PIN; Daten sind ausschließlich über das jeweilige Konto abrufbar.</li>
+    <li><strong>Keine Weitergabe:</strong> Es findet keine Übermittlung an Dritte zu Werbe- oder Analysezwecken statt. Die Anwendung setzt keine Tracking-Cookies.</li>
+    <li><strong>Auftragsverarbeitung:</strong> Soweit personenbezogene Daten Dritter verarbeitet werden — etwa Namen mitarbeitender Angehöriger — stellen wir einen Vertrag zur Auftragsverarbeitung nach Art. 28 DSGVO bereit. Bitte kurz per E-Mail anfordern.</li>
+    <li><strong>Löschung und Auskunft:</strong> Konten und die zugehörigen Daten werden auf Anforderung gelöscht.</li>
+  </ul>
+
+  <div class="callout info">
+    <p>Die App wurde von einem Gastronomen für den eigenen Betrieb gebaut — mit dem Ziel, Kanzleien genau die Aufstellung zu liefern, die sonst mühsam aus Zetteln rekonstruiert wird. Rückmeldungen aus der Praxis fließen direkt in die Weiterentwicklung ein.</p>
+  </div>
+
+  <h2>Häufige Rückfragen aus Kanzleien</h2>
+  <h3>Können wir die Aufzeichnung selbst prüfen?</h3>
+  <p>Ja. Der JSON-Export enthält jede Position mit ihrer vollständigen Bewertungsgrundlage; PDF und Excel bilden dieselben Werte lesbar ab. Die Berichtsversion ist in jedem Export vermerkt, sodass nachvollziehbar bleibt, mit welchem Stand der Anwendung gerechnet wurde.</p>
+  <h3>Werden die amtlichen Werte aktualisiert?</h3>
+  <p>Ja, zum Jahreswechsel. Die App weist den Mandanten zusätzlich darauf hin, sobald das Kalenderjahr neuer ist als die hinterlegten Werte.</p>
+  <h3>Was kostet die Nutzung?</h3>
+  <p>Derzeit nichts — die Anwendung befindet sich in der Beta-Phase. Eine kostenlose Basisversion bleibt dauerhaft erhalten.</p>
+
+  <div class="cta">
+    <h2 class="display">Fragen zur Anbindung Ihrer Mandanten?</h2>
+    <p>Schreiben Sie uns — Rückfragen zu Exportformaten, Datenschutz oder dem AVV beantworten wir direkt.</p>
+    <a href="mailto:hallo@warenentnahme.de?subject=Anfrage%20Kanzlei">hallo@warenentnahme.de</a>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div>© 2026 warenentnahme.de</div>
+    <div>
+      <a href="./">Startseite</a>
+      <a href="./pauschbetraege.html">Pauschbeträge 2026</a>
+      <a href="./impressum.html">Impressum</a>
+      <a href="./datenschutz.html">Datenschutz</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

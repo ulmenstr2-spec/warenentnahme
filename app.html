@@ -1985,9 +1985,9 @@ function App(){
         </>}
 
         {/* ── SCHRITTE 1-3: EINZELUNTERNEHMEN ONBOARDING ── */}
-        {onbStep>=1&&onbStep<=3&&<>
+        {onbStep>=1&&onbStep<=4&&<>
           <div style={{display:'flex',gap:6,marginBottom:28}}>
-            {[1,2,3].map(i=><div key={i} style={{flex:1,height:3,borderRadius:2,
+            {[1,2,3,4].map(i=><div key={i} style={{flex:1,height:3,borderRadius:2,
               background:i<=onbStep?'var(--lime)':'var(--border)',transition:'background .3s'}}/>)}
           </div>
 
@@ -2001,16 +2001,39 @@ function App(){
             <div style={{fontSize:13,color:'#333',lineHeight:1.65,marginBottom:6}}>
               Dieses Tool hilft dir, private Warenentnahmen nachvollziehbar zu dokumentieren — schnell, digital, prüfungsbereit.
             </div>
-            <div style={{fontSize:11,color:'#666',marginBottom:24}}>In 2 kurzen Schritten erklärt.</div>
+            <div style={{fontSize:11,color:'#666',marginBottom:24}}>In 3 kurzen Schritten erklärt.</div>
           </>}
 
           {onbStep===2&&<>
             <div style={{width:56,height:56,borderRadius:16,background:'rgba(168,208,96,.15)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6aad2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M10 21v-6h4v6"/>
+              </svg>
+            </div>
+            <div style={{fontSize:19,fontWeight:700,color:'#1a2612',marginBottom:10}}>Schritt 1: Deine Betriebsart</div>
+            <div style={{fontSize:13,color:'#333',lineHeight:1.65,marginBottom:12}}>
+              Danach richtet sich der <strong style={{color:'#1a2612'}}>Pauschbetrag</strong>, mit dem die App rechnet — er unterscheidet sich je Gewerbezweig deutlich.
+            </div>
+            <select value={hh.betrieb||'gaststaetten'} onChange={e=>setHH({...hh,betrieb:e.target.value})}
+              style={{width:'100%',padding:'12px 12px',borderRadius:10,border:'1.5px solid var(--border)',
+                background:'var(--s1)',color:'var(--text)',fontSize:14,marginBottom:12,
+                fontFamily:'inherit',outline:'none',boxSizing:'border-box'}}>
+              {Object.entries(BETRIEBE).map(([k,b])=>(
+                <option key={k} value={k}>{b.label} — {fN((b.ust7+b.ust19)/12)} €/Monat</option>
+              ))}
+            </select>
+            <div style={{background:'var(--bg)',borderRadius:10,padding:'10px 14px',fontSize:12,color:'#555',lineHeight:1.5,marginBottom:24}}>
+              Der angezeigte Wert gilt pro Person und Monat. Lässt sich später jederzeit im Bericht ändern.
+            </div>
+          </>}
+
+          {onbStep===3&&<>
+            <div style={{width:56,height:56,borderRadius:16,background:'rgba(168,208,96,.15)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6aad2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
               </svg>
             </div>
-            <div style={{fontSize:19,fontWeight:700,color:'#1a2612',marginBottom:10}}>Schritt 1: Artikel importieren</div>
+            <div style={{fontSize:19,fontWeight:700,color:'#1a2612',marginBottom:10}}>Schritt 2: Artikel importieren</div>
             <div style={{fontSize:13,color:'#333',lineHeight:1.65,marginBottom:12}}>
               Gehe zu <strong style={{color:'#1a2612'}}>IMPORT</strong> und lade deine Preisliste als BNN- oder XLSX-Datei hoch.
             </div>
@@ -2019,13 +2042,13 @@ function App(){
             </div>
           </>}
 
-          {onbStep===3&&<>
+          {onbStep===4&&<>
             <div style={{width:56,height:56,borderRadius:16,background:'rgba(168,208,96,.15)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6aad2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
               </svg>
             </div>
-            <div style={{fontSize:19,fontWeight:700,color:'#1a2612',marginBottom:10}}>Schritt 2: Entnahmen erfassen</div>
+            <div style={{fontSize:19,fontWeight:700,color:'#1a2612',marginBottom:10}}>Schritt 3: Entnahmen erfassen</div>
             <div style={{fontSize:13,color:'#333',lineHeight:1.65,marginBottom:12}}>
               Tippe auf <strong style={{color:'#1a2612'}}>ERFASSEN</strong>, suche deinen Artikel und trage die Menge ein. Oder scanne den Barcode.
             </div>
@@ -2036,7 +2059,7 @@ function App(){
 
           <div style={{display:'flex',gap:8}}>
             <button className="btn" onClick={()=>setOnbStep(s=>s-1)} style={{flex:1,fontWeight:600}}>Zurück</button>
-            {onbStep<3
+            {onbStep<4
               ?<button className="btn btn-l" onClick={()=>setOnbStep(s=>s+1)} style={{flex:2}}>Weiter</button>
               :<button className="btn btn-l" onClick={()=>finishOnboarding('eu')}
                 style={{flex:2,background:'var(--lime)',color:'#fff',border:'none',fontWeight:700}}>Loslegen</button>

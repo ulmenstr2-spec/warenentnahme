@@ -1432,6 +1432,7 @@ function App(){
     : [['home','Start',Ic.home],['meals','Essen',Ic.fork],['scan','Scan',Ic.scan],['add','Erfassen',Ic.plus],['report','Bericht',Ic.chart],['import','Import',Ic.cog]];
 
   const[showInstall,setShowInstall]=useSt('gt_install_shown',false);
+  const[backupHintDone,setBackupHintDone]=useSt('gt_backup_hint_done',false); // Startseiten-Hinweis zur Datensicherung
   const[swUpdate,setSwUpdate]=useState(false); // Service Worker Update verfügbar
 
   // SW Update-Event abhören
@@ -1494,6 +1495,40 @@ function App(){
       ⚠️ Gerätespeicher fast voll! Alte Artikel löschen um Datenverlust zu vermeiden.
       <button onClick={()=>setStorageWarn(false)} style={{background:'none',border:'1px solid rgba(255,255,255,0.6)',color:'#fff',borderRadius:4,padding:'1px 6px',cursor:'pointer',fontSize:11}}>✕</button>
     </div>}
+    {/* ── DATENSICHERUNG-HINWEIS ──
+        Das Cloud-Konto steckt tief im Import-Tab und wird kaum gefunden.
+        Deshalb hier auf der Startseite ansprechen — aber erst, wenn es
+        auch wirklich etwas zu verlieren gibt, und nur einmal wegklickbar. */}
+    {tab==='home'&&!authToken&&!syncPin&&!backupHintDone&&
+     (ents.length+meals.length+gmbhMeals.length+gmbhWithdrawals.length)>0&&
+      <div style={{margin:'0 16px',marginTop:12,background:'var(--s1)',border:'1.5px solid var(--border)',
+        borderRadius:14,padding:'14px 16px',display:'flex',alignItems:'flex-start',gap:12}}>
+        <span style={{width:38,height:38,borderRadius:11,background:'var(--lm)',display:'flex',
+          alignItems:'center',justifyContent:'center',flexShrink:0}}>
+          <Icon name="cloud" size={19} color="var(--gruen)"/>
+        </span>
+        <span style={{flex:1,minWidth:0}}>
+          <span style={{display:'block',fontSize:13,fontWeight:700,color:'var(--text)',marginBottom:3}}>
+            Deine Daten liegen nur auf diesem Gerät
+          </span>
+          <span style={{display:'block',fontSize:11.5,color:'var(--t2)',lineHeight:1.5,marginBottom:10}}>
+            Bei Handywechsel oder gelöschtem Browser-Speicher wären sie weg. Ein kostenloses Konto sichert sie auf deutschen Servern.
+          </span>
+          <span style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            <button onClick={()=>{setTab('import');setShowSyncModal(true);}}
+              style={{border:'none',background:'var(--gruen)',color:'#fff',fontSize:12,fontWeight:700,
+                padding:'7px 14px',borderRadius:8,cursor:'pointer'}}>
+              Kostenlos sichern
+            </button>
+            <button onClick={()=>setBackupHintDone(true)}
+              style={{border:'none',background:'none',color:'var(--t3)',fontSize:12,
+                padding:'7px 4px',cursor:'pointer'}}>
+              Später
+            </button>
+          </span>
+        </span>
+      </div>}
+
     { rechtsform==='gmbh'
         ? <>
         {tab==='home'&&<GmbhHomeTab meals={gmbhMeals} withdrawals={gmbhWithdrawals} persons={gmbhPersons} now={dKey(now)} setTab={setTab} curPeriod={gmbhCurPeriod}/>}

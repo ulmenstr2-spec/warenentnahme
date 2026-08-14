@@ -1047,6 +1047,19 @@ function App(){
   };
 
   // ── API-HELPER
+  // Technische Fehlermeldungen in etwas übersetzen, mit dem ein Nutzer
+  // etwas anfangen kann. Der technische Wortlaut bleibt in der Konsole.
+  const friendlyError=(j)=>{
+    const raw=(j?.error||'')+'';
+    if(/Netzwerkfehler|Failed to fetch|NetworkError|load failed/i.test(raw))
+      return 'Keine Verbindung zum Server. Bist du online? Deine Daten bleiben solange auf diesem Gerät gespeichert.';
+    if(/Server-Fehler|Ungültige Server-Antwort|Antwort nicht lesbar/i.test(raw))
+      return 'Der Server antwortet gerade nicht. Deine Daten sind auf dem Gerät sicher — bitte in ein paar Minuten nochmal versuchen.';
+    if(/nicht bestätigt|not verified|unverified/i.test(raw))
+      return 'Diese E-Mail-Adresse ist noch nicht bestätigt. Schau bitte in dein Postfach — auch im Spam-Ordner.';
+    return raw||'Es ist ein Fehler aufgetreten. Bitte später nochmal versuchen.';
+  };
+
   const apiCall=async(action,body={})=>{
     let r;
     try{
@@ -1104,11 +1117,11 @@ function App(){
         setTimeout(()=>setSyncMsg(null),4000);
       } else {
         setSyncStatus('error');
-        setSyncMsg({type:'err',text:'✗ Fehler beim Hochladen'});
+        setSyncMsg({type:'err',text:'✗ Hochladen fehlgeschlagen — die Einträge sind auf dem Gerät gespeichert und werden später erneut gesendet.'});
         setTimeout(()=>setSyncMsg(null),4000);
         console.error('Sync push:',j.error);
       }
-    }catch(e){setSyncStatus('error');setSyncMsg({type:'err',text:'✗ Fehler beim Hochladen'});setTimeout(()=>setSyncMsg(null),4000);console.error('Sync push:',e);}
+    }catch(e){setSyncStatus('error');setSyncMsg({type:'err',text:'✗ Hochladen fehlgeschlagen — die Einträge sind auf dem Gerät gespeichert und werden später erneut gesendet.'});setTimeout(()=>setSyncMsg(null),4000);console.error('Sync push:',e);}
   };
 
   // ── SYNC PULL (Daten laden)
@@ -1169,11 +1182,11 @@ function App(){
       } else {
         if(j.error?.includes('abgelaufen'))doLogout(false);
         setSyncStatus('error');
-        setSyncMsg({type:'err',text:'✗ Fehler beim Herunterladen'});
+        setSyncMsg({type:'err',text:'✗ Daten konnten nicht geladen werden — deine Einträge auf diesem Gerät bleiben erhalten.'});
         setTimeout(()=>setSyncMsg(null),4000);
         return false;
       }
-    }catch(e){setSyncStatus('error');setSyncMsg({type:'err',text:'✗ Fehler beim Herunterladen'});setTimeout(()=>setSyncMsg(null),4000);console.error('Sync pull:',e);return false;}
+    }catch(e){setSyncStatus('error');setSyncMsg({type:'err',text:'✗ Daten konnten nicht geladen werden — deine Einträge auf diesem Gerät bleiben erhalten.'});setTimeout(()=>setSyncMsg(null),4000);console.error('Sync pull:',e);return false;}
   };
 
   // ── AUTH: Login
@@ -1195,7 +1208,7 @@ function App(){
         setShowSyncModal(false);
         showT('✓ Eingeloggt als '+email);
       } else {
-        setAuthMsg(j.error||'Fehler beim Login');
+        setAuthMsg(friendlyError(j));
       }
     }catch(e){
       const detail=e?.error||e?.message||'Verbindungsfehler';
@@ -1221,7 +1234,7 @@ function App(){
         setAuthView('register_done');
         setAuthMsg('Bestätigungsmail gesendet! Bitte prüfe dein Postfach.');
       } else {
-        setAuthMsg(j.error||'Fehler bei der Registrierung');
+        setAuthMsg(friendlyError(j));
       }
     }catch{setAuthMsg('Verbindungsfehler');}
     setAuthLoading(false);
@@ -1855,16 +1868,40 @@ function App(){
                   <Icon name="mail" size={32} color="#3a7020"/>
                 </div>
                 <div style={{fontSize:18,fontWeight:700,color:'#1a2612',marginBottom:8}}>Mail gesendet</div>
-                <div style={{fontSize:13,color:'#5a6a4a',lineHeight:1.7,marginBottom:24}}>
+                <div style={{fontSize:13,color:'#5a6a4a',lineHeight:1.7,marginBottom:16}}>
                   Wir haben eine Bestätigungsmail an<br/>
-                  <strong style={{color:'#1a2612'}}>{authInputEmail}</strong><br/>
+                  <strong style={{color:'#1a2612',wordBreak:'break-all'}}>{authInputEmail}</strong><br/>
                   gesendet. Bitte klicke auf den Link.
                 </div>
-                <button onClick={()=>setAuthView('login')}
-                  style={{padding:'12px 24px',borderRadius:10,border:'1.5px solid #c8deb8',
-                    background:'#f0f8e8',color:'#2a6010',fontSize:13,fontWeight:600,cursor:'pointer'}}>
-                  Zum Login
-                </button>
+
+                {/* Häufigster Grund für abgebrochene Anmeldungen: Mail landet im
+                    Spam oder die Adresse hat einen Tippfehler. Beides hier direkt
+                    ansprechen statt den Nutzer ratlos zurückzulassen. */}
+                <div style={{background:'#fdf6e3',border:'1px solid #e8d9a8',borderRadius:10,
+                  padding:'12px 14px',marginBottom:16,textAlign:'left'}}>
+                  <div style={{fontSize:12.5,fontWeight:700,color:'#8a6410',marginBottom:6}}>Keine Mail bekommen?</div>
+                  <div style={{fontSize:12,color:'#7a6a3a',lineHeight:1.6}}>
+                    Schau bitte im <strong>Spam- oder Werbung-Ordner</strong> nach — Absender ist{' '}
+                    <strong style={{wordBreak:'break-all'}}>noreply@warenentnahme.de</strong>. Die Zustellung kann ein paar Minuten dauern.
+                  </div>
+                </div>
+
+                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                  <button onClick={()=>setAuthView('login')}
+                    style={{padding:'12px 24px',borderRadius:10,border:'none',
+                      background:'var(--gruen)',color:'#fff',fontSize:14,fontWeight:600,cursor:'pointer'}}>
+                    Zum Login
+                  </button>
+                  <button onClick={()=>{setAuthView('register');setAuthMsg('');}}
+                    style={{padding:'10px 24px',borderRadius:10,border:'1.5px solid #c8deb8',
+                      background:'transparent',color:'#2a6010',fontSize:13,fontWeight:600,cursor:'pointer'}}>
+                    Adresse falsch? Erneut eingeben
+                  </button>
+                  <a href={'mailto:hallo@warenentnahme.de?subject='+encodeURIComponent('Bestätigungsmail nicht angekommen')+'&body='+encodeURIComponent('Meine Registrierungs-Adresse: '+authInputEmail)}
+                    style={{fontSize:12,color:'#7a8f6a',textDecoration:'underline',padding:'6px 0'}}>
+                    Klappt nicht? Schreib uns
+                  </a>
+                </div>
               </div>
             )}
 

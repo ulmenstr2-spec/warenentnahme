@@ -1047,6 +1047,19 @@ function App(){
   };
 
   // ── API-HELPER
+  // Technische Fehlermeldungen in etwas übersetzen, mit dem ein Nutzer
+  // etwas anfangen kann. Der technische Wortlaut bleibt in der Konsole.
+  const friendlyError=(j)=>{
+    const raw=(j?.error||'')+'';
+    if(/Netzwerkfehler|Failed to fetch|NetworkError|load failed/i.test(raw))
+      return 'Keine Verbindung zum Server. Bist du online? Deine Daten bleiben solange auf diesem Gerät gespeichert.';
+    if(/Server-Fehler|Ungültige Server-Antwort|Antwort nicht lesbar/i.test(raw))
+      return 'Der Server antwortet gerade nicht. Deine Daten sind auf dem Gerät sicher — bitte in ein paar Minuten nochmal versuchen.';
+    if(/nicht bestätigt|not verified|unverified/i.test(raw))
+      return 'Diese E-Mail-Adresse ist noch nicht bestätigt. Schau bitte in dein Postfach — auch im Spam-Ordner.';
+    return raw||'Es ist ein Fehler aufgetreten. Bitte später nochmal versuchen.';
+  };
+
   const apiCall=async(action,body={})=>{
     let r;
     try{
@@ -1104,11 +1117,11 @@ function App(){
         setTimeout(()=>setSyncMsg(null),4000);
       } else {
         setSyncStatus('error');
-        setSyncMsg({type:'err',text:'✗ Fehler beim Hochladen'});
+        setSyncMsg({type:'err',text:'✗ Hochladen fehlgeschlagen — die Einträge sind auf dem Gerät gespeichert und werden später erneut gesendet.'});
         setTimeout(()=>setSyncMsg(null),4000);
         console.error('Sync push:',j.error);
       }
-    }catch(e){setSyncStatus('error');setSyncMsg({type:'err',text:'✗ Fehler beim Hochladen'});setTimeout(()=>setSyncMsg(null),4000);console.error('Sync push:',e);}
+    }catch(e){setSyncStatus('error');setSyncMsg({type:'err',text:'✗ Hochladen fehlgeschlagen — die Einträge sind auf dem Gerät gespeichert und werden später erneut gesendet.'});setTimeout(()=>setSyncMsg(null),4000);console.error('Sync push:',e);}
   };
 
   // ── SYNC PULL (Daten laden)
@@ -1169,11 +1182,11 @@ function App(){
       } else {
         if(j.error?.includes('abgelaufen'))doLogout(false);
         setSyncStatus('error');
-        setSyncMsg({type:'err',text:'✗ Fehler beim Herunterladen'});
+        setSyncMsg({type:'err',text:'✗ Daten konnten nicht geladen werden — deine Einträge auf diesem Gerät bleiben erhalten.'});
         setTimeout(()=>setSyncMsg(null),4000);
         return false;
       }
-    }catch(e){setSyncStatus('error');setSyncMsg({type:'err',text:'✗ Fehler beim Herunterladen'});setTimeout(()=>setSyncMsg(null),4000);console.error('Sync pull:',e);return false;}
+    }catch(e){setSyncStatus('error');setSyncMsg({type:'err',text:'✗ Daten konnten nicht geladen werden — deine Einträge auf diesem Gerät bleiben erhalten.'});setTimeout(()=>setSyncMsg(null),4000);console.error('Sync pull:',e);return false;}
   };
 
   // ── AUTH: Login
@@ -1195,7 +1208,7 @@ function App(){
         setShowSyncModal(false);
         showT('✓ Eingeloggt als '+email);
       } else {
-        setAuthMsg(j.error||'Fehler beim Login');
+        setAuthMsg(friendlyError(j));
       }
     }catch(e){
       const detail=e?.error||e?.message||'Verbindungsfehler';
@@ -1221,7 +1234,7 @@ function App(){
         setAuthView('register_done');
         setAuthMsg('Bestätigungsmail gesendet! Bitte prüfe dein Postfach.');
       } else {
-        setAuthMsg(j.error||'Fehler bei der Registrierung');
+        setAuthMsg(friendlyError(j));
       }
     }catch{setAuthMsg('Verbindungsfehler');}
     setAuthLoading(false);
@@ -1419,6 +1432,7 @@ function App(){
     : [['home','Start',Ic.home],['meals','Essen',Ic.fork],['scan','Scan',Ic.scan],['add','Erfassen',Ic.plus],['report','Bericht',Ic.chart],['import','Import',Ic.cog]];
 
   const[showInstall,setShowInstall]=useSt('gt_install_shown',false);
+  const[backupHintDone,setBackupHintDone]=useSt('gt_backup_hint_done',false); // Startseiten-Hinweis zur Datensicherung
   const[swUpdate,setSwUpdate]=useState(false); // Service Worker Update verfügbar
 
   // SW Update-Event abhören
@@ -1481,6 +1495,40 @@ function App(){
       ⚠️ Gerätespeicher fast voll! Alte Artikel löschen um Datenverlust zu vermeiden.
       <button onClick={()=>setStorageWarn(false)} style={{background:'none',border:'1px solid rgba(255,255,255,0.6)',color:'#fff',borderRadius:4,padding:'1px 6px',cursor:'pointer',fontSize:11}}>✕</button>
     </div>}
+    {/* ── DATENSICHERUNG-HINWEIS ──
+        Das Cloud-Konto steckt tief im Import-Tab und wird kaum gefunden.
+        Deshalb hier auf der Startseite ansprechen — aber erst, wenn es
+        auch wirklich etwas zu verlieren gibt, und nur einmal wegklickbar. */}
+    {tab==='home'&&!authToken&&!syncPin&&!backupHintDone&&
+     (ents.length+meals.length+gmbhMeals.length+gmbhWithdrawals.length)>0&&
+      <div style={{margin:'0 16px',marginTop:12,background:'var(--s1)',border:'1.5px solid var(--border)',
+        borderRadius:14,padding:'14px 16px',display:'flex',alignItems:'flex-start',gap:12}}>
+        <span style={{width:38,height:38,borderRadius:11,background:'var(--lm)',display:'flex',
+          alignItems:'center',justifyContent:'center',flexShrink:0}}>
+          <Icon name="cloud" size={19} color="var(--gruen)"/>
+        </span>
+        <span style={{flex:1,minWidth:0}}>
+          <span style={{display:'block',fontSize:13,fontWeight:700,color:'var(--text)',marginBottom:3}}>
+            Deine Daten liegen nur auf diesem Gerät
+          </span>
+          <span style={{display:'block',fontSize:11.5,color:'var(--t2)',lineHeight:1.5,marginBottom:10}}>
+            Bei Handywechsel oder gelöschtem Browser-Speicher wären sie weg. Ein kostenloses Konto sichert sie auf deutschen Servern.
+          </span>
+          <span style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            <button onClick={()=>{setTab('import');setShowSyncModal(true);}}
+              style={{border:'none',background:'var(--gruen)',color:'#fff',fontSize:12,fontWeight:700,
+                padding:'7px 14px',borderRadius:8,cursor:'pointer'}}>
+              Kostenlos sichern
+            </button>
+            <button onClick={()=>setBackupHintDone(true)}
+              style={{border:'none',background:'none',color:'var(--t3)',fontSize:12,
+                padding:'7px 4px',cursor:'pointer'}}>
+              Später
+            </button>
+          </span>
+        </span>
+      </div>}
+
     { rechtsform==='gmbh'
         ? <>
         {tab==='home'&&<GmbhHomeTab meals={gmbhMeals} withdrawals={gmbhWithdrawals} persons={gmbhPersons} now={dKey(now)} setTab={setTab} curPeriod={gmbhCurPeriod}/>}
@@ -1855,16 +1903,40 @@ function App(){
                   <Icon name="mail" size={32} color="#3a7020"/>
                 </div>
                 <div style={{fontSize:18,fontWeight:700,color:'#1a2612',marginBottom:8}}>Mail gesendet</div>
-                <div style={{fontSize:13,color:'#5a6a4a',lineHeight:1.7,marginBottom:24}}>
+                <div style={{fontSize:13,color:'#5a6a4a',lineHeight:1.7,marginBottom:16}}>
                   Wir haben eine Bestätigungsmail an<br/>
-                  <strong style={{color:'#1a2612'}}>{authInputEmail}</strong><br/>
+                  <strong style={{color:'#1a2612',wordBreak:'break-all'}}>{authInputEmail}</strong><br/>
                   gesendet. Bitte klicke auf den Link.
                 </div>
-                <button onClick={()=>setAuthView('login')}
-                  style={{padding:'12px 24px',borderRadius:10,border:'1.5px solid #c8deb8',
-                    background:'#f0f8e8',color:'#2a6010',fontSize:13,fontWeight:600,cursor:'pointer'}}>
-                  Zum Login
-                </button>
+
+                {/* Häufigster Grund für abgebrochene Anmeldungen: Mail landet im
+                    Spam oder die Adresse hat einen Tippfehler. Beides hier direkt
+                    ansprechen statt den Nutzer ratlos zurückzulassen. */}
+                <div style={{background:'#fdf6e3',border:'1px solid #e8d9a8',borderRadius:10,
+                  padding:'12px 14px',marginBottom:16,textAlign:'left'}}>
+                  <div style={{fontSize:12.5,fontWeight:700,color:'#8a6410',marginBottom:6}}>Keine Mail bekommen?</div>
+                  <div style={{fontSize:12,color:'#7a6a3a',lineHeight:1.6}}>
+                    Schau bitte im <strong>Spam- oder Werbung-Ordner</strong> nach — Absender ist{' '}
+                    <strong style={{wordBreak:'break-all'}}>noreply@warenentnahme.de</strong>. Die Zustellung kann ein paar Minuten dauern.
+                  </div>
+                </div>
+
+                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                  <button onClick={()=>setAuthView('login')}
+                    style={{padding:'12px 24px',borderRadius:10,border:'none',
+                      background:'var(--gruen)',color:'#fff',fontSize:14,fontWeight:600,cursor:'pointer'}}>
+                    Zum Login
+                  </button>
+                  <button onClick={()=>{setAuthView('register');setAuthMsg('');}}
+                    style={{padding:'10px 24px',borderRadius:10,border:'1.5px solid #c8deb8',
+                      background:'transparent',color:'#2a6010',fontSize:13,fontWeight:600,cursor:'pointer'}}>
+                    Adresse falsch? Erneut eingeben
+                  </button>
+                  <a href={'mailto:hallo@warenentnahme.de?subject='+encodeURIComponent('Bestätigungsmail nicht angekommen')+'&body='+encodeURIComponent('Meine Registrierungs-Adresse: '+authInputEmail)}
+                    style={{fontSize:12,color:'#7a8f6a',textDecoration:'underline',padding:'6px 0'}}>
+                    Klappt nicht? Schreib uns
+                  </a>
+                </div>
               </div>
             )}
 
@@ -1985,9 +2057,9 @@ function App(){
         </>}
 
         {/* ── SCHRITTE 1-3: EINZELUNTERNEHMEN ONBOARDING ── */}
-        {onbStep>=1&&onbStep<=3&&<>
+        {onbStep>=1&&onbStep<=4&&<>
           <div style={{display:'flex',gap:6,marginBottom:28}}>
-            {[1,2,3].map(i=><div key={i} style={{flex:1,height:3,borderRadius:2,
+            {[1,2,3,4].map(i=><div key={i} style={{flex:1,height:3,borderRadius:2,
               background:i<=onbStep?'var(--lime)':'var(--border)',transition:'background .3s'}}/>)}
           </div>
 
@@ -2001,16 +2073,39 @@ function App(){
             <div style={{fontSize:13,color:'#333',lineHeight:1.65,marginBottom:6}}>
               Dieses Tool hilft dir, private Warenentnahmen nachvollziehbar zu dokumentieren — schnell, digital, prüfungsbereit.
             </div>
-            <div style={{fontSize:11,color:'#666',marginBottom:24}}>In 2 kurzen Schritten erklärt.</div>
+            <div style={{fontSize:11,color:'#666',marginBottom:24}}>In 3 kurzen Schritten erklärt.</div>
           </>}
 
           {onbStep===2&&<>
             <div style={{width:56,height:56,borderRadius:16,background:'rgba(168,208,96,.15)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6aad2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M10 21v-6h4v6"/>
+              </svg>
+            </div>
+            <div style={{fontSize:19,fontWeight:700,color:'#1a2612',marginBottom:10}}>Schritt 1: Deine Betriebsart</div>
+            <div style={{fontSize:13,color:'#333',lineHeight:1.65,marginBottom:12}}>
+              Danach richtet sich der <strong style={{color:'#1a2612'}}>Pauschbetrag</strong>, mit dem die App rechnet — er unterscheidet sich je Gewerbezweig deutlich.
+            </div>
+            <select value={hh.betrieb||'gaststaetten'} onChange={e=>setHH({...hh,betrieb:e.target.value})}
+              style={{width:'100%',padding:'12px 12px',borderRadius:10,border:'1.5px solid var(--border)',
+                background:'var(--s1)',color:'var(--text)',fontSize:14,marginBottom:12,
+                fontFamily:'inherit',outline:'none',boxSizing:'border-box'}}>
+              {Object.entries(BETRIEBE).map(([k,b])=>(
+                <option key={k} value={k}>{b.label} — {fN((b.ust7+b.ust19)/12)} €/Monat</option>
+              ))}
+            </select>
+            <div style={{background:'var(--bg)',borderRadius:10,padding:'10px 14px',fontSize:12,color:'#555',lineHeight:1.5,marginBottom:24}}>
+              Der angezeigte Wert gilt pro Person und Monat. Lässt sich später jederzeit im Bericht ändern.
+            </div>
+          </>}
+
+          {onbStep===3&&<>
+            <div style={{width:56,height:56,borderRadius:16,background:'rgba(168,208,96,.15)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6aad2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
               </svg>
             </div>
-            <div style={{fontSize:19,fontWeight:700,color:'#1a2612',marginBottom:10}}>Schritt 1: Artikel importieren</div>
+            <div style={{fontSize:19,fontWeight:700,color:'#1a2612',marginBottom:10}}>Schritt 2: Artikel importieren</div>
             <div style={{fontSize:13,color:'#333',lineHeight:1.65,marginBottom:12}}>
               Gehe zu <strong style={{color:'#1a2612'}}>IMPORT</strong> und lade deine Preisliste als BNN- oder XLSX-Datei hoch.
             </div>
@@ -2019,13 +2114,13 @@ function App(){
             </div>
           </>}
 
-          {onbStep===3&&<>
+          {onbStep===4&&<>
             <div style={{width:56,height:56,borderRadius:16,background:'rgba(168,208,96,.15)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6aad2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
               </svg>
             </div>
-            <div style={{fontSize:19,fontWeight:700,color:'#1a2612',marginBottom:10}}>Schritt 2: Entnahmen erfassen</div>
+            <div style={{fontSize:19,fontWeight:700,color:'#1a2612',marginBottom:10}}>Schritt 3: Entnahmen erfassen</div>
             <div style={{fontSize:13,color:'#333',lineHeight:1.65,marginBottom:12}}>
               Tippe auf <strong style={{color:'#1a2612'}}>ERFASSEN</strong>, suche deinen Artikel und trage die Menge ein. Oder scanne den Barcode.
             </div>
@@ -2036,7 +2131,7 @@ function App(){
 
           <div style={{display:'flex',gap:8}}>
             <button className="btn" onClick={()=>setOnbStep(s=>s-1)} style={{flex:1,fontWeight:600}}>Zurück</button>
-            {onbStep<3
+            {onbStep<4
               ?<button className="btn btn-l" onClick={()=>setOnbStep(s=>s+1)} style={{flex:2}}>Weiter</button>
               :<button className="btn btn-l" onClick={()=>finishOnboarding('eu')}
                 style={{flex:2,background:'var(--lime)',color:'#fff',border:'none',fontWeight:700}}>Loslegen</button>

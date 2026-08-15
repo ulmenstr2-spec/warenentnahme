@@ -131,6 +131,22 @@ td.total{font-weight:700;color:var(--text)}
 
 .example{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:22px 24px;margin:22px 0}
 .example-title{font-family:'Fraunces',serif;font-size:17px;font-weight:700;margin-bottom:14px;color:var(--green)}
+
+/* ── RECHNER ── */
+.calc{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:22px 24px;margin:22px 0}
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.calc-field{display:flex;flex-direction:column;gap:6px}
+.calc-field:first-child{grid-column:1 / -1}
+.calc-label{font-size:12px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--text-soft);
+  display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.calc-hint{text-transform:none;letter-spacing:0;font-weight:400;font-size:11.5px;color:var(--text-soft);opacity:.8}
+.calc select,.calc input{width:100%;padding:11px 12px;border-radius:10px;border:1.5px solid var(--border);
+  background:var(--cream);color:var(--text);font-size:15px;font-family:inherit;outline:none;box-sizing:border-box}
+.calc select:focus,.calc input:focus{border-color:var(--green-light)}
+.calc-out{border-top:1px solid var(--border);padding-top:14px}
+.calc-month{border-top:1px dashed var(--border);font-weight:600;font-size:15px;color:var(--text-mid)}
+.calc-note{font-size:12.5px;color:var(--text-soft);margin:12px 0 0;line-height:1.55}
+.calc-note strong{color:var(--text-mid)}
 .calc-row{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-bottom:1px dashed var(--border);font-size:15px;color:var(--text-mid)}
 .calc-row:last-of-type{border-bottom:none}
 .calc-row .v{font-variant-numeric:tabular-nums;font-weight:600;color:var(--text);white-space:nowrap}
@@ -184,7 +200,7 @@ footer{border-top:1px solid var(--border);background:var(--cream-dark)}
     <div class="toc-title">Inhalt</div>
     <ul>
       <li><a href="#tabelle">Tabelle: Pauschbeträge nach Gewerbezweig</a></li>
-      <li><a href="#beispiel">Rechenbeispiel: Restaurant, zwei Personen</a></li>
+      <li><a href="#rechner">Rechner: Was muss ich ansetzen?</a></li>
       <li><a href="#wer">Für wen die Pauschbeträge gelten – und für wen nicht</a></li>
       <li><a href="#kinder">Kinder und weitere Haushaltsangehörige</a></li>
       <li><a href="#buchen">Wie die Entnahmen gebucht werden</a></li>
@@ -224,18 +240,43 @@ footer{border-top:1px solid var(--border);background:var(--cream-dark)}
     <p><strong>Kein Ersatz für steuerliche Beratung.</strong> Diese Seite ist eine Orientierungshilfe aus der Praxis, keine Steuerberatung im Sinne des StBerG. Ob und wie die Pauschbeträge in deinem Fall anzuwenden sind, klärt dein Steuerberater.</p>
   </div>
 
-  <h2 id="beispiel">Rechenbeispiel: Restaurant, zwei Personen</h2>
-  <p>Ein Restaurant wird als Einzelunternehmen geführt. Im Haushalt des Inhabers leben er selbst, seine Partnerin und ein achtjähriges Kind. Für das Kind wird der halbe Pauschbetrag angesetzt.</p>
+  <h2 id="rechner">Rechner: Was muss ich ansetzen?</h2>
+  <p>Gewerbezweig und Personen im Haushalt auswählen — der Rechner ermittelt den Jahres- und Monatswert, aufgeteilt nach Umsatzsteuersätzen.</p>
 
-  <div class="example">
-    <div class="example-title">Jahreswert der Sachentnahmen</div>
-    <div class="calc-row"><span>Inhaber (voller Satz)</span><span class="v">4.001 €</span></div>
-    <div class="calc-row"><span>Partnerin (voller Satz)</span><span class="v">4.001 €</span></div>
-    <div class="calc-row"><span>Kind, 8 Jahre (halber Satz)</span><span class="v">2.000,50 €</span></div>
-    <div class="calc-total"><span>Summe pro Jahr</span><span>10.002,50 €</span></div>
-    <div class="calc-total" style="border-top:1px dashed var(--border);font-weight:600;font-size:15px;color:var(--text-mid)"><span>entspricht pro Monat</span><span>833,54 €</span></div>
+  <div class="calc" id="calc">
+    <div class="calc-grid">
+      <label class="calc-field">
+        <span class="calc-label">Gewerbezweig</span>
+        <select id="c-betrieb">
+          <option value="gaststaetten" selected>Gaststätten / Restaurant</option>
+          <option value="hotel">Hotel / Beherbergung mit Gastronomie</option>
+          <option value="cafe">Café / Eisdiele</option>
+          <option value="imbiss">Imbiss / Schnellgastronomie</option>
+          <option value="baeckerei">Bäckerei / Konditorei</option>
+          <option value="fleischerei">Fleischerei / Metzgerei</option>
+          <option value="sonstige">Sonstige Lebensmittelbetriebe</option>
+        </select>
+      </label>
+      <label class="calc-field">
+        <span class="calc-label">Personen ab 13 Jahren<span class="calc-hint">voller Satz</span></span>
+        <input type="number" id="c-erw" min="0" max="20" step="1" value="1" inputmode="numeric">
+      </label>
+      <label class="calc-field">
+        <span class="calc-label">Kinder 2 bis 12 Jahre<span class="calc-hint">halber Satz</span></span>
+        <input type="number" id="c-kind" min="0" max="20" step="1" value="0" inputmode="numeric">
+      </label>
+    </div>
+
+    <div class="calc-out" id="c-out" aria-live="polite">
+      <div class="calc-row"><span>7 % USt (überwiegend Lebensmittel)</span><span class="v" id="c-v7">–</span></div>
+      <div class="calc-row"><span>19 % USt (überwiegend Getränke)</span><span class="v" id="c-v19">–</span></div>
+      <div class="calc-total"><span>Summe pro Jahr</span><span id="c-jahr">–</span></div>
+      <div class="calc-total calc-month"><span>entspricht pro Monat</span><span id="c-monat">–</span></div>
+    </div>
+    <p class="calc-note" id="c-note"></p>
   </div>
-  <p>Dieser Betrag wird als Entnahme erfasst und – aufgeteilt nach 7 % und 19 % – der Umsatzsteuer unterworfen. In der Praxis bucht man ihn monatlich, damit die Umsatzsteuer-Voranmeldung stimmt.</p>
+
+  <p>Der Monatswert wird als Entnahme gebucht und – aufgeteilt nach 7 % und 19 % – der Umsatzsteuer unterworfen. In der Praxis erfasst man ihn laufend, damit die Umsatzsteuer-Voranmeldung stimmt.</p>
 
   <h2 id="wer">Für wen die Pauschbeträge gelten – und für wen nicht</h2>
   <p>Die Vereinfachung richtet sich an <strong>Einzelunternehmer und Mitunternehmer von Personengesellschaften</strong> (GbR, OHG, KG) in den oben genannten Gewerbezweigen. Wer dort Waren für den privaten Bedarf entnimmt, kann statt der Einzelaufzeichnung den Pauschbetrag ansetzen.</p>
@@ -296,6 +337,64 @@ footer{border-top:1px solid var(--border);background:var(--cream-dark)}
     </div>
   </div>
 </footer>
+
+<script>
+/* ── RECHNER ──
+   Werte und Rechenweg identisch zur App (Jahreswerte netto je Person,
+   Kinder von 2 bis 12 mit halbem Satz). Läuft rein im Browser — es
+   werden keine Eingaben übertragen oder gespeichert. */
+(function () {
+  var SAETZE = {
+    gaststaetten: [3173, 828],
+    hotel:        [3173, 828],
+    cafe:         [2041, 515],
+    imbiss:       [2041, 515],
+    baeckerei:    [1871, 0],
+    fleischerei:  [1685, 0],
+    sonstige:     [1476, 0]
+  };
+  var el = function (id) { return document.getElementById(id); };
+  var betrieb = el('c-betrieb'), erw = el('c-erw'), kind = el('c-kind');
+  if (!betrieb || !erw || !kind) return;
+
+  var eur = function (n) {
+    return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+  };
+  var zahl = function (input, max) {
+    var v = parseInt(input.value, 10);
+    if (isNaN(v) || v < 0) v = 0;
+    if (v > max) v = max;
+    return v;
+  };
+
+  function rechne() {
+    var s = SAETZE[betrieb.value] || SAETZE.gaststaetten;
+    var personen = zahl(erw, 20) + zahl(kind, 20) * 0.5;
+    var j7 = s[0] * personen, j19 = s[1] * personen;
+    var jahr = j7 + j19;
+
+    el('c-v7').textContent  = eur(j7);
+    el('c-v19').textContent = s[1] === 0 ? '— (kein 19-%-Anteil)' : eur(j19);
+    el('c-jahr').textContent  = eur(jahr);
+    el('c-monat').textContent = eur(jahr / 12);
+
+    var note = el('c-note');
+    if (personen === 0) {
+      note.innerHTML = 'Bitte mindestens eine Person angeben.';
+    } else {
+      note.innerHTML = '<strong>Nettobeträge</strong> nach den in der App hinterlegten Pauschbeträgen. ' +
+        'Kinder unter 2 Jahren bleiben unberücksichtigt, Kinder ab 13 Jahren zählen voll. ' +
+        'Maßgeblich ist das jährliche BMF-Schreiben; die Beurteilung im Einzelfall gehört in die Kanzlei.';
+    }
+  }
+
+  [betrieb, erw, kind].forEach(function (f) {
+    f.addEventListener('input', rechne);
+    f.addEventListener('change', rechne);
+  });
+  rechne();
+})();
+</script>
 
 </body>
 </html>

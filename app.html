@@ -1548,7 +1548,9 @@ function App(){
         {tab==='home'&&<HomeTab me={me} periodEnts={periodEnts} today={today} todayM={todayM} tw={tw} tm={tm} t7={t7} t19={t19} now={now} curPeriod={curPeriod} hh={hh} onDel={delEnt} onEdit={editEnt}/>}
         {tab==='meals'&&<MealsTab meals={meals} setMeals={setMeals} cd={cd} cm={cm} curPeriod={curPeriod}/>}
         {tab==='scan'&&<ScanTab arts={arts} eanIndex={eanIndex} onSel={a=>setModal(a)} showT={showT}/>}
-        {tab==='add'&&<AddTab arts={arts} favs={favs} onSel={a=>setModal(a)} showT={showT} hh={hh}/>}
+        {/* onFav/onManual müssen mit übergeben werden — sonst brechen der
+            Favoriten-Stern und das manuelle Anlegen mit einem Fehler ab. */}
+        {tab==='add'&&<AddTab arts={arts} favs={favs} onSel={a=>setModal(a)} onFav={toggleFav} onManual={addManual} showT={showT} hh={hh}/>}
         {tab==='report'&&<ReportTab ents={ents} meals={meals} hh={hh} setHH={setHH} periodDay={periodDay} setPeriodDay={setPeriodDay}/>}
         {tab==='import'&&<ImportTab arts={arts} setArts={setArts} showT={showT} ents={ents} hh={hh} setHH={setHH} setEnts={setEnts} setMeals={setMeals} setFavs={setFavs} syncPin={syncPin} setShowSyncModal={setShowSyncModal} backupData={backupData} restoreData={restoreData} gmbhMeals={gmbhMeals} setGmbhMeals={setGmbhMeals} gmbhWithdrawals={gmbhWithdrawals} setGmbhWithdrawals={setGmbhWithdrawals} gmbhPersons={gmbhPersons} setGmbhPersons={setGmbhPersons} rechtsform={rechtsform} setRechtsform={setRechtsform}/>}
         </>

@@ -126,6 +126,29 @@ nav {
 .nav-cta { background: var(--green); color: white; font-size: 14px; font-weight: 600; padding: 9px 18px; border-radius: 10px; text-decoration: none; transition: all 0.2s; white-space: nowrap; }
 .nav-cta:hover { background: var(--green-light); transform: translateY(-1px); }
 
+/* ── MOBILES KLAPPMENÜ ── */
+.nav-burger {
+  display: none; align-items: center; justify-content: center;
+  width: 40px; height: 40px; margin-left: 4px; padding: 0;
+  background: transparent; border: 1.5px solid var(--border); border-radius: 10px;
+  color: var(--green); cursor: pointer; flex-shrink: 0;
+}
+.nav-burger .ico { width: 20px; height: 20px; }
+#nav-mobile {
+  display: none; position: fixed; top: 64px; left: 0; right: 0; z-index: 99;
+  background: var(--cream); border-bottom: 1px solid var(--border);
+  box-shadow: 0 10px 28px rgba(26,46,14,0.10);
+  padding: 8px 16px 14px;
+}
+#nav-mobile.open { display: block; }
+#nav-mobile a {
+  display: block; padding: 13px 8px; font-size: 15px; font-weight: 600;
+  color: var(--text-mid); text-decoration: none; border-bottom: 1px solid var(--border);
+}
+#nav-mobile a:last-child { border-bottom: none; }
+#nav-mobile a:active { color: var(--green); }
+@media (min-width: 769px) { #nav-mobile { display: none !important; } }
+
 /* HERO */
 .hero {
   min-height: 100vh; display: flex; align-items: center;
@@ -351,7 +374,11 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
   .features-grid { grid-template-columns: 1fr 1fr; }
   .modes-grid { grid-template-columns: 1fr; }
   .pricing-grid { grid-template-columns: 1fr; }
+  /* Auf dem Handy wandern die Links ins Klappmenü — vorher waren sie
+     schlicht ausgeblendet und die Unterseiten nur über den Footer
+     erreichbar. */
   .nav-links .nav-link { display: none; }
+  .nav-burger { display: inline-flex; }
   .footer-inner { flex-direction: column; text-align: center; }
 }
 @media (max-width: 480px) {
@@ -522,7 +549,7 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
 </head>
 <body>
 <div id="scroll-progress"></div>
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></symbol><symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></symbol><symbol id="i-utensils" viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /> <path d="M7 2v20" /> <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></symbol><symbol id="i-shopping-bag" viewBox="0 0 24 24"><path d="M16 10a4 4 0 0 1-8 0" /> <path d="M3.103 6.034h17.794" /> <path d="M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z" /></symbol><symbol id="i-smartphone" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2" /> <path d="M12 18h.01" /></symbol><symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3v18" /> <path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /> <path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /> <path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /> <path d="M7 21h10" /></symbol><symbol id="i-folder-open" viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2" /></symbol><symbol id="i-file-text" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" /> <path d="M14 2v5a1 1 0 0 0 1 1h5" /> <path d="M10 9H8" /> <path d="M16 13H8" /> <path d="M16 17H8" /></symbol><symbol id="i-file-down" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" /> <path d="M14 2v5a1 1 0 0 0 1 1h5" /> <path d="M12 18v-6" /> <path d="m9 15 3 3 3-3" /></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M12 15V3" /> <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /> <path d="m7 10 5 5 5-5" /></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" /></symbol><symbol id="i-check-circle" viewBox="0 0 24 24"><path d="M21.801 10A10 10 0 1 1 17 3.335" /> <path d="m9 11 3 3L22 4" /></symbol><symbol id="i-bar-chart-2" viewBox="0 0 24 24"><path d="M5 21v-6" /> <path d="M12 21V3" /> <path d="M19 21V9" /></symbol></svg>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5" /></symbol><symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></symbol><symbol id="i-utensils" viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /> <path d="M7 2v20" /> <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></symbol><symbol id="i-shopping-bag" viewBox="0 0 24 24"><path d="M16 10a4 4 0 0 1-8 0" /> <path d="M3.103 6.034h17.794" /> <path d="M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z" /></symbol><symbol id="i-smartphone" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2" /> <path d="M12 18h.01" /></symbol><symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3v18" /> <path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /> <path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /> <path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /> <path d="M7 21h10" /></symbol><symbol id="i-folder-open" viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2" /></symbol><symbol id="i-file-text" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" /> <path d="M14 2v5a1 1 0 0 0 1 1h5" /> <path d="M10 9H8" /> <path d="M16 13H8" /> <path d="M16 17H8" /></symbol><symbol id="i-file-down" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" /> <path d="M14 2v5a1 1 0 0 0 1 1h5" /> <path d="M12 18v-6" /> <path d="m9 15 3 3 3-3" /></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M12 15V3" /> <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /> <path d="m7 10 5 5 5-5" /></symbol><symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" /></symbol><symbol id="i-check-circle" viewBox="0 0 24 24"><path d="M21.801 10A10 10 0 1 1 17 3.335" /> <path d="m9 11 3 3L22 4" /></symbol><symbol id="i-bar-chart-2" viewBox="0 0 24 24"><path d="M5 21v-6" /> <path d="M12 21V3" /> <path d="M19 21V9" /></symbol><symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 5h16" /> <path d="M4 12h16" /> <path d="M4 19h16" /></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18" /> <path d="m6 6 12 12" /></symbol></svg>
 <div id="cursor-glow"></div>
 <nav>
   <a href="/" class="nav-logo">
@@ -536,8 +563,19 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
     <a href="#preise" class="nav-link">Preise</a>
     <a href="#faq" class="nav-link">FAQ</a>
     <a href="https://www.warenentnahme.de/app/" class="nav-cta">Kostenlos starten</a>
+    <button id="nav-toggle" class="nav-burger" aria-label="Menü öffnen" aria-expanded="false" aria-controls="nav-mobile">
+      <svg class="ico" aria-hidden="true"><use href="#i-menu"/></svg>
+    </button>
   </div>
 </nav>
+
+<div id="nav-mobile">
+  <a href="#features">Funktionen</a>
+  <a href="./pauschbetraege.html">Pauschbeträge 2026 &amp; Rechner</a>
+  <a href="./fuer-steuerberater.html">Für Steuerberater</a>
+  <a href="#preise">Preise</a>
+  <a href="#faq">Häufige Fragen</a>
+</div>
 
 <!-- HERO -->
 <section class="hero">
@@ -1001,6 +1039,29 @@ if ('IntersectionObserver' in window) {
 } else {
   revealEls.forEach(el => el.classList.add('visible'));
 }
+});
+
+/* ── MOBILES KLAPPMENÜ ── */
+safe('nav-menu', () => {
+  const btn = document.getElementById('nav-toggle');
+  const panel = document.getElementById('nav-mobile');
+  if (!btn || !panel) return;
+  const setOpen = (open) => {
+    panel.classList.toggle('open', open);
+    btn.setAttribute('aria-expanded', String(open));
+    btn.setAttribute('aria-label', open ? 'Menü schließen' : 'Menü öffnen');
+    btn.querySelector('use').setAttribute('href', open ? '#i-x' : '#i-menu');
+  };
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    setOpen(!panel.classList.contains('open'));
+  });
+  panel.addEventListener('click', (e) => { if (e.target.tagName === 'A') setOpen(false); });
+  document.addEventListener('click', (e) => {
+    if (panel.classList.contains('open') && !panel.contains(e.target) && e.target !== btn) setOpen(false);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setOpen(false); });
+  addEventListener('resize', () => { if (innerWidth > 768) setOpen(false); });
 });
 
 /* ── SCROLL-FORTSCHRITT ── */

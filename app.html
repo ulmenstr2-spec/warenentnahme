@@ -489,6 +489,16 @@ const LIEF_LOOKUP = {
 // BNN-Dateien sind typischerweise CP850/ISO-8859-1 kodiert
 // Einlesen mit korrektem Encoding direkt beim File-Read (im ImportTab)
 
+// Ersatz-ID für Importe ohne Artikelnummer-Spalte.
+// Vorher war das die Zeilennummer — dadurch kollidierten Zeile 1 aus Datei A
+// und Zeile 1 aus Datei B, und einer der beiden Artikel ging beim Import
+// verloren. Aus Name und Einheit abgeleitet ist die ID eindeutig je Artikel
+// und bleibt beim erneuten Import derselben Datei stabil.
+function fallbackArtId(quelle, name, einheit){
+  const norm = s => String(s||'').toLowerCase().replace(/\s+/g,' ').trim();
+  return `${quelle}:${norm(name)}|${norm(einheit)}`;
+}
+
 function parseBNN(text) {
   // Standard BNN Format: EINE Zeile pro Artikel (Semikolon-getrennt)
   // ── KATEGORIE ERKENNUNG (keyword-basiert aus Artikelname) ──
@@ -672,7 +682,7 @@ function parseXLSX(buf){
     }
     const mr=c.mwst>=0?r[c.mwst]:null;
     const mwst=mr?(parseFloat(String(mr))<=7?7:19):7;
-    const id=c.nr>=0&&r[c.nr]?String(r[c.nr]).trim():String(i);
+    const id=(c.nr>=0&&r[c.nr]?String(r[c.nr]).trim():'')||fallbackArtId('xlsx',name,einheit);
     arts.push({id,name,einheit,preis:Math.round(preis*100)/100,mwst,quelle:'XLSX'});
   }
   return arts;
@@ -741,7 +751,8 @@ function parseCSV(text) {
     const einheit = cols.einheit >= 0 ? (r[cols.einheit] || 'Stk').trim() : 'Stk';
     const mwstRaw = cols.mwst >= 0 ? parseP(r[cols.mwst]) : 7;
     const mwst = mwstRaw <= 7 ? 7 : 19;
-    const id = cols.nr >= 0 ? String(r[cols.nr] || i) : String(i);
+    const nr = cols.nr >= 0 ? String(r[cols.nr] || '').trim() : '';
+    const id = nr || fallbackArtId('csv', name, einheit);
     arts.push({ id, name, einheit, preis: Math.round(preis * 100) / 100, mwst, quelle: 'CSV' });
   }
   return arts;

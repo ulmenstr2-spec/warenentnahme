@@ -489,6 +489,16 @@ const LIEF_LOOKUP = {
 // BNN-Dateien sind typischerweise CP850/ISO-8859-1 kodiert
 // Einlesen mit korrektem Encoding direkt beim File-Read (im ImportTab)
 
+// Ersatz-ID für Importe ohne Artikelnummer-Spalte.
+// Vorher war das die Zeilennummer — dadurch kollidierten Zeile 1 aus Datei A
+// und Zeile 1 aus Datei B, und einer der beiden Artikel ging beim Import
+// verloren. Aus Name und Einheit abgeleitet ist die ID eindeutig je Artikel
+// und bleibt beim erneuten Import derselben Datei stabil.
+function fallbackArtId(quelle, name, einheit){
+  const norm = s => String(s||'').toLowerCase().replace(/\s+/g,' ').trim();
+  return `${quelle}:${norm(name)}|${norm(einheit)}`;
+}
+
 function parseBNN(text) {
   // Standard BNN Format: EINE Zeile pro Artikel (Semikolon-getrennt)
   // ── KATEGORIE ERKENNUNG (keyword-basiert aus Artikelname) ──
@@ -672,7 +682,7 @@ function parseXLSX(buf){
     }
     const mr=c.mwst>=0?r[c.mwst]:null;
     const mwst=mr?(parseFloat(String(mr))<=7?7:19):7;
-    const id=c.nr>=0&&r[c.nr]?String(r[c.nr]).trim():String(i);
+    const id=(c.nr>=0&&r[c.nr]?String(r[c.nr]).trim():'')||fallbackArtId('xlsx',name,einheit);
     arts.push({id,name,einheit,preis:Math.round(preis*100)/100,mwst,quelle:'XLSX'});
   }
   return arts;
@@ -741,7 +751,8 @@ function parseCSV(text) {
     const einheit = cols.einheit >= 0 ? (r[cols.einheit] || 'Stk').trim() : 'Stk';
     const mwstRaw = cols.mwst >= 0 ? parseP(r[cols.mwst]) : 7;
     const mwst = mwstRaw <= 7 ? 7 : 19;
-    const id = cols.nr >= 0 ? String(r[cols.nr] || i) : String(i);
+    const nr = cols.nr >= 0 ? String(r[cols.nr] || '').trim() : '';
+    const id = nr || fallbackArtId('csv', name, einheit);
     arts.push({ id, name, einheit, preis: Math.round(preis * 100) / 100, mwst, quelle: 'CSV' });
   }
   return arts;
@@ -1375,7 +1386,7 @@ function App(){
   };
   const addManual=(art)=>{
     // Prüfen ob Artikel mit gleichem Namen schon existiert
-    const exists=arts.find(a=>a.name.toLowerCase()===art.name.toLowerCase()&&a.quelle==='Manuell');
+    const exists=arts.find(a=>(a.name||'').toLowerCase()===(art.name||'').toLowerCase()&&a.quelle==='Manuell');
     if(!exists){
       setArts(p=>[art,...p]); // dauerhaft in localStorage speichern
     }
@@ -1421,7 +1432,7 @@ function App(){
   const t19=useMemo(()=>roundCurrency(me.filter(e=>e.mwst===19).reduce((s,e)=>s+e.wert,0)),[me]);
   const tm=useMemo(()=>roundCurrency(mm.reduce((s,m)=>s+m.wert,0)),[mm]);
   const periodEnts=me; // alias
-  const today=useMemo(()=>ents.filter(e=>e.datum.startsWith(cd)),[ents,cd]);
+  const today=useMemo(()=>ents.filter(e=>e.datum?.startsWith(cd)),[ents,cd]);
   const todayM=useMemo(()=>meals.filter(m=>m.datum===cd),[meals,cd]);
 
 
@@ -2788,7 +2799,7 @@ function AddTab({arts,favs,ents=[],onSel,onFav,onManual}){
     const syn=Object.entries(SEARCH_SYNONYME).find(([k])=>x.includes(k));
     const xSyn=syn?syn[1]:null;
     const matched=arts.filter(a=>{
-      const n=a.name.toLowerCase();
+      const n=(a.name||'').toLowerCase();
       const nN=norm(n);
       return n.includes(x)||nN.includes(xN)||
         (xSyn&&(n.includes(xSyn)||xSyn.split(' ').every(w=>n.includes(w))))||
@@ -2809,7 +2820,7 @@ function AddTab({arts,favs,ents=[],onSel,onFav,onManual}){
       'ravioli','tortellini','hummus','focaccia','aufstrich','fertig','creme','würfel',
       'wuerfel','pickled','konserv','einmach'];
     matched.sort((a,b)=>{
-      const na=a.name.toLowerCase(), nb=b.name.toLowerCase();
+      const na=(a.name||'').toLowerCase(), nb=(b.name||'').toLowerCase();
       const isProcessed=n=>VERARBEITET.some(kw=>n.includes(kw));
       // Wort-Anfang-Match: jedes Wort (getrennt durch Leerzeichen, Komma, Bindestrich, Slash)
       const wordStarts=n=>n.split(/[\s,\-\/]+/).some(w=>w.startsWith(x)||norm(w).startsWith(xN));
@@ -3154,8 +3165,8 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
     if(exportFmt==='datev'){
       // DATEV: Umsatz als reine Zahl, kein €, kein Komma
       rows=['Umsatz (ohne Soll/Haben-Kz);Soll/Haben;Konto;BU-Schlüssel;Belegdatum;Belegfeld 1;Buchungstext',
-        ...me.map(e=>`${cn(e.wert)};S;${e.mwst===7?'8915':'8910'};${e.mwst===7?'9':''};${e.datum.slice(8,10)}${e.datum.slice(5,7)};EV-${e.datum.slice(0,10)};Eigenverbrauch ${e.name}`),
-        ...mm.map(m=>`${cn(m.wert)};S;8910;;${m.datum.slice(8,10)}${m.datum.slice(5,7)};SB-${m.datum};Sachbezug ${m.label}`),
+        ...me.map(e=>`${cn(e.wert)};S;${e.mwst===7?'8915':'8910'};${e.mwst===7?'9':''};${(e.datum||'').slice(8,10)}${(e.datum||'').slice(5,7)};EV-${(e.datum||'').slice(0,10)};Eigenverbrauch ${e.name}`),
+        ...mm.map(m=>`${cn(m.wert)};S;8910;;${(m.datum||'').slice(8,10)}${(m.datum||'').slice(5,7)};SB-${m.datum};Sachbezug ${m.label}`),
       ];fname=`datev_eigenverbrauch_${sel.sk}.csv`;
     } else if(exportFmt==='lexware'){
       // Lexware: Umsatz als reine Zahl, Steuersatz ohne %
@@ -3228,7 +3239,7 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
     const wsData=[['Datum','Artikel','Einheit','Menge','EK netto €','MwSt %','Brutto €','Netto €','USt-Betrag €']];
     me.forEach(e=>{
       const n=calcNetFromGross(e.wert,e.mwst||7);
-      wsData.push([e.datum.slice(0,10),e.name,e.einheit,e.menge,e.preis,e.mwst+'%',e.wert,n,roundCurrency(e.wert-n)]);
+      wsData.push([(e.datum||'').slice(0,10),e.name,e.einheit,e.menge,e.preis,e.mwst+'%',e.wert,n,roundCurrency(e.wert-n)]);
     });
     const wb7=roundCurrency(me.filter(e=>e.mwst===7).reduce((s,e)=>s+e.wert,0));
     const wb19=roundCurrency(me.filter(e=>e.mwst===19).reduce((s,e)=>s+e.wert,0));
@@ -3251,7 +3262,8 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
       const mtot=roundCurrency(mm.reduce((s,m)=>s+m.wert,0));
       const mn7=calcNetFromGross(roundCurrency(mm.filter(m=>mealUstSatz(m.datum)===7).reduce((s,m)=>s+m.wert,0)),7);
       const mn19=calcNetFromGross(roundCurrency(mm.filter(m=>mealUstSatz(m.datum)===19).reduce((s,m)=>s+m.wert,0)),19);
-      msData.push([],[['','Gesamt','',mtot,roundCurrency(mn7+mn19),roundCurrency(mtot-mn7-mn19)]]);
+      // eine Zeile, nicht eine Zeile mit verschachteltem Array als erster Zelle
+      msData.push([],['','Gesamt','',mtot,roundCurrency(mn7+mn19),roundCurrency(mtot-mn7-mn19)]);
       window.XLSX.utils.book_append_sheet(WB,window.XLSX.utils.aoa_to_sheet(msData),'Personalessen');
     }
     // Sheet 3: USt-Aufschlüsselung (Warenentnahmen + Personalessen)
@@ -3418,8 +3430,8 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
       const cw=[20,68,20,22,16,20];
       tableHead(['Datum','Artikel','Menge','EK netto','MwSt','Wert'],cw);
       me.forEach((e,i)=>tableRow([
-        e.datum.slice(0,10),
-        e.name.length>38?e.name.slice(0,37)+'…':e.name,
+        (e.datum||'').slice(0,10),
+        e.name.length>38?(e.name||'').slice(0,37)+'…':e.name,
         `${e.menge} ${e.einheit}`,
         `${fN(e.preis)} €`,
         `${e.mwst}%`,
@@ -5141,12 +5153,12 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
     if(!debouncedQ.trim()&&filterKat)return arts.filter(a=>isValidKat(a.kategorie)&&a.kategorie===filterKat).slice(0,80);
     const x=debouncedQ.toLowerCase(),xN=norm(x);
     let matched=arts.filter(a=>{
-      const n=a.name.toLowerCase(),nN=norm(n);
+      const n=(a.name||'').toLowerCase(),nN=norm(n);
       return n.includes(x)||nN.includes(xN)||a.id.toLowerCase().includes(x)||
         (a.marke||'').toLowerCase().includes(x)||(a.liefKuerzel||'').toLowerCase().includes(x);
     });
     matched.sort((a,b)=>{
-      const na=a.name.toLowerCase(),nb=b.name.toLowerCase();
+      const na=(a.name||'').toLowerCase(),nb=b.name.toLowerCase();
       const sa=na.startsWith(x)?0:na.split(/[\s,]+/).some(w=>w.startsWith(x))?1:2;
       const sb=nb.startsWith(x)?0:nb.split(/[\s,]+/).some(w=>w.startsWith(x))?1:2;
       return sa-sb;
@@ -6716,7 +6728,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
 
           txt(w.datum,DC[0],y);
           // Artikel kürzen (max 14 Zeichen für die schmälere Spalte)
-          const artTrunc=w.artikel?.length>14?w.artikel.slice(0,13)+'.':w.artikel||'';
+          const artTrunc=w.artikel?.length>14?(w.artikel||'').slice(0,13)+'.':w.artikel||'';
           txt(artTrunc,DC[1],y);
           // EAN — wenn vorhanden; leer lassen wenn nicht
           txt(w.ean?String(w.ean):'',DC[2],y);
@@ -6795,7 +6807,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
       doc.setTextColor(...BLACK);doc.setFont('helvetica','normal');doc.setFontSize(6.5);
       changedEntries.forEach(w=>{
         safeY();
-        const artTrunc=w.artikel?.length>30?w.artikel.slice(0,29)+'.':w.artikel||'';
+        const artTrunc=w.artikel?.length>30?(w.artikel||'').slice(0,29)+'.':w.artikel||'';
         txt(artTrunc,ML+2,y);
         txt(w.createdAt?new Date(w.createdAt).toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'}):'',ML+70,y);
         txt(w.updatedAt?new Date(w.updatedAt).toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'}):'',ML+120,y);
@@ -6827,7 +6839,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
       doc.setTextColor(...BLACK);doc.setFont('helvetica','normal');doc.setFontSize(6.5);
       traceEntries.forEach(({w,t})=>{
         safeY();
-        const artT=w.artikel?.length>14?w.artikel.slice(0,13)+'.':w.artikel||'';
+        const artT=w.artikel?.length>14?(w.artikel||'').slice(0,13)+'.':w.artikel||'';
         txt(w.datum||'',TC[0],y);
         txt(artT,TC[1],y);
         txt(t.methodChosen||'',TC[2],y);

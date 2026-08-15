@@ -1550,7 +1550,7 @@ function App(){
         {tab==='scan'&&<ScanTab arts={arts} eanIndex={eanIndex} onSel={a=>setModal(a)} showT={showT}/>}
         {/* onFav/onManual müssen mit übergeben werden — sonst brechen der
             Favoriten-Stern und das manuelle Anlegen mit einem Fehler ab. */}
-        {tab==='add'&&<AddTab arts={arts} favs={favs} onSel={a=>setModal(a)} onFav={toggleFav} onManual={addManual} showT={showT} hh={hh}/>}
+        {tab==='add'&&<AddTab arts={arts} favs={favs} ents={ents} onSel={a=>setModal(a)} onFav={toggleFav} onManual={addManual} showT={showT} hh={hh}/>}
         {tab==='report'&&<ReportTab ents={ents} meals={meals} hh={hh} setHH={setHH} periodDay={periodDay} setPeriodDay={setPeriodDay}/>}
         {tab==='import'&&<ImportTab arts={arts} setArts={setArts} showT={showT} ents={ents} hh={hh} setHH={setHH} setEnts={setEnts} setMeals={setMeals} setFavs={setFavs} syncPin={syncPin} setShowSyncModal={setShowSyncModal} backupData={backupData} restoreData={restoreData} gmbhMeals={gmbhMeals} setGmbhMeals={setGmbhMeals} gmbhWithdrawals={gmbhWithdrawals} setGmbhWithdrawals={setGmbhWithdrawals} gmbhPersons={gmbhPersons} setGmbhPersons={setGmbhPersons} rechtsform={rechtsform} setRechtsform={setRechtsform}/>}
         </>
@@ -2251,7 +2251,9 @@ function App(){
 
 // ── HOME
 function HomeTab({me,periodEnts,today,todayM,tw,tm,t7,t19,now,curPeriod,hh,onDel,onEdit}){
-  const p=calcPausch(hh&&hh.persons||[{typ:"inhaber",aktiv:true}],hh&&hh.betrieb).mGes,tges=tw+tm,pct=Math.min((tges/p)*100,100),spart=p-tges;
+  const p=calcPausch(hh&&hh.persons||[{typ:"inhaber",aktiv:true}],hh&&hh.betrieb).mGes,tges=tw+tm;
+  // p kann 0 sein, wenn keine Person aktiv ist — sonst NaN in Balken und Text
+  const pct=p>0?Math.min((tges/p)*100,100):0,spart=p-tges;
   const bc=pct<60?'var(--lime)':pct<85?'var(--amber)':'var(--red)';
   const fmt2=d=>new Date(d+'T12:00').toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
   const periodLbl=curPeriod?fmt2(curPeriod.sk)+'\u2013'+fmt2(curPeriod.ek):'Monat';
@@ -2264,7 +2266,12 @@ function HomeTab({me,periodEnts,today,todayM,tw,tm,t7,t19,now,curPeriod,hh,onDel
       <div className="hero">
         <div className="hero-lbl">Warenentnahme {periodLbl}</div>
         <div className="hero-amt">{fN(tges)}<sup> €</sup></div>
-        <div className="hero-sub">{spart>=0?`${fN(spart)} € unter Pauschbetrag — Einzeldoku lohnt sich`:`${fN(Math.abs(spart))} € über Pauschbetrag`}</div>
+        <div className="hero-sub">{
+          p<=0 ? 'Keine Person aktiv — Pauschbetrag im Bericht einstellen'
+          : tges<=0 ? `Noch nichts erfasst · Pauschbetrag ${fN(p)} € pro Monat`
+          : spart>=0 ? `${fN(spart)} € unter Pauschbetrag — Einzeldoku lohnt sich`
+          : `${fN(Math.abs(spart))} € über Pauschbetrag`
+        }</div>
         <div className="prog-track"><div className="prog-fill" style={{width:pct+'%',background:bc}}/></div>
         <div className="prog-lbls"><span>{fN(tw)} €</span><span>Pausch. {fN(p)} €</span></div>
       </div>
@@ -2747,7 +2754,7 @@ const SEARCH_SYNONYME={
 };
 
 // ── ADD
-function AddTab({arts,favs,onSel,onFav,onManual}){
+function AddTab({arts,favs,ents=[],onSel,onFav,onManual}){
   const[q,setQ]=useState('');
   const[debouncedQ,setDebouncedQ]=useState('');
   const debRef=React.useRef(null);
@@ -2835,6 +2842,18 @@ function AddTab({arts,favs,onSel,onFav,onManual}){
     return filtered.slice(0,50);
   },[debouncedQ,arts,filterMwst,sortBy,filterKat]);
   const favA=arts.filter(a=>favs.includes(a.id));
+  // Zuletzt erfasste Artikel — damit der Tab beim Öffnen nicht leer wirkt
+  const recentA=useMemo(()=>{
+    const seen=new Set(),out=[];
+    for(const e of [...ents].sort((a,b)=>(b.datum||'').localeCompare(a.datum||''))){
+      if(!e.articleId||seen.has(e.articleId)||favs.includes(e.articleId))continue;
+      const art=arts.find(a=>a.id===e.articleId);
+      if(!art)continue;
+      seen.add(e.articleId);out.push(art);
+      if(out.length>=6)break;
+    }
+    return out;
+  },[ents,arts,favs]);
 
   const submitManual=()=>{
     const p=parseFloat(mPreis.replace(',','.'));
@@ -2952,6 +2971,7 @@ function AddTab({arts,favs,onSel,onFav,onManual}){
 
       {arts.length===0?<div className="empty"><div className="empty-i"><Icon name="package" size={42} color="var(--t3)"/></div><div className="empty-t">Keine Artikel</div><div className="empty-s">Importiere eine BNN-Datei oder erfasse Artikel manuell</div></div>:<>
         {favA.length>0&&<><div className="sec">Favoriten</div><div className="card">{favA.map(a=><Row key={a.id} a={a}/>)}</div></>}
+        {!q&&recentA.length>0&&<><div className="sec">Zuletzt erfasst</div><div className="card">{recentA.map(a=><Row key={a.id} a={a}/>)}</div></>}
         {(()=>{const manualArts=arts.filter(a=>a.quelle==='Manuell');return manualArts.length>0&&!q&&<><div className="sec">Manuell erfasst</div><div className="card">{manualArts.map(a=><Row key={a.id} a={a}/>)}</div></>})()}
         {!q&&!showManual&&<div style={{textAlign:'center',color:'var(--t2)',fontSize:11,marginTop:12}}>{arts.length} Artikel · ★ für Favoriten antippen</div>}
       </>}
@@ -3155,9 +3175,9 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
       // ustBetrag = brutto - netto; Personalessen USt = 7% (Sachbezugswert)
       const cnBrutto=e=>cn(e.wert);
       const cnNetto=e=>cn(calcNetFromGross(e.wert,e.mwst||7));
-      const cnUst=e=>cn(calcUstFromNet(calcNetFromGross(e.wert,e.mwst||7),e.mwst||7));
+      const cnUst=e=>cn(roundCurrency(roundCurrency(e.wert)-calcNetFromGross(e.wert,e.mwst||7)));
       const mNetto=m=>cn(calcNetFromGross(m.wert,7));
-      const mUst=m=>cn(calcUstFromNet(calcNetFromGross(m.wert,7),7));
+      const mUst=m=>cn(roundCurrency(roundCurrency(m.wert)-calcNetFromGross(m.wert,7)));
       rows=[
         'typ;datum;beschreibung;menge;einheit;ekPreisNetto;ustSatz;betragBrutto;betragNetto;ustBetrag;exportTimestamp;reportVersion;zeitraumVon;zeitraumBis;betrieb;personenAktiv',
         ...me.map(e=>[
@@ -4783,7 +4803,7 @@ function gmbhSaveMV(mv){ localStorage.setItem('gmbh_market_values',JSON.stringif
 function gmbhRabattByPerson(withdrawals, persons, yr){
   return persons.filter(p=>p.aktiv).map(p=>{
     const total=withdrawals
-      .filter(w=>w.datum.startsWith(yr)&&isDiscountRelevant(w.methode)&&w.person===p.id)
+      .filter(w=>w.datum?.startsWith(yr)&&isDiscountRelevant(w.methode)&&w.person===p.id)
       .reduce((s,w)=>s+(w.vorteil||0),0);
     return { ...p, yearRabatt:total, remaining:Math.max(0,GMBH_RABATT_FREIBETRAG-total), exceeded:Math.max(0,total-GMBH_RABATT_FREIBETRAG) };
   });
@@ -6043,7 +6063,8 @@ function buildExportRows({ mode, entries=[], meals=[], meta={} }){
       const ust=e.mwst||7;
       const brutto=roundCurrency(e.wert||0);
       const netto=calcNetFromGross(brutto,ust);
-      const ustBetrag=calcUstFromNet(netto,ust);
+      // USt als Differenz, damit Netto + USt exakt das Brutto ergibt
+      const ustBetrag=roundCurrency(brutto-netto);
       rows.push({
         _typ:'Warenentnahme',
         datum:e.datum?.slice(0,10)||'',
@@ -6062,7 +6083,7 @@ function buildExportRows({ mode, entries=[], meals=[], meta={} }){
     meals.forEach(m=>{
       const brutto=roundCurrency(m.wert||0);
       const netto=calcNetFromGross(brutto,7);
-      const ustBetrag=calcUstFromNet(netto,7);
+      const ustBetrag=roundCurrency(brutto-netto);
       rows.push({
         _typ:'Personalessen',
         datum:m.datum||'',

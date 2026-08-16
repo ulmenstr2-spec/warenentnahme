@@ -4126,7 +4126,11 @@ Alle Lebensmittel=7%, Spirituosen/Getränke=19%.`;
       const normalized=allItems.map(it=>({
         name: String(getField(it,'name','n','bezeichnung','artikel','description','Beschreibung','Name','Artikel','artikelname','produktname')||'Unbekannt'),
         preis: toNum(getField(it,'preis','p','price','Preis','einzelpreis','netto','nettopreis','EP','ep')),
-        mwst: parseInt(getField(it,'mwst','m','mwst','steuer','ust','tax','MwSt','Mwst','mwstsatz'))||7,
+        // Nur 7 oder 19 zulassen — wie in den übrigen Importwegen. Ein
+        // abweichender Satz aus der Erkennung würde sonst in keiner der
+        // beiden Gruppen der USt-Aufschlüsselung auftauchen, obwohl der
+        // Betrag in der Gesamtsumme steckt.
+        mwst: (parseInt(getField(it,'mwst','m','mwst','steuer','ust','tax','MwSt','Mwst','mwstsatz'))||7)<=7?7:19,
         einheit: String(getField(it,'einheit','e','unit','me','ME','Einheit','einheit','masseinheit')||'Stk'),
         menge: toNum(getField(it,'menge','q','quantity','anzahl','Menge','qty'))||1
       })).filter(it=>it.preis>0);
@@ -4176,7 +4180,7 @@ Alle Lebensmittel=7%, Spirituosen/Getränke=19%.`;
         } else {
           // New article
           const id='INV'+Date.now()+Math.random().toString(36).slice(2,6);
-          const newArt={id,name:it.name||'Unbekannt',preis:newPreis,mwst:parseInt(it.mwst)||7,einheit:it.einheit||'Stk',marke:'',liefKuerzel:it.artNr?'#'+it.artNr:'',quelle:'Rechnung',eans:[]};
+          const newArt={id,name:it.name||'Unbekannt',preis:newPreis,mwst:(parseInt(it.mwst)||7)<=7?7:19,einheit:it.einheit||'Stk',marke:'',liefKuerzel:it.artNr?'#'+it.artNr:'',quelle:'Rechnung',eans:[]};
           m[id]=newArt;
           byKey[key]=newArt;
           added++;
@@ -6583,6 +6587,14 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
     const safeY=(margin=272)=>{if(y>margin){doc.addPage();y=20;}};
     const hline=(yy,col=LGRAY)=>{doc.setDrawColor(...col);doc.line(ML,yy,W-MR,yy);};
     const txt=(t,x,yy,opts={})=>{doc.text(String(t||''),x,yy,opts);};
+    // Text auf eine Spaltenbreite kürzen — lange Namen liefen sonst in die
+    // Nachbarspalte und überlagerten deren Wert.
+    const kuerze=(t,maxBreite)=>{
+      let s=String(t||'');
+      if(doc.getTextWidth(s)<=maxBreite)return s;
+      while(s.length>1&&doc.getTextWidth(s+'…')>maxBreite)s=s.slice(0,-1);
+      return s+'…';
+    };
     // PDF-Formatter: Komma als Dezimaltrennzeichen
     const fc=v=>formatCurrencyPDF(v);
 
@@ -6677,14 +6689,14 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
     txt('USt-Aufschlüsselung',ML,y);y+=5;
     hline(y,GREEN);y+=3;
     doc.setFontSize(7);doc.setTextColor(...GRAY);
-    txt('USt-Satz',ML+2,y);txt('Brutto (EUR)',ML+65,y);txt('Netto (EUR)',ML+125,y);txt('USt-Betrag (EUR)',W-MR,y);
+    txt('USt-Satz',ML+2,y);txt('Brutto (EUR)',ML+65,y);txt('Netto (EUR)',ML+125,y);txt('USt-Betrag (EUR)',W-MR,y,{align:'right'});
     y+=4;hline(y,LGRAY);y+=3;
     doc.setTextColor(...BLACK);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
-    if(gUstB7>0){txt('7 %',ML+2,y);txt(fc(gUstB7),ML+65,y);txt(fc(gUstN7),ML+125,y);txt(fc(gUstU7),W-MR,y);y+=5;}
-    if(gUstB19>0){txt('19 %',ML+2,y);txt(fc(gUstB19),ML+65,y);txt(fc(gUstN19),ML+125,y);txt(fc(gUstU19),W-MR,y);y+=5;}
+    if(gUstB7>0){txt('7 %',ML+2,y);txt(fc(gUstB7),ML+65,y);txt(fc(gUstN7),ML+125,y);txt(fc(gUstU7),W-MR,y,{align:'right'});y+=5;}
+    if(gUstB19>0){txt('19 %',ML+2,y);txt(fc(gUstB19),ML+65,y);txt(fc(gUstN19),ML+125,y);txt(fc(gUstU19),W-MR,y,{align:'right'});y+=5;}
     hline(y,DKGREEN);y+=3;
     doc.setFont('helvetica','bold');
-    txt('Gesamt',ML+2,y);txt(fc(gUstBGes),ML+65,y);txt(fc(gUstNGes),ML+125,y);txt(fc(gUstUGes),W-MR,y);
+    txt('Gesamt',ML+2,y);txt(fc(gUstBGes),ML+65,y);txt(fc(gUstNGes),ML+125,y);txt(fc(gUstUGes),W-MR,y,{align:'right'});
     y+=8;
 
     // ── 4. JAHRESÜBERSICHT JE PERSON (YTD) ──────────────────────
@@ -6701,7 +6713,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
       doc.setTextColor(...BLACK);doc.setFont('helvetica','normal');doc.setFontSize(7);
       ytdRows.forEach(p=>{
         safeY();
-        txt(p.name,YC[0],y);
+        txt(kuerze(p.name,YC[1]-YC[0]-3),YC[0],y);
         txt(fc(p.sachbezug),YC[1],y);
         txt(fc(p.rabatt),YC[2],y);
         txt(fc(p.markt),YC[3],y);
@@ -6811,7 +6823,12 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
       hline(y,LGRAY);y+=3;
       doc.setFont('helvetica','bold');doc.setFontSize(7);
       const pBrutto=p.mTotal+p.wTotal;
-      txt(`Summe ${p.name}:  Mahlzeiten ${fc(p.mTotal)} EUR  |  Warenrabatt ${fc(p.wRabatt)} EUR  |  Marktwert ${fc(p.wMarkt)} EUR  |  EK+Handling ${fc(p.wEk)} EUR  |  Gesamt ${fc(pBrutto)} EUR`,ML+2,y);
+      const summeTxt=`Summe ${p.name}:  Mahlzeiten ${fc(p.mTotal)} EUR  |  Warenrabatt ${fc(p.wRabatt)} EUR  |  Marktwert ${fc(p.wMarkt)} EUR  |  EK+Handling ${fc(p.wEk)} EUR  |  Gesamt ${fc(pBrutto)} EUR`;
+      // Bei langen Namen umbrechen — vorher lief die Zeile aus dem Blatt
+      doc.splitTextToSize(summeTxt,TW-4).forEach((zeile,i)=>{
+        if(i>0){y+=4;safeY();}
+        txt(zeile,ML+2,y);
+      });
       doc.setFont('helvetica','normal');
       y+=8;
     });

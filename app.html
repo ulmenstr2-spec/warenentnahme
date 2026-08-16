@@ -449,6 +449,33 @@ const normUml=s=>(s||'')
 const ML = { frueh:'Frühstück', mittag:'Mittagessen', abend:'Abendessen' };
 const MI = { frueh:<Icon name="sun" size={24} color="var(--amber)"/>, mittag:<Icon name="sun" size={24} color="var(--lime)"/>, abend:<Icon name="moon" size={24} color="var(--blue)"/> };
 
+// ── LÖSCH-MERKER ──────────────────────────────────────────
+// Ohne diese Merker holt die Synchronisation gelöschte Einträge zurück:
+// der Server kennt sie noch, und der Abgleich ergänzt alles, was lokal
+// fehlt. Wer einen Eintrag löscht und die App gleich schließt, findet ihn
+// beim nächsten Start wieder vor — ebenso, wenn ein zweites Gerät den
+// alten Stand hochlädt.
+// Die Merker reisen im Sync-Paket mit, damit auch andere Geräte die
+// Löschung übernehmen. Ein Server-Eingriff ist dafür nicht nötig, weil das
+// Paket dort unverändert abgelegt wird.
+const DEL_KEY='gt_deleted';
+const DEL_MAX_AGE_TAGE=180;
+function pruneDeleted(d){
+  const grenze=Date.now()-DEL_MAX_AGE_TAGE*86400000,out={};
+  for(const [id,ts] of Object.entries(d||{})){
+    const t=Date.parse(ts);
+    if(isNaN(t)||t>=grenze) out[id]=ts;
+  }
+  return out;
+}
+function loadDeleted(){try{return pruneDeleted(JSON.parse(localStorage.getItem(DEL_KEY)||'{}'));}catch{return{};}}
+function saveDeleted(d){try{localStorage.setItem(DEL_KEY,JSON.stringify(d));}catch{}}
+function markDeleted(...ids){
+  const d=loadDeleted(),jetzt=new Date().toISOString();
+  ids.flat().filter(Boolean).forEach(id=>{d[id]=jetzt;});
+  saveDeleted(d);
+}
+
 // ── DEMO DATA
 const DEMO = [
   {id:'130009',name:'Vollmilch, Flasche 3,8%',einheit:'1Ltr',preis:1.61,mwst:7,marke:'Söbbeke',liefKuerzel:'SBG',quelle:'Demo'},
@@ -1017,6 +1044,7 @@ function App(){
     ents,meals,hh,favs,
     periodDay,gmbhPeriodDay,
     gmbhMeals,gmbhWithdrawals,gmbhPersons,
+    deleted:loadDeleted(),
     ...gmbhExtras()
   });
 
@@ -1165,10 +1193,26 @@ function App(){
           } else {
             // Merge-Modus: nur Einträge hinzufügen die lokal noch nicht vorhanden sind
             // → lokale Einträge die noch nicht gepusht wurden bleiben ERHALTEN
-            if(d.ents?.length){setEnts(prev=>{const ids=new Set(prev.map(e=>e.id));const neu=d.ents.filter(e=>!ids.has(e.id));if(!neu.length)return prev;loadedCount+=neu.length;return[...neu,...prev];});}
-            if(d.meals?.length){setMeals(prev=>{const ids=new Set(prev.map(m=>m.id));const neu=d.meals.filter(m=>!ids.has(m.id));if(!neu.length)return prev;loadedCount+=neu.length;return[...neu,...prev];});}
-            if(d.gmbhMeals?.length){setGmbhMeals(prev=>{const ids=new Set(prev.map(m=>m.id));const neu=d.gmbhMeals.filter(m=>!ids.has(m.id));if(!neu.length)return prev;loadedCount+=neu.length;return[...neu,...prev];});}
-            if(d.gmbhWithdrawals?.length){setGmbhWithdrawals(prev=>{const ids=new Set(prev.map(w=>w.id));const neu=d.gmbhWithdrawals.filter(w=>!ids.has(w.id));if(!neu.length)return prev;loadedCount+=neu.length;return[...neu,...prev];});}
+            // Gelöschtes darf dabei nicht zurückkommen: Merker beider Seiten
+            // vereinen und alles herausfiltern, was als gelöscht vermerkt ist.
+            const tomb=pruneDeleted({...loadDeleted(),...(d.deleted||{})});
+            saveDeleted(tomb);
+            const ohneGeloeschte=arr=>(arr||[]).filter(x=>x&&!tomb[x.id]);
+            // Merker gelten in beide Richtungen: Was ein anderes Gerät gelöscht
+            // hat, muss auch hier verschwinden — sonst lädt dieses Gerät den
+            // Eintrag beim nächsten Hochladen wieder auf den Server.
+            const zusammen=(setter,serverListe)=>setter(prev=>{
+              const behalten=(prev||[]).filter(x=>x&&!tomb[x.id]);
+              const ids=new Set(behalten.map(x=>x.id));
+              const neu=ohneGeloeschte(serverListe).filter(x=>!ids.has(x.id));
+              loadedCount+=neu.length;
+              if(!neu.length&&behalten.length===(prev||[]).length)return prev;
+              return[...neu,...behalten];
+            });
+            zusammen(setEnts,d.ents);
+            zusammen(setMeals,d.meals);
+            zusammen(setGmbhMeals,d.gmbhMeals);
+            zusammen(setGmbhWithdrawals,d.gmbhWithdrawals);
           }
           // Einstellungen: immer vom Server übernehmen (kein Datenverlust-Risiko)
           if(d.hh)setHH(d.hh);
@@ -1395,7 +1439,7 @@ function App(){
   };
   const toggleMeal=type=>{
     const ex=meals.find(m=>m.datum===cd&&m.type===type);
-    if(ex){setMeals(p=>p.filter(m=>m.id!==ex.id));showT(`${ML[type]} entfernt`);}
+    if(ex){markDeleted(ex.id);setMeals(p=>p.filter(m=>m.id!==ex.id));showT(`${ML[type]} entfernt`);}
     else{setMeals(p=>[{id:Date.now()+'_'+Math.random().toString(36).slice(2),type,datum:cd,monat:cm,wert:SB[type],label:ML[type]},...p]);showT(`✓ ${ML[type]} – ${fmt(SB[type])}`);}
   };
   const toggleFav=id=>setFavs(p=>p.includes(id)?p.filter(f=>f!==id):[...p,id]);
@@ -1410,7 +1454,7 @@ function App(){
     setUndoEnt({entry,countdown:4});
     let c=4;
     undoEntCountRef.current=setInterval(()=>{c--;setUndoEnt(u=>u?{...u,countdown:c}:null);if(c<=0)clearInterval(undoEntCountRef.current);},1000);
-    undoEntTimerRef.current=setTimeout(()=>{setEnts(p=>p.filter(e=>e.id!==id));setUndoEnt(null);},4000);
+    undoEntTimerRef.current=setTimeout(()=>{markDeleted(id);setEnts(p=>p.filter(e=>e.id!==id));setUndoEnt(null);},4000);
   };
   const cancelDelEnt=()=>{
     if(undoEntTimerRef.current)clearTimeout(undoEntTimerRef.current);
@@ -2372,7 +2416,8 @@ function MealsTab({meals,setMeals,cd,cm,curPeriod}){
   const removeOne=type=>{
     const matches=meals.filter(m=>m.datum===selDate&&m.type===type);
     if(!matches.length)return;
-    setMeals(p=>p.filter(m=>m.id!==matches[matches.length-1].id));
+    const weg=matches[matches.length-1].id;markDeleted(weg);
+    setMeals(p=>p.filter(m=>m.id!==weg));
   };
 
   // letzten 30 Tage für Datum-Auswahl
@@ -4938,7 +4983,8 @@ function GmbhMealsTab({meals,setMeals,persons,cd,cm,curPeriod}){
   const removeOne=type=>{
     const matches=meals.filter(m=>m.datum===selDate&&m.person===selPerson&&m.type===type);
     if(!matches.length)return;
-    setMeals(p=>p.filter(m=>m.id!==matches[matches.length-1].id));
+    const weg=matches[matches.length-1].id;markDeleted(weg);
+    setMeals(p=>p.filter(m=>m.id!==weg));
   };
 
   const dateOpts=[];
@@ -6031,7 +6077,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
                   </div>
                   <div className="rr">
                     <div className="rv">{fN(w.vorteil)} €</div>
-                    <button onClick={e=>{e.stopPropagation();if(window.confirm('Eintrag löschen?'))setWithdrawals(p=>p.filter(x=>x.id!==w.id));}}
+                    <button onClick={e=>{e.stopPropagation();if(window.confirm('Eintrag löschen?')){markDeleted(w.id);setWithdrawals(p=>p.filter(x=>x.id!==w.id));}}}
                       style={{background:'none',border:'none',color:'var(--t3)',
                         fontSize:18,cursor:'pointer',padding:'2px 0',lineHeight:1}}>×</button>
                   </div>

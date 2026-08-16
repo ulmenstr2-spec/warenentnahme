@@ -106,7 +106,7 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 
 /* HEADER */
 .hdr{padding:52px 20px 14px;background:linear-gradient(180deg,var(--bg) 70%,transparent 100%);position:sticky;top:0;z-index:50;}
-.hdr-eye{font-size:10px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;font-weight:600;}
+.hdr-eye{font-size:11.5px;color:var(--t3);letter-spacing:.2px;margin-bottom:5px;font-weight:600;}
 .hdr-title{font-family:'Playfair Display',serif;font-size:28px;color:var(--text);line-height:1.1;}
 .hdr-title em{color:var(--green-l);font-style:italic;}
 
@@ -116,8 +116,8 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 /* HERO */
 .hero{background:var(--green);border-radius:20px;padding:22px;margin-bottom:14px;position:relative;overflow:hidden;}
 .hero::after{content:'';position:absolute;top:-50px;right:-50px;width:160px;height:160px;background:radial-gradient(circle,rgba(168,208,96,.15) 0%,transparent 70%);pointer-events:none;}
-.hero-lbl{font-size:10px;color:rgba(255,255,255,0.55);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;font-weight:600;}
-.hero-amt{font-family:'Playfair Display',serif;font-size:50px;line-height:1;color:var(--lime2);}
+.hero-lbl{font-size:11.5px;color:rgba(255,255,255,0.62);letter-spacing:.2px;margin-bottom:7px;font-weight:600;}
+.hero-amt{font-variant-numeric:tabular-nums;font-family:'Playfair Display',serif;font-size:50px;line-height:1;color:var(--lime2);}
 .hero-amt sup{font-size:18px;vertical-align:super;color:rgba(255,255,255,0.6);}
 .hero-sub{font-size:11px;color:rgba(255,255,255,0.55);margin-top:6px;line-height:1.5;}
 .prog-track{height:5px;background:rgba(255,255,255,0.12);border-radius:3px;margin-top:14px;overflow:hidden;}
@@ -127,17 +127,17 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 /* GRID */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
 .mc{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow);}
-.mc-lbl{font-size:10px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;font-weight:600;}
-.mc-val{font-family:'Playfair Display',serif;font-size:22px;color:var(--text);margin-top:4px;font-weight:600;}
+.mc-lbl{font-size:11.5px;color:var(--t3);letter-spacing:.2px;font-weight:600;}
+.mc-val{font-variant-numeric:tabular-nums;font-family:'Playfair Display',serif;font-size:22px;color:var(--text);margin-top:4px;font-weight:600;}
 .mc-unit{font-size:10px;color:var(--t2);}
 
 /* SEC */
-.sec{font-size:10px;color:var(--t2);letter-spacing:2px;text-transform:uppercase;margin:18px 0 10px;font-weight:700;}
+.sec{font-size:12.5px;color:var(--t2);letter-spacing:.1px;margin:22px 0 9px;font-weight:600;}
 
 /* CARD */
 .card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px;box-shadow:var(--shadow);}
 .ch{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--s2);}
-.ch-t{font-size:10px;color:var(--t2);letter-spacing:1.5px;text-transform:uppercase;font-weight:700;}
+.ch-t{font-size:12.5px;color:var(--t2);letter-spacing:.1px;font-weight:600;}
 
 /* ROW */
 .row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);transition:background .15s;}
@@ -148,7 +148,7 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 .rn{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;}
 .rm{font-size:11px;color:var(--t2);margin-top:2px;}
 .rr{text-align:right;flex-shrink:0;}
-.rv{font-size:13px;color:var(--text);font-weight:600;}
+.rv{font-variant-numeric:tabular-nums;font-size:13px;color:var(--text);font-weight:600;}
 .rs{font-size:10px;color:var(--t2);margin-top:2px;}
 
 /* PILL */
@@ -186,7 +186,7 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 .qu{font-size:12px;color:var(--t2);min-width:36px;text-align:center;}
 .wb{background:rgba(45,90,27,0.06);border:1.5px solid rgba(45,90,27,0.12);border-radius:var(--r);padding:16px;text-align:center;margin-bottom:18px;}
 .wn{font-family:'Playfair Display',serif;font-size:36px;color:var(--green);}
-.wl{font-size:10px;color:var(--t3);margin-top:4px;letter-spacing:1px;text-transform:uppercase;font-weight:600;}
+.wl{font-size:11.5px;color:var(--t3);margin-top:4px;letter-spacing:.2px;font-weight:600;}
 
 /* BTNS */
 .btn{width:100%;padding:15px;border-radius:var(--r);border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;transition:all .15s;}
@@ -225,7 +225,7 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 /* SAVING */
 .sbox{border-radius:var(--r);padding:16px;margin-top:10px;display:flex;align-items:flex-start;gap:12px;}
 .sbox-icon{font-size:26px;flex-shrink:0;margin-top:2px;}
-.sbox-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:700;}
+.sbox-lbl{font-size:11.5px;color:var(--t3);letter-spacing:.2px;margin-bottom:5px;font-weight:600;}
 .sbox-amt{font-family:'Playfair Display',serif;font-size:24px;}
 .sbox-note{font-size:11px;color:var(--t3);margin-top:4px;line-height:1.5;}
 
@@ -427,6 +427,7 @@ const Icon = ({name, size=18, color='currentColor', strokeWidth=1.5, style={}}) 
     fork: 'M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2 M7 2v20 M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7',
     cog: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z',
   };
+  icons.user = 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z';
   const d = icons[name];
   if(!d) return null;
   return (
@@ -2461,7 +2462,7 @@ function MealsTab({meals,setMeals,cd,cm,curPeriod}){
                 background:selDate===k?'var(--lm)':'var(--s2)',
                 color:selDate===k?'var(--lime)':hasMeals?'var(--text)':'var(--t3)',
                 borderRadius:8,padding:'6px 10px',fontSize:10,cursor:'pointer',
-                whiteSpace:'nowrap',fontFamily:'Geist Mono,monospace',
+                whiteSpace:'nowrap',fontVariantNumeric:'tabular-nums',
               }}>
               {hasMeals&&selDate!==k&&<span style={{color:'#2a6010',marginRight:3}}>·</span>}
               {lbl}
@@ -2698,7 +2699,7 @@ function ScanTab({arts,eanIndex,onSel,onBack,onNotFound,showT,scanLabel}){
 
         <div className="sec">Manuell eingeben</div>
         <div style={{display:'flex',gap:8}}>
-          <input style={{flex:1,background:'var(--s1)',border:'1px solid var(--border)',borderRadius:8,padding:'10px 12px',color:'var(--text)',fontSize:14,fontFamily:'Geist Mono,monospace',outline:'none',letterSpacing:2}}
+          <input style={{flex:1,background:'var(--s1)',border:'1px solid var(--border)',borderRadius:8,padding:'10px 12px',color:'var(--text)',fontSize:14,fontVariantNumeric:'tabular-nums',outline:'none',letterSpacing:2}}
             placeholder="4012345678901" inputMode="numeric"
             value={manualEAN} onChange={e=>setManualEAN(e.target.value.replace(/\D/g,''))}
             onKeyDown={e=>{if(e.key==='Enter'&&manualEAN.length>=8)handleEAN(manualEAN);}}/>
@@ -2726,7 +2727,7 @@ function ScanTab({arts,eanIndex,onSel,onBack,onNotFound,showT,scanLabel}){
           </div>
           <div style={{position:'absolute',bottom:12,left:0,right:0,textAlign:'center',color:'#2a6010',fontSize:11,textShadow:'0 1px 4px rgba(0,0,0,.8)'}}>Barcode in Rahmen halten</div>
         </div>
-        <button onClick={reset} style={{width:'100%',background:'none',border:'1px solid var(--border)',borderRadius:8,padding:10,color:'var(--t2)',cursor:'pointer',fontFamily:'Geist Mono,monospace',fontSize:12}}>Abbrechen</button>
+        <button onClick={reset} style={{width:'100%',background:'none',border:'1px solid var(--border)',borderRadius:8,padding:10,color:'var(--t2)',cursor:'pointer',fontVariantNumeric:'tabular-nums',fontSize:12}}>Abbrechen</button>
       </>}
 
       {state==='photo_analyzing'&&<div style={{textAlign:'center',padding:32,background:'var(--s2)',border:'1px solid var(--border)',borderRadius:14}}>
@@ -2738,7 +2739,7 @@ function ScanTab({arts,eanIndex,onSel,onBack,onNotFound,showT,scanLabel}){
       {state==='notfound'&&<div style={{textAlign:'center',padding:24}}>
         <div style={{marginBottom:8}}><Icon name="search" size={40} color="var(--t3)"/></div>
         <div style={{color:'var(--amber)',fontSize:14,marginBottom:4}}>Artikel nicht gefunden</div>
-        {result?.ean&&<div style={{color:'var(--t2)',fontSize:12,marginBottom:4}}>EAN: <span style={{fontFamily:'Geist Mono,monospace',color:'#2a6010'}}>{result.ean}</span></div>}
+        {result?.ean&&<div style={{color:'var(--t2)',fontSize:12,marginBottom:4}}>EAN: <span style={{fontVariantNumeric:'tabular-nums',color:'#2a6010'}}>{result.ean}</span></div>}
         {result?.scannedEAN&&!result?.ean&&<div style={{color:'var(--red)',fontSize:11,marginBottom:4}}>KI erkannte: „{result.scannedEAN}"</div>}
         {onNotFound
           ?<>
@@ -2773,7 +2774,7 @@ function ScanTab({arts,eanIndex,onSel,onBack,onNotFound,showT,scanLabel}){
         <button className="btn btn-l" onClick={()=>{stopCamera();onSel(result.art);}} style={{marginBottom:8,fontSize:14,padding:14}}>
           {scanLabel||'Entnahme erfassen →'}
         </button>
-        <button onClick={reset} style={{width:'100%',background:'none',border:'1px solid var(--border)',borderRadius:8,padding:10,color:'var(--t2)',cursor:'pointer',fontFamily:'Geist Mono,monospace',fontSize:12}}>
+        <button onClick={reset} style={{width:'100%',background:'none',border:'1px solid var(--border)',borderRadius:8,padding:10,color:'var(--t2)',cursor:'pointer',fontVariantNumeric:'tabular-nums',fontSize:12}}>
           Nochmal scannen
         </button>
       </>}
@@ -2971,7 +2972,7 @@ function AddTab({arts,favs,ents=[],onSel,onFav,onManual}){
       {/* MANUELLE ENTNAHME */}
       <div className="sec" style={{marginTop:16,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <span>Manuelle Entnahme</span>
-        <button onClick={()=>setShowManual(s=>!s)} style={{border:'1px solid var(--border)',background:'none',color:'#2a6010',borderRadius:6,padding:'3px 10px',fontSize:10,cursor:'pointer',fontFamily:'Geist Mono,monospace'}}>
+        <button onClick={()=>setShowManual(s=>!s)} style={{border:'1px solid var(--border)',background:'none',color:'#2a6010',borderRadius:6,padding:'3px 10px',fontSize:10,cursor:'pointer',fontVariantNumeric:'tabular-nums'}}>
           {showManual?'Schließen':'+ Neu'}
         </button>
       </div>
@@ -3004,7 +3005,7 @@ function AddTab({arts,favs,ents=[],onSel,onFav,onManual}){
           <div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:mEinheit==='__custom__'?8:0}}>
             {['Stk','kg','g','Ltr','ml','Fl','Gl','Bd','Bch','Pkg','Dos','KI'].map(u=>(
               <button key={u} onClick={()=>setMEinheit(u)}
-                style={{padding:'6px 12px',borderRadius:20,border:`1.5px solid ${mEinheit===u?'var(--lime)':'var(--border)'}`,background:mEinheit===u?'var(--lm)':'none',color:mEinheit===u?'var(--lime)':'var(--t2)',fontSize:12,cursor:'pointer',fontFamily:'Geist Mono,monospace'}}>
+                style={{padding:'6px 12px',borderRadius:20,border:`1.5px solid ${mEinheit===u?'var(--lime)':'var(--border)'}`,background:mEinheit===u?'var(--lm)':'none',color:mEinheit===u?'var(--lime)':'var(--t2)',fontSize:12,cursor:'pointer',fontVariantNumeric:'tabular-nums'}}>
                 {u}
               </button>
             ))}
@@ -3086,7 +3087,7 @@ function QtyModal({art,onOk,onClose,initialMenge}){
         {istGebinde&&modus==='stueck'&&<div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,padding:'8px 12px',background:'var(--s2)',borderRadius:8}}>
           <span style={{fontSize:12,color:'var(--t2)',flex:1}}>Stück in der Kiste:</span>
           <button onClick={()=>setStueckImGebinde(s=>Math.max(1,s-1))} style={{width:28,height:28,borderRadius:6,border:'1px solid var(--border)',background:'none',color:'var(--text)',cursor:'pointer',fontSize:16}}>−</button>
-          <input type="number" value={stueckImGebinde} onChange={e=>setStueckImGebinde(Math.max(1,parseInt(e.target.value)||1))} style={{width:48,textAlign:'center',background:'none',border:'1px solid var(--border)',borderRadius:6,color:'var(--text)',fontFamily:'Geist Mono,monospace',fontSize:14,padding:'4px'}} min={1}/>
+          <input type="number" value={stueckImGebinde} onChange={e=>setStueckImGebinde(Math.max(1,parseInt(e.target.value)||1))} style={{width:48,textAlign:'center',background:'none',border:'1px solid var(--border)',borderRadius:6,color:'var(--text)',fontVariantNumeric:'tabular-nums',fontSize:14,padding:'4px'}} min={1}/>
           <button onClick={()=>setStueckImGebinde(s=>s+1)} style={{width:28,height:28,borderRadius:6,border:'1px solid var(--border)',background:'none',color:'var(--text)',cursor:'pointer',fontSize:16}}>+</button>
           <span style={{fontSize:11,color:'var(--t2)',minWidth:60}}>{fN(preisProStueck)} €/Stk</span>
         </div>}
@@ -3610,12 +3611,9 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
       <div className="sec" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <span>Betriebsart</span>
       </div>
-      <div className="card" style={{marginBottom:14}}>
-        <div className="rl">
-          <span style={{color:'var(--t2)',fontSize:12}}>Betriebsart (Jahrespauschale Finanzamt)</span>
-        </div>
-        <select value={hh.betrieb||'gaststaetten'} onChange={e=>setHH(h=>({...h,betrieb:e.target.value}))} style={{width:'100%',marginTop:6,padding:'8px 10px',borderRadius:8,border:'1px solid var(--border)',background:'var(--card)',color:'var(--fg)',fontSize:13,fontFamily:'inherit',outline:'none'}}>
-          {Object.entries(BETRIEBE).map(([k,b])=><option key={k} value={k}>{b.label} – {Math.round((b.ust7+b.ust19)/12*100)/100} €/Monat</option>)}
+      <div className="card" style={{marginBottom:14,padding:'14px 16px'}}>
+        <select value={hh.betrieb||'gaststaetten'} onChange={e=>setHH(h=>({...h,betrieb:e.target.value}))} style={{width:'100%',padding:'10px 12px',borderRadius:9,border:'1.5px solid var(--border)',background:'var(--s1)',color:'var(--text)',fontSize:14,fontFamily:'inherit',outline:'none',boxSizing:'border-box'}}>
+          {Object.entries(BETRIEBE).map(([k,b])=><option key={k} value={k}>{b.label} · {fN((b.ust7+b.ust19)/12)} €/Mon.</option>)}
         </select>
         {(()=>{const b=BETRIEBE[hh.betrieb||'gaststaetten'];return(
           <div style={{fontSize:11,color:'var(--t2)',marginTop:8}}>
@@ -3633,15 +3631,15 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
       </div>
       <div className="sec" style={{marginTop:4,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <span>Haushalt</span>
-        <button onClick={()=>setShowHH(s=>!s)} style={{border:'1px solid var(--border)',background:'none',color:'#2a6010',borderRadius:6,padding:'3px 10px',fontSize:10,cursor:'pointer',fontFamily:'Geist Mono,monospace'}}>{showHH?'Schließen':<><Icon name="settings" size={11}/> Bearbeiten</>}</button>
+        <button onClick={()=>setShowHH(s=>!s)} style={{border:'1px solid var(--border)',background:'none',color:'#2a6010',borderRadius:6,padding:'3px 10px',fontSize:10,cursor:'pointer',fontVariantNumeric:'tabular-nums'}}>{showHH?'Schließen':<><Icon name="settings" size={11}/> Bearbeiten</>}</button>
       </div>
       <div className="card" style={{marginBottom:showHH?4:14}}>
         {persons.map(p=><div key={p.id} className="rl">
           <div style={{display:'flex',alignItems:'center',gap:8}}>
-            <Icon name="settings" size={16} color="var(--t2)"/>
+            <Icon name="user" size={16} color="var(--t2)"/>
             {editName===p.id
               ?<input autoFocus defaultValue={p.name} onBlur={e=>{renamePerson(p.id,e.target.value);setEditName(null);}} onKeyDown={e=>{if(e.key==='Enter'){renamePerson(p.id,e.target.value);setEditName(null);}}}
-                style={{background:'var(--s1)',border:'1px solid var(--lime)',borderRadius:6,padding:'3px 8px',color:'var(--text)',fontSize:12,fontFamily:'Geist Mono,monospace',outline:'none',width:120}}/>
+                style={{background:'var(--s1)',border:'1px solid var(--lime)',borderRadius:6,padding:'3px 8px',color:'var(--text)',fontSize:12,fontVariantNumeric:'tabular-nums',outline:'none',width:120}}/>
               :<div onClick={()=>setEditName(p.id)} style={{cursor:'pointer'}} title="Tippe zum Umbenennen">
                 <div style={{display:'flex',alignItems:'center',gap:5}}>
                   <div style={{fontSize:12}}>{p.name}</div>
@@ -3665,23 +3663,23 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
       {showHH&&<div className="card" style={{marginBottom:14,padding:'12px 16px'}}>
         <div style={{fontSize:11,color:'var(--t2)',marginBottom:8}}>Person hinzufügen:</div>
         <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:8}}>
-          <button onClick={()=>addPerson('partner')} style={{background:'var(--s2)',border:'1px solid var(--border)',color:'var(--text)',borderRadius:7,padding:'7px 12px',fontSize:11,cursor:'pointer',fontFamily:'Geist Mono,monospace'}}>+ Partner/in</button>
-          <button onClick={()=>addPerson('kind_gross')} style={{background:'var(--s2)',border:'1px solid var(--border)',color:'var(--text)',borderRadius:7,padding:'7px 12px',fontSize:11,cursor:'pointer',fontFamily:'Geist Mono,monospace'}}>+ Kind (2–12 J.)</button>
-          <button onClick={()=>addPerson('kind_teen')} style={{background:'var(--s2)',border:'1px solid var(--border)',color:'var(--text)',borderRadius:7,padding:'7px 12px',fontSize:11,cursor:'pointer',fontFamily:'Geist Mono,monospace'}}>+ Kind (ab 12 J.)</button>
+          <button onClick={()=>addPerson('partner')} style={{background:'var(--s2)',border:'1px solid var(--border)',color:'var(--text)',borderRadius:7,padding:'7px 12px',fontSize:11,cursor:'pointer',fontVariantNumeric:'tabular-nums'}}>+ Partner/in</button>
+          <button onClick={()=>addPerson('kind_gross')} style={{background:'var(--s2)',border:'1px solid var(--border)',color:'var(--text)',borderRadius:7,padding:'7px 12px',fontSize:11,cursor:'pointer',fontVariantNumeric:'tabular-nums'}}>+ Kind (2–12 J.)</button>
+          <button onClick={()=>addPerson('kind_teen')} style={{background:'var(--s2)',border:'1px solid var(--border)',color:'var(--text)',borderRadius:7,padding:'7px 12px',fontSize:11,cursor:'pointer',fontVariantNumeric:'tabular-nums'}}>+ Kind (ab 12 J.)</button>
         </div>
         <div style={{fontSize:10,color:'var(--t2)',lineHeight:1.7}}>Kinder unter 2 Jahren: kein Pauschbetrag. · 2–12 J.: 50% · ab 12 J.: 100%.</div>
       </div>}
 
       <div className="sec" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <span>Abrechnungsperiode</span>
-        <button onClick={()=>{setTmpDay(String(periodDay));setEditing(s=>!s);}} style={{border:'1px solid var(--border)',background:'none',color:'#2a6010',borderRadius:6,padding:'3px 10px',fontSize:10,cursor:'pointer',fontFamily:'Geist Mono,monospace'}}>{editing?'Schließen':`⚙ ab ${periodDay}.`}</button>
+        <button onClick={()=>{setTmpDay(String(periodDay));setEditing(s=>!s);}} style={{border:'1px solid var(--border)',background:'none',color:'#2a6010',borderRadius:6,padding:'4px 10px',fontSize:11,cursor:'pointer',fontVariantNumeric:'tabular-nums',display:'inline-flex',alignItems:'center',gap:4}}>{editing?'Schließen':<><Icon name="settings" size={11}/> ab {periodDay}.</>}</button>
       </div>
       {editing&&<div className="card" style={{padding:'14px 16px',marginBottom:12}}>
         <div style={{fontSize:11,color:'var(--t2)',marginBottom:8}}>Periode startet am <strong style={{color:'#2a6010'}}>{tmpDay}.</strong>{tmpDay!=='1'&&<span style={{color:'var(--t2)'}}> → endet {Number(tmpDay)-1}. Folgemonat</span>}</div>
         <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:10}}>
-          {[1,5,10,15,16,20,25].map(d=><button key={d} onClick={()=>setTmpDay(String(d))} style={{border:`1px solid ${tmpDay===String(d)?'var(--lime)':'var(--border)'}`,background:tmpDay===String(d)?'var(--lm)':'none',color:tmpDay===String(d)?'var(--lime)':'var(--t2)',borderRadius:6,padding:'5px 10px',fontSize:11,cursor:'pointer',fontFamily:'Geist Mono,monospace'}}>{d}.</button>)}
+          {[1,5,10,15,16,20,25].map(d=><button key={d} onClick={()=>setTmpDay(String(d))} style={{border:`1px solid ${tmpDay===String(d)?'var(--lime)':'var(--border)'}`,background:tmpDay===String(d)?'var(--lm)':'none',color:tmpDay===String(d)?'var(--lime)':'var(--t2)',borderRadius:6,padding:'5px 10px',fontSize:11,cursor:'pointer',fontVariantNumeric:'tabular-nums'}}>{d}.</button>)}
         </div>
-        <button onClick={()=>{const v=Number(tmpDay);setPeriodDay(v);localStorage.setItem('gt_periodDay',JSON.stringify(v));setEditing(false);setSelKey(null);}} style={{width:'100%',background:'var(--lm)',border:'1px solid var(--lime)',borderRadius:8,padding:9,color:'#2a6010',fontSize:12,fontFamily:'Geist Mono,monospace',cursor:'pointer',fontWeight:600}}>Übernehmen</button>
+        <button onClick={()=>{const v=Number(tmpDay);setPeriodDay(v);localStorage.setItem('gt_periodDay',JSON.stringify(v));setEditing(false);setSelKey(null);}} style={{width:'100%',background:'var(--lm)',border:'1px solid var(--lime)',borderRadius:8,padding:9,color:'#2a6010',fontSize:12,fontVariantNumeric:'tabular-nums',cursor:'pointer',fontWeight:600}}>Übernehmen</button>
       </div>}
 
       {periods.length===0
@@ -3689,7 +3687,7 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
         :<>
           <div style={{overflowX:'auto',paddingBottom:4,marginBottom:14}}>
             <div style={{display:'flex',gap:6,width:'max-content'}}>
-              {(showAllPeriods?periods:periods.slice(0,12)).map(pp=><button key={pp.key} onClick={()=>setSelKey(pp.key)} style={{border:`1px solid ${sel?.key===pp.key?'var(--lime)':'var(--border)'}`,background:sel?.key===pp.key?'var(--lm)':'var(--s2)',color:sel?.key===pp.key?'var(--lime)':'var(--t2)',borderRadius:8,padding:'6px 12px',fontSize:10,cursor:'pointer',whiteSpace:'nowrap',fontFamily:'Geist Mono,monospace'}}>{pp.lbl}</button>)}{periods.length>12&&<button onClick={()=>setShowAllPeriods(s=>!s)} style={{border:'1px dashed var(--border)',background:'none',color:'var(--t2)',borderRadius:8,padding:'6px 12px',fontSize:10,cursor:'pointer',whiteSpace:'nowrap',fontFamily:'Geist Mono,monospace'}}>{showAllPeriods?'Weniger ▲':`+${periods.length-12} weitere ▼`}</button>}
+              {(showAllPeriods?periods:periods.slice(0,12)).map(pp=><button key={pp.key} onClick={()=>setSelKey(pp.key)} style={{border:`1px solid ${sel?.key===pp.key?'var(--lime)':'var(--border)'}`,background:sel?.key===pp.key?'var(--lm)':'var(--s2)',color:sel?.key===pp.key?'var(--lime)':'var(--t2)',borderRadius:8,padding:'6px 12px',fontSize:10,cursor:'pointer',whiteSpace:'nowrap',fontVariantNumeric:'tabular-nums'}}>{pp.lbl}</button>)}{periods.length>12&&<button onClick={()=>setShowAllPeriods(s=>!s)} style={{border:'1px dashed var(--border)',background:'none',color:'var(--t2)',borderRadius:8,padding:'6px 12px',fontSize:10,cursor:'pointer',whiteSpace:'nowrap',fontVariantNumeric:'tabular-nums'}}>{showAllPeriods?'Weniger ▲':`+${periods.length-12} weitere ▼`}</button>}
             </div>
           </div>
           {sel&&<>
@@ -3747,7 +3745,7 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
             <div className="sec" style={{marginTop:16}}>Export</div>
             <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:10}}>
               {[['neutral','Neutral'],['sevdesk','sevDesk'],['datev','DATEV'],['lexware','Lexware']].map(([k,l])=>(
-                <button key={k} onClick={()=>setExportFmt(k)} style={{border:`1px solid ${exportFmt===k?'var(--lime)':'var(--border)'}`,background:exportFmt===k?'var(--lm)':'var(--s2)',color:exportFmt===k?'var(--lime)':'var(--t2)',borderRadius:7,padding:'6px 12px',fontSize:10,cursor:'pointer',fontFamily:'Geist Mono,monospace'}}>{l}</button>
+                <button key={k} onClick={()=>setExportFmt(k)} style={{border:`1px solid ${exportFmt===k?'var(--lime)':'var(--border)'}`,background:exportFmt===k?'var(--lm)':'var(--s2)',color:exportFmt===k?'var(--lime)':'var(--t2)',borderRadius:7,padding:'6px 12px',fontSize:10,cursor:'pointer',fontVariantNumeric:'tabular-nums'}}>{l}</button>
               ))}
             </div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:6}}>
@@ -4275,12 +4273,12 @@ Alle Lebensmittel=7%, Spirituosen/Getränke=19%.`;
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:10}}>
             {/* Kamera-Button */}
             <button onClick={()=>cameraRef.current?.click()}
-              style={{background:'var(--s2)',border:'1px solid var(--border)',borderRadius:12,padding:'18px 10px',color:'var(--text)',cursor:'pointer',fontSize:12,fontFamily:'Geist Mono,monospace',textAlign:'center',lineHeight:1.8}}>
+              style={{background:'var(--s2)',border:'1px solid var(--border)',borderRadius:12,padding:'18px 10px',color:'var(--text)',cursor:'pointer',fontSize:12,fontVariantNumeric:'tabular-nums',textAlign:'center',lineHeight:1.8}}>
               <Icon name="camera" size={28} color="currentColor"/>Kamera
             </button>
             {/* Datei hochladen */}
             <button onClick={()=>{const i=document.createElement('input');i.type='file';i.accept='image/*,application/pdf';i.onchange=e=>{if(e.target.files[0])analyzeInvoice(e.target.files[0]);};i.click();}}
-              style={{background:'var(--s2)',border:'1px solid var(--border)',borderRadius:12,padding:'18px 10px',color:'var(--text)',cursor:'pointer',fontSize:12,fontFamily:'Geist Mono,monospace',textAlign:'center',lineHeight:1.8}}>
+              style={{background:'var(--s2)',border:'1px solid var(--border)',borderRadius:12,padding:'18px 10px',color:'var(--text)',cursor:'pointer',fontSize:12,fontVariantNumeric:'tabular-nums',textAlign:'center',lineHeight:1.8}}>
               <Icon name="camera" size={28} color="currentColor"/>Foto / PDF
             </button>
           </div>
@@ -4290,7 +4288,7 @@ Alle Lebensmittel=7%, Spirituosen/Getränke=19%.`;
           <div style={{fontSize:11,color:'var(--t2)',textAlign:'center',lineHeight:1.7,marginBottom:8}}>
             Foto der Rechnung oder Lieferschein – KI erkennt Artikel, Preise und MwSt automatisch
           </div>
-          <button onClick={()=>setInvoiceMode(false)} style={{width:'100%',background:'none',border:'1px solid var(--border)',borderRadius:8,padding:8,color:'var(--t2)',cursor:'pointer',fontFamily:'Geist Mono,monospace',fontSize:11}}>Abbrechen</button>
+          <button onClick={()=>setInvoiceMode(false)} style={{width:'100%',background:'none',border:'1px solid var(--border)',borderRadius:8,padding:8,color:'var(--t2)',cursor:'pointer',fontVariantNumeric:'tabular-nums',fontSize:11}}>Abbrechen</button>
         </>}
 
         {invoiceState==='analyzing'&&<div style={{textAlign:'center',padding:32,background:'var(--s2)',border:'1px solid var(--border)',borderRadius:14}}>
@@ -4310,7 +4308,7 @@ Alle Lebensmittel=7%, Spirituosen/Getränke=19%.`;
         {invoiceState==='done'&&invoiceResult&&<div>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
             <span style={{fontSize:11,color:'#2a6010'}}>{invoiceResult.filter((_,i)=>invoiceSelected[i]).length} von {invoiceResult.length} ausgewählt</span>
-            <button onClick={()=>{const all={};invoiceResult.forEach((_,i)=>all[i]=true);setInvoiceSelected(all);}} style={{background:'none',border:'none',color:'var(--t2)',fontSize:10,cursor:'pointer',fontFamily:'Geist Mono,monospace'}}>Alle</button>
+            <button onClick={()=>{const all={};invoiceResult.forEach((_,i)=>all[i]=true);setInvoiceSelected(all);}} style={{background:'none',border:'none',color:'var(--t2)',fontSize:10,cursor:'pointer',fontVariantNumeric:'tabular-nums'}}>Alle</button>
           </div>
           <div className="card" style={{marginBottom:10}}>
             {invoiceResult.map((it,i)=><div key={i} onClick={()=>setInvoiceSelected(s=>({...s,[i]:!s[i]}))}
@@ -4329,7 +4327,7 @@ Alle Lebensmittel=7%, Spirituosen/Getränke=19%.`;
           <button className="btn btn-l" onClick={importInvoiceItems} style={{marginBottom:8}}>
             ✓ {invoiceResult.filter((_,i)=>invoiceSelected[i]).length} Artikel importieren
           </button>
-          <button onClick={()=>{setInvoiceState('idle');setInvoiceResult(null);}} style={{width:'100%',background:'none',border:'1px solid var(--border)',borderRadius:8,padding:8,color:'var(--t2)',cursor:'pointer',fontFamily:'Geist Mono,monospace',fontSize:11}}>Abbrechen</button>
+          <button onClick={()=>{setInvoiceState('idle');setInvoiceResult(null);}} style={{width:'100%',background:'none',border:'1px solid var(--border)',borderRadius:8,padding:8,color:'var(--t2)',cursor:'pointer',fontVariantNumeric:'tabular-nums',fontSize:11}}>Abbrechen</button>
         </div>}
       </div>}
 
@@ -5042,7 +5040,7 @@ function GmbhMealsTab({meals,setMeals,persons,cd,cm,curPeriod}){
                     background:selDate===k?'var(--lm)':'var(--s2)',
                     color:selDate===k?'var(--lime)':hasMeals?'var(--text)':'var(--t3)',
                     borderRadius:8,padding:'6px 10px',fontSize:10,cursor:'pointer',
-                    whiteSpace:'nowrap',fontFamily:'Geist Mono,monospace'}}>
+                    whiteSpace:'nowrap',fontVariantNumeric:'tabular-nums'}}>
                   {hasMeals&&selDate!==k&&<span style={{color:'var(--gruen)',marginRight:3}}>·</span>}
                   {lbl}
                 </button>
@@ -6965,7 +6963,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
           <button onClick={()=>{setTmpDay(String(pd));setEditPeriod(s=>!s);}}
             style={{border:'1px solid var(--border)',background:'none',color:'var(--gruen)',
               borderRadius:6,padding:'3px 10px',fontSize:10,cursor:'pointer',
-              fontFamily:'Geist Mono,monospace'}}>
+              fontVariantNumeric:'tabular-nums'}}>
             <span style={{display:'flex',alignItems:'center',gap:4}}>{editPeriod?<><Icon name="x" size={11}/> Schließen</>:<><Icon name="settings" size={11}/> ab {pd}.</>}</span>
           </button>
         </div>
@@ -6981,13 +6979,13 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
                   background:tmpDay===String(d)?'var(--lm)':'none',
                   color:tmpDay===String(d)?'var(--lime)':'var(--t2)',
                   borderRadius:6,padding:'5px 10px',fontSize:11,cursor:'pointer',
-                  fontFamily:'Geist Mono,monospace'}}>{d}.</button>
+                  fontVariantNumeric:'tabular-nums'}}>{d}.</button>
             ))}
           </div>
           <button onClick={()=>{if(setPeriodDay)setPeriodDay(Number(tmpDay));setEditPeriod(false);setSelKey(null);}}
             style={{width:'100%',background:'var(--lm)',border:'1px solid var(--lime)',
               borderRadius:8,padding:9,color:'var(--gruen)',fontSize:12,
-              fontFamily:'Geist Mono,monospace',cursor:'pointer',fontWeight:600}}>
+              fontVariantNumeric:'tabular-nums',cursor:'pointer',fontWeight:600}}>
             Übernehmen
           </button>
         </div>}
@@ -7002,7 +7000,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
                     background:sel?.key===p.key?'var(--lm)':'var(--s2)',
                     color:sel?.key===p.key?'var(--lime)':'var(--t3)',
                     borderRadius:8,padding:'6px 10px',fontSize:10,cursor:'pointer',
-                    whiteSpace:'nowrap',fontFamily:'Geist Mono,monospace',
+                    whiteSpace:'nowrap',fontVariantNumeric:'tabular-nums',
                     position:'relative'}}>
                   {(meals.some(x=>x.datum>=p.sk&&x.datum<=p.ek)||withdrawals.some(x=>x.datum>=p.sk&&x.datum<=p.ek))&&sel?.key!==p.key&&(
                     <span style={{position:'absolute',top:3,right:3,width:5,height:5,
@@ -7049,7 +7047,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
                         onKeyDown={e=>{if(e.key==='Enter'){renamePerson(p.id,e.target.value);setEditName(null);}}}
                         style={{background:'var(--s1)',border:'1px solid var(--lime)',borderRadius:6,
                           padding:'3px 8px',color:'var(--text)',fontSize:13,
-                          fontFamily:'Geist Mono,monospace',outline:'none',width:180}}/>
+                          fontVariantNumeric:'tabular-nums',outline:'none',width:180}}/>
                     :<div onClick={()=>setEditName(p.id)} style={{cursor:'pointer',display:'flex',alignItems:'center',gap:5}} title="Tippe zum Umbenennen">
                       <span style={{fontSize:13,color:'var(--t2)'}}>{p.name}</span>
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{opacity:.5,flexShrink:0}}>
@@ -7259,7 +7257,7 @@ function GmbhSettingsTab({persons,setPersons,firma,setFirma,periodDay,setPeriodD
           <button onClick={()=>{setTmpPeriodDay(String(periodDay||20));setEditingPeriod(s=>!s);}}
             style={{border:'1px solid var(--border)',background:'none',color:'var(--gruen)',
               borderRadius:6,padding:'3px 10px',fontSize:10,cursor:'pointer',
-              fontFamily:'Geist Mono,monospace'}}>
+              fontVariantNumeric:'tabular-nums'}}>
             <span style={{display:'flex',alignItems:'center',gap:4}}>{editingPeriod?<><Icon name="x" size={11}/> Schließen</>:<><Icon name="settings" size={11}/> ab {periodDay||20}.</>}</span>
           </button>
         </div>
@@ -7277,13 +7275,13 @@ function GmbhSettingsTab({persons,setPersons,firma,setFirma,periodDay,setPeriodD
                   background:tmpPeriodDay===String(d)?'var(--lm)':'none',
                   color:tmpPeriodDay===String(d)?'var(--lime)':'var(--t2)',
                   borderRadius:6,padding:'5px 10px',fontSize:11,cursor:'pointer',
-                  fontFamily:'Geist Mono,monospace'}}>{d}.</button>
+                  fontVariantNumeric:'tabular-nums'}}>{d}.</button>
             ))}
           </div>
           <button onClick={()=>{if(setPeriodDay)setPeriodDay(Number(tmpPeriodDay));setEditingPeriod(false);}}
             style={{width:'100%',background:'var(--lm)',border:'1px solid var(--lime)',
               borderRadius:8,padding:9,color:'var(--gruen)',fontSize:12,
-              fontFamily:'Geist Mono,monospace',cursor:'pointer',fontWeight:600}}>
+              fontVariantNumeric:'tabular-nums',cursor:'pointer',fontWeight:600}}>
             Übernehmen
           </button>
         </div>}
@@ -7300,7 +7298,7 @@ function GmbhSettingsTab({persons,setPersons,firma,setFirma,periodDay,setPeriodD
                       onKeyDown={e=>{if(e.key==='Enter'){const ps=[...persons];ps[i]={...ps[i],name:e.target.value.trim()||p.name};savePersons(ps);setEditPerson(null);}}}
                       style={{background:'var(--s1)',border:'1px solid var(--lime)',borderRadius:6,
                         padding:'3px 8px',color:'var(--text)',fontSize:13,
-                        fontFamily:'Geist Mono,monospace',outline:'none',width:200}}/>
+                        fontVariantNumeric:'tabular-nums',outline:'none',width:200}}/>
                   :<div onClick={()=>setEditPerson(p.id)} style={{cursor:'pointer'}} title="Tippe zum Umbenennen">
                     <div style={{display:'flex',alignItems:'center',gap:5}}>
                       <div style={{fontSize:13}}>{p.name}</div>

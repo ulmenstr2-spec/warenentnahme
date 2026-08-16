@@ -789,8 +789,9 @@ function parseCSV(text) {
 }
 
 // ── HELPERS
-const fmt=n=>n.toFixed(2).replace('.',',')+' €';
-const fN=n=>n.toFixed(2).replace('.',',');
+const deZahl=n=>(Number(n)||0).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmt=n=>deZahl(n)+' €';
+const fN=n=>deZahl(n);
 const mKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 
 // ── Robuster Download-Helper (Android Chrome, Samsung Internet, Desktop)
@@ -4925,7 +4926,7 @@ function GmbhHomeTab({meals,withdrawals,persons,now,setTab,curPeriod}){
                 <div style={{height:'100%',width:`${pct}%`,background:p.exceeded>0?'var(--red)':'var(--gruen)',borderRadius:3,transition:'width .4s'}}/>
               </div>
               <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'var(--t2)'}}>
-                <span>Freibetrag: 1.080,00 €</span>
+                <span>Freibetrag: {fN(GMBH_RABATT_FREIBETRAG)} €</span>
                 {p.exceeded>0
                   ? <span style={{color:'var(--red)',fontWeight:600}}>Überschreitung: {fN(p.exceeded)} €</span>
                   : <span style={{color:'var(--gruen)'}}>Verbleibend: {fN(p.remaining)} €</span>
@@ -5642,13 +5643,13 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
 
         {/* ── JAHRESSTAND pro Person (Kalenderjahr = datum.slice(0,4)) */}
         {personYrRabatt.some(p=>p.yearRabatt>0)&&(
-          <div style={{marginBottom:16}}>
-            <div style={{fontSize:11,color:'var(--t3)',marginBottom:8,fontWeight:600}}>Warenrabatt {yr} — Freibetrag je Person</div>
+          <div className="card" style={{marginBottom:16,padding:'14px 16px'}}>
+            <div style={{fontSize:12.5,color:'var(--t2)',marginBottom:12,fontWeight:600}}>Warenrabatt {yr} — Freibetrag je Person</div>
             {personYrRabatt.filter(p=>p.yearRabatt>0).map(p=>(
               <div key={p.id} style={{marginBottom:8}}>
                 <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'var(--t2)',marginBottom:3}}>
                   <span>{p.name}</span>
-                  <span style={{fontWeight:600,color:p.exceeded>0?'var(--red)':'var(--text)'}}>{fN(p.yearRabatt)} / 1.080,00 €</span>
+                  <span style={{fontWeight:600,color:p.exceeded>0?'var(--red)':'var(--text)'}}>{fN(p.yearRabatt)} / {fN(GMBH_RABATT_FREIBETRAG)} €</span>
                 </div>
                 <div style={{height:5,borderRadius:3,background:'var(--border)',overflow:'hidden'}}>
                   <div style={{height:'100%',width:`${Math.min(100,p.yearRabatt/GMBH_RABATT_FREIBETRAG*100)}%`,
@@ -5704,7 +5705,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
           <button onClick={()=>{setForm({...EMPTY,person:form.person,datum:form.datum});setEditId(null);setShowForm(true);}}
             style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,width:'100%',
               padding:'13px',borderRadius:14,marginTop:8,marginBottom:8,
-              border:'1.5px dashed var(--gruen)',background:'transparent',
+              border:'1.5px solid var(--border2)',background:'var(--s1)',
               color:'var(--gruen)',fontSize:13,fontWeight:600,cursor:'pointer'}}>
             <Icon name="plus_circle" size={16} color="var(--gruen)"/>
             Manuell / Freitext erfassen
@@ -6079,10 +6080,8 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
                       {fmtD(w.datum)} · {personName(w.person)} · {w.menge} {pieceEinheit(w.einheit)} · {methLabel[w.methode]||w.methode}
                     </div>
                   </div>
-                  <div className="rr">
-                    <div className="rv">{fN(w.vorteil)} €</div>
-                    <button className="del" title="Eintrag löschen" onClick={e=>{e.stopPropagation();if(window.confirm('Eintrag löschen?')){markDeleted(w.id);setWithdrawals(p=>p.filter(x=>x.id!==w.id));}}}><Icon name="x" size={12}/></button>
-                  </div>
+                  <div className="rr"><div className="rv">{fN(w.vorteil)} €</div></div>
+                  <button className="del" title="Eintrag löschen" onClick={e=>{e.stopPropagation();if(window.confirm('Eintrag löschen?')){markDeleted(w.id);setWithdrawals(p=>p.filter(x=>x.id!==w.id));}}}><Icon name="x" size={12}/></button>
                 </div>
               ))}
             </div>
@@ -7146,7 +7145,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
               <div key={p.id} className="card" style={{padding:'12px 14px',marginBottom:8}}>
                 <div style={{display:'flex',justifyContent:'space-between',marginBottom:8,fontSize:13}}>
                   <span style={{fontWeight:500}}>{p.name}</span>
-                  <span style={{fontWeight:700}}>{fN(p.yearRabatt)} € <span style={{fontWeight:400,color:'var(--t2)',fontSize:11}}>/ 1.080,00 €</span></span>
+                  <span style={{fontWeight:700}}>{fN(p.yearRabatt)} € <span style={{fontWeight:400,color:'var(--t2)',fontSize:11}}>/ {fN(GMBH_RABATT_FREIBETRAG)} €</span></span>
                 </div>
                 <div style={{height:5,borderRadius:3,background:'var(--border)',overflow:'hidden'}}>
                   <div style={{height:'100%',width:`${Math.min(100,p.yearRabatt/GMBH_RABATT_FREIBETRAG*100)}%`,background:p.exceeded>0?'var(--red)':'var(--gruen)',borderRadius:3}}/>

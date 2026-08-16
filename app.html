@@ -248,11 +248,13 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 /* MISC */
 .fav{background:none;border:none;cursor:pointer;font-size:18px;color:var(--t3);padding:4px;transition:color .15s;}
 .fav.on{color:var(--amber);}
-.del{width:28px;height:28px;border-radius:8px;background:none;border:1.5px solid var(--border);color:var(--t3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s;flex-shrink:0;}
+.del{width:32px;height:32px;border-radius:8px;background:none;border:none;color:var(--t3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:background .15s,color .15s;flex-shrink:0;opacity:.55;}
+.del:hover,.del:focus-visible{background:var(--s2);color:var(--red);opacity:1;}
+.del:active{background:var(--s3);}
 .del:active{background:var(--red);color:#fff;border-color:var(--red);}
 
 .fbar{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 2px}
-.fb{border:1px solid var(--border);border-radius:16px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:inherit;background:var(--card);color:var(--t2);outline:none}
+.fb{border:1px solid var(--border);border-radius:14px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:inherit;background:var(--card);color:var(--t2);outline:none}
 .fb-on,.fb:active{background:var(--lime);color:#fff;border-color:var(--lime)}
 .fb-ct{font-size:11px;color:var(--t3);margin-left:auto;align-self:center}
 
@@ -892,7 +894,7 @@ const Ic={
           zIndex:9999,
           background:'#1e3212',
           color:'#fff',
-          borderRadius:12,
+          borderRadius:14,
           padding:'11px 15px',
           fontSize:13,
           fontWeight:400,
@@ -1549,7 +1551,7 @@ function App(){
   return(<div>
     {storageWarn&&<div style={{position:'sticky',top:0,zIndex:200,background:'#c0392b',color:'#fff',fontSize:11,padding:'6px 14px',textAlign:'center',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
       ⚠️ Gerätespeicher fast voll! Alte Artikel löschen um Datenverlust zu vermeiden.
-      <button onClick={()=>setStorageWarn(false)} style={{background:'none',border:'1px solid rgba(255,255,255,0.6)',color:'#fff',borderRadius:4,padding:'1px 6px',cursor:'pointer',fontSize:11}}>✕</button>
+      <button onClick={()=>setStorageWarn(false)} style={{background:'none',border:'1px solid rgba(255,255,255,0.6)',color:'#fff',borderRadius:8,padding:'1px 6px',cursor:'pointer',fontSize:11}}>✕</button>
     </div>}
     {/* ── DATENSICHERUNG-HINWEIS ──
         Das Cloud-Konto steckt tief im Import-Tab und wird kaum gefunden.
@@ -1614,11 +1616,11 @@ function App(){
     {modal&&<QtyModal art={modal} onOk={addEnt} onClose={()=>{setModal(null);setEditTarget(null);}} initialMenge={modal._editMenge}/>}
     {newPeriodBanner&&<div style={{position:'fixed',top:0,left:0,right:0,zIndex:200,background:'var(--amber)',color:'#fff',padding:'12px 16px',display:'flex',alignItems:'center',gap:10,fontSize:13,fontWeight:500,boxShadow:'0 2px 8px rgba(0,0,0,.2)'}}>
       <span style={{flex:1}}>🗓 Neue Abrechnungsperiode! Bitte das PDF der letzten Periode exportieren und speichern.</span>
-      <button onClick={()=>setNewPeriodBanner(false)} style={{background:'rgba(0,0,0,.2)',border:'none',color:'#fff',borderRadius:6,padding:'4px 10px',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>OK</button>
+      <button onClick={()=>setNewPeriodBanner(false)} style={{background:'rgba(0,0,0,.2)',border:'none',color:'#fff',borderRadius:8,padding:'4px 10px',fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>OK</button>
     </div>}
     {toast&&<div className="toast">{toast}</div>}
     {undoEnt&&<div style={{position:'fixed',bottom:'calc(var(--nh) + 12px)',left:'50%',transform:'translateX(-50%)',
-      background:'var(--text)',color:'#fff',padding:'10px 14px',borderRadius:16,zIndex:300,
+      background:'var(--text)',color:'#fff',padding:'10px 14px',borderRadius:14,zIndex:300,
       display:'flex',alignItems:'center',gap:12,boxShadow:'0 4px 20px rgba(0,0,0,0.25)',whiteSpace:'nowrap',fontSize:12}}>
       <span style={{fontWeight:500}}>{undoEnt.entry.name} gelöscht</span>
       <button onClick={cancelDelEnt} style={{background:'var(--lime)',color:'var(--green)',border:'none',
@@ -1661,7 +1663,7 @@ function App(){
             <div style={{display:'flex',flexDirection:'column',gap:12,marginBottom:20}}>
               <div style={{display:'flex',alignItems:'center',gap:12,padding:'12px',background:'var(--s2)',borderRadius:10}}>
                 <div style={{width:32,height:32,borderRadius:8,background:'var(--lm)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:18}}>1</div>
-                <div style={{fontSize:13}}>Tippe auf das <strong>Teilen-Symbol</strong> <span style={{display:'inline-block',background:'#007AFF',color:'#fff',borderRadius:4,padding:'1px 6px',fontSize:11}}>↑</span> unten in Safari</div>
+                <div style={{fontSize:13}}>Tippe auf das <strong>Teilen-Symbol</strong> <span style={{display:'inline-block',background:'#007AFF',color:'#fff',borderRadius:8,padding:'1px 6px',fontSize:11}}>↑</span> unten in Safari</div>
               </div>
               <div style={{display:'flex',alignItems:'center',gap:12,padding:'12px',background:'var(--s2)',borderRadius:10}}>
                 <div style={{width:32,height:32,borderRadius:8,background:'var(--lm)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:18}}>2</div>
@@ -1708,7 +1710,7 @@ function App(){
         const waiting = window.__swReg?.waiting;
         if(waiting){ waiting.postMessage('SKIP_WAITING'); }
         else { window.location.reload(); }
-      }} style={{background:'#a8d060',border:'none',borderRadius:6,
+      }} style={{background:'#a8d060',border:'none',borderRadius:8,
         color:'#1a2612',fontSize:11,fontWeight:700,padding:'4px 10px',cursor:'pointer'}}>
         Jetzt aktualisieren
       </button>
@@ -1727,7 +1729,7 @@ function App(){
         {syncStatus==='idle'&&<>{<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{display:'inline',verticalAlign:'middle',marginRight:5}}><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>}{'Sync aktiv'+(syncLastAt?' · '+syncLastAt:'')}</>}
       </span>
       <button onClick={()=>setShowSyncModal(true)}
-        style={{background:'none',border:'1px solid rgba(255,255,255,.4)',borderRadius:4,
+        style={{background:'none',border:'1px solid rgba(255,255,255,.4)',borderRadius:8,
           color:'#fff',fontSize:10,padding:'1px 7px',cursor:'pointer',
           display:'flex',alignItems:'center',gap:4}}>
         {authToken
@@ -1759,7 +1761,7 @@ function App(){
           <>
             {/* Header */}
             <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20}}>
-              <div style={{width:44,height:44,borderRadius:12,background:'#eaf4e0',
+              <div style={{width:44,height:44,borderRadius:14,background:'#eaf4e0',
                 display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                 <Icon name="cloud" size={22} color="#3a7020"/>
               </div>
@@ -1770,7 +1772,7 @@ function App(){
             </div>
 
             {/* Account-Info */}
-            <div style={{background:'#f4f6f2',borderRadius:12,padding:'14px 16px',marginBottom:16}}>
+            <div style={{background:'#f4f6f2',borderRadius:14,padding:'14px 16px',marginBottom:16}}>
               <div style={{fontSize:11,color:'#7a8f6a',fontWeight:600,letterSpacing:.4,
                 textTransform:'uppercase',marginBottom:4}}>Eingeloggt als</div>
               <div style={{fontSize:14,fontWeight:600,color:'#1a2612',wordBreak:'break-all'}}>{authEmail}</div>
@@ -1792,28 +1794,28 @@ function App(){
               </div>
             )}
             <button onClick={()=>syncPush(authToken)}
-              style={{width:'100%',marginBottom:10,padding:'13px',borderRadius:12,
+              style={{width:'100%',marginBottom:10,padding:'13px',borderRadius:14,
                 border:'1.5px solid #c8deb8',background:'#f0f8e8',
                 color:'#2a6010',fontSize:14,fontWeight:600,cursor:'pointer',
                 display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
               <Icon name="upload" size={16} color="#2a6010"/> Jetzt hochladen
             </button>
             <button onClick={()=>syncPull(authToken,true)}
-              style={{width:'100%',marginBottom:10,padding:'13px',borderRadius:12,
+              style={{width:'100%',marginBottom:10,padding:'13px',borderRadius:14,
                 border:'1.5px solid #b8d4e8',background:'#eef6fc',
                 color:'#1a6080',fontSize:14,fontWeight:600,cursor:'pointer',
                 display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
               <Icon name="download" size={16} color="#1a6080"/> Jetzt herunterladen
             </button>
             <button onClick={()=>doLogout(true)}
-              style={{width:'100%',marginBottom:10,padding:'13px',borderRadius:12,
+              style={{width:'100%',marginBottom:10,padding:'13px',borderRadius:14,
                 border:'1.5px solid #f0c8c0',background:'#fdf2f0',
                 color:'#c0392b',fontSize:14,fontWeight:600,cursor:'pointer',
                 display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
               <Icon name="logout" size={16} color="#c0392b"/> Abmelden
             </button>
             <button onClick={()=>{setShowSyncModal(false);setAuthMsg('');}}
-              style={{width:'100%',padding:'13px',borderRadius:12,
+              style={{width:'100%',padding:'13px',borderRadius:14,
                 border:'1.5px solid #e0e8d8',background:'transparent',
                 color:'#7a8f6a',fontSize:14,fontWeight:500,cursor:'pointer'}}>
               Schließen
@@ -1826,7 +1828,7 @@ function App(){
               <>
                 {/* Icon Header */}
                 <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:24}}>
-                  <div style={{width:44,height:44,borderRadius:12,background:'#eaf4e0',
+                  <div style={{width:44,height:44,borderRadius:14,background:'#eaf4e0',
                     display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                     <Icon name="cloud" size={22} color="#3a7020"/>
                   </div>
@@ -1882,7 +1884,7 @@ function App(){
                   </div>
                 )}
                 <button onClick={doLogin} disabled={authLoading}
-                  style={{width:'100%',padding:'14px',borderRadius:12,border:'none',
+                  style={{width:'100%',padding:'14px',borderRadius:14,border:'none',
                     background:authLoading?'#a0b890':'#3a7020',color:'#fff',
                     fontSize:15,fontWeight:700,cursor:authLoading?'default':'pointer',
                     display:'flex',alignItems:'center',justifyContent:'center',gap:8,marginBottom:14}}>
@@ -1935,7 +1937,7 @@ function App(){
                   </div>
                 )}
                 <button onClick={doRegister} disabled={authLoading}
-                  style={{width:'100%',padding:'14px',borderRadius:12,border:'none',
+                  style={{width:'100%',padding:'14px',borderRadius:14,border:'none',
                     background:authLoading?'#a0b890':'#3a7020',color:'#fff',
                     fontSize:15,fontWeight:700,cursor:authLoading?'default':'pointer',
                     display:'flex',alignItems:'center',justifyContent:'center',gap:8,marginBottom:14}}>
@@ -1956,7 +1958,7 @@ function App(){
             {/* ── BESTÄTIGUNG GESENDET ── */}
             {authView==='register_done'&&(
               <div style={{textAlign:'center',padding:'12px 0'}}>
-                <div style={{width:64,height:64,borderRadius:16,background:'#eaf4e0',
+                <div style={{width:64,height:64,borderRadius:14,background:'#eaf4e0',
                   display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
                   <Icon name="mail" size={32} color="#3a7020"/>
                 </div>
@@ -2023,7 +2025,7 @@ function App(){
                     background:'#f4f6f2',borderRadius:8}}>{authMsg}</div>
                 )}
                 <button onClick={doResetReq} disabled={authLoading}
-                  style={{width:'100%',padding:'14px',borderRadius:12,border:'none',
+                  style={{width:'100%',padding:'14px',borderRadius:14,border:'none',
                     background:authLoading?'#a0b890':'#3a7020',color:'#fff',
                     fontSize:15,fontWeight:700,cursor:authLoading?'default':'pointer',
                     display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
@@ -2035,7 +2037,7 @@ function App(){
             {/* ── RESET GESENDET ── */}
             {authView==='reset_done'&&(
               <div style={{textAlign:'center',padding:'12px 0'}}>
-                <div style={{width:64,height:64,borderRadius:16,background:'#eaf4e0',
+                <div style={{width:64,height:64,borderRadius:14,background:'#eaf4e0',
                   display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
                   <Icon name="key" size={32} color="#3a7020"/>
                 </div>
@@ -2055,7 +2057,7 @@ function App(){
             {/* ── SCHLIESSEN ── */}
             {(authView==='login'||authView==='register')&&(
               <button onClick={()=>{setShowSyncModal(false);setAuthMsg('');}}
-                style={{width:'100%',padding:'13px',borderRadius:12,marginTop:12,
+                style={{width:'100%',padding:'13px',borderRadius:14,marginTop:12,
                   border:'1.5px solid #e0e8d8',background:'transparent',
                   color:'#7a8f6a',fontSize:14,fontWeight:500,cursor:'pointer'}}>
                 Schließen
@@ -2122,7 +2124,7 @@ function App(){
           </div>
 
           {onbStep===1&&<>
-            <div style={{width:56,height:56,borderRadius:16,background:'rgba(168,208,96,.15)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
+            <div style={{width:56,height:56,borderRadius:14,background:'rgba(168,208,96,.15)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6aad2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
               </svg>
@@ -2135,7 +2137,7 @@ function App(){
           </>}
 
           {onbStep===2&&<>
-            <div style={{width:56,height:56,borderRadius:16,background:'rgba(168,208,96,.15)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
+            <div style={{width:56,height:56,borderRadius:14,background:'rgba(168,208,96,.15)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6aad2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M10 21v-6h4v6"/>
               </svg>
@@ -2158,7 +2160,7 @@ function App(){
           </>}
 
           {onbStep===3&&<>
-            <div style={{width:56,height:56,borderRadius:16,background:'rgba(168,208,96,.15)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
+            <div style={{width:56,height:56,borderRadius:14,background:'rgba(168,208,96,.15)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6aad2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
               </svg>
@@ -2173,7 +2175,7 @@ function App(){
           </>}
 
           {onbStep===4&&<>
-            <div style={{width:56,height:56,borderRadius:16,background:'rgba(168,208,96,.15)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
+            <div style={{width:56,height:56,borderRadius:14,background:'rgba(168,208,96,.15)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6aad2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
               </svg>
@@ -2208,7 +2210,7 @@ function App(){
           </div>
 
           {onbStep===10&&<>
-            <div style={{width:56,height:56,borderRadius:16,background:'rgba(45,85,32,.12)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
+            <div style={{width:56,height:56,borderRadius:14,background:'rgba(45,85,32,.12)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2d5520" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
               </svg>
@@ -2221,7 +2223,7 @@ function App(){
           </>}
 
           {onbStep===11&&<>
-            <div style={{width:56,height:56,borderRadius:16,background:'rgba(45,85,32,.12)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
+            <div style={{width:56,height:56,borderRadius:14,background:'rgba(45,85,32,.12)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2d5520" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
@@ -2237,7 +2239,7 @@ function App(){
           </>}
 
           {onbStep===12&&<>
-            <div style={{width:56,height:56,borderRadius:16,background:'rgba(45,85,32,.12)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
+            <div style={{width:56,height:56,borderRadius:14,background:'rgba(45,85,32,.12)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16}}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2d5520" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                 <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
@@ -2487,7 +2489,7 @@ function MealsTab({meals,setMeals,cd,cm,curPeriod}){
                 <div className="ml">{ML[t]}</div>
                 <div className="mp">{fmt(SB[t])}</div>
               </button>
-              {c>0&&<button onClick={()=>removeOne(t)} style={{fontSize:11,color:'var(--t2)',background:'none',border:'1px solid var(--border)',borderRadius:6,padding:'2px 10px',cursor:'pointer'}}>− entfernen</button>}
+              {c>0&&<button onClick={()=>removeOne(t)} style={{fontSize:11,color:'var(--t2)',background:'none',border:'1px solid var(--border)',borderRadius:8,padding:'2px 10px',cursor:'pointer'}}>− entfernen</button>}
             </div>
           );
         })}
@@ -2678,7 +2680,7 @@ function ScanTab({arts,eanIndex,onSel,onBack,onNotFound,showT,scanLabel}){
           ?<button className="btn btn-l" onClick={startLiveScan} style={{marginBottom:8,fontSize:14,padding:16,display:'flex',alignItems:'center',justifyContent:'center',gap:10}}>
             <Icon name="camera" size={22} color="currentColor"/> Live-Scan (Kamera)
           </button>
-          :<div style={{background:'rgba(200,240,96,.06)',border:'1px solid rgba(200,240,96,.2)',borderRadius:12,padding:'14px 16px',marginBottom:8,textAlign:'center'}}>
+          :<div style={{background:'rgba(200,240,96,.06)',border:'1px solid rgba(200,240,96,.2)',borderRadius:14,padding:'14px 16px',marginBottom:8,textAlign:'center'}}>
             <div style={{fontSize:11,color:'var(--t2)',marginBottom:10,lineHeight:1.7}}>
               {isAndroidBrowser
                 ?<>Kamera-Scan nicht verfügbar – bitte <strong style={{color:'#2a6010'}}>Chrome</strong> nutzen.<br/>Foto-Scan funktioniert auf jedem Gerät:</>
@@ -2972,7 +2974,7 @@ function AddTab({arts,favs,ents=[],onSel,onFav,onManual}){
       {/* MANUELLE ENTNAHME */}
       <div className="sec" style={{marginTop:16,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <span>Manuelle Entnahme</span>
-        <button onClick={()=>setShowManual(s=>!s)} style={{border:'1px solid var(--border)',background:'none',color:'#2a6010',borderRadius:6,padding:'3px 10px',fontSize:10,cursor:'pointer',fontVariantNumeric:'tabular-nums'}}>
+        <button onClick={()=>setShowManual(s=>!s)} style={{border:'1px solid var(--border)',background:'none',color:'#2a6010',borderRadius:8,padding:'3px 10px',fontSize:10,cursor:'pointer',fontVariantNumeric:'tabular-nums'}}>
           {showManual?'Schließen':'+ Neu'}
         </button>
       </div>
@@ -3086,9 +3088,9 @@ function QtyModal({art,onOk,onClose,initialMenge}){
         {/* Stückzahl pro Gebinde eingeben wenn unbekannt oder änderbar */}
         {istGebinde&&modus==='stueck'&&<div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12,padding:'8px 12px',background:'var(--s2)',borderRadius:8}}>
           <span style={{fontSize:12,color:'var(--t2)',flex:1}}>Stück in der Kiste:</span>
-          <button onClick={()=>setStueckImGebinde(s=>Math.max(1,s-1))} style={{width:28,height:28,borderRadius:6,border:'1px solid var(--border)',background:'none',color:'var(--text)',cursor:'pointer',fontSize:16}}>−</button>
-          <input type="number" value={stueckImGebinde} onChange={e=>setStueckImGebinde(Math.max(1,parseInt(e.target.value)||1))} style={{width:48,textAlign:'center',background:'none',border:'1px solid var(--border)',borderRadius:6,color:'var(--text)',fontVariantNumeric:'tabular-nums',fontSize:14,padding:'4px'}} min={1}/>
-          <button onClick={()=>setStueckImGebinde(s=>s+1)} style={{width:28,height:28,borderRadius:6,border:'1px solid var(--border)',background:'none',color:'var(--text)',cursor:'pointer',fontSize:16}}>+</button>
+          <button onClick={()=>setStueckImGebinde(s=>Math.max(1,s-1))} style={{width:28,height:28,borderRadius:8,border:'1px solid var(--border)',background:'none',color:'var(--text)',cursor:'pointer',fontSize:16}}>−</button>
+          <input type="number" value={stueckImGebinde} onChange={e=>setStueckImGebinde(Math.max(1,parseInt(e.target.value)||1))} style={{width:48,textAlign:'center',background:'none',border:'1px solid var(--border)',borderRadius:8,color:'var(--text)',fontVariantNumeric:'tabular-nums',fontSize:14,padding:'4px'}} min={1}/>
+          <button onClick={()=>setStueckImGebinde(s=>s+1)} style={{width:28,height:28,borderRadius:8,border:'1px solid var(--border)',background:'none',color:'var(--text)',cursor:'pointer',fontSize:16}}>+</button>
           <span style={{fontSize:11,color:'var(--t2)',minWidth:60}}>{fN(preisProStueck)} €/Stk</span>
         </div>}
 
@@ -3631,7 +3633,7 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
       </div>
       <div className="sec" style={{marginTop:4,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <span>Haushalt</span>
-        <button onClick={()=>setShowHH(s=>!s)} style={{border:'1px solid var(--border)',background:'none',color:'#2a6010',borderRadius:6,padding:'3px 10px',fontSize:10,cursor:'pointer',fontVariantNumeric:'tabular-nums'}}>{showHH?'Schließen':<><Icon name="settings" size={11}/> Bearbeiten</>}</button>
+        <button onClick={()=>setShowHH(s=>!s)} style={{border:'1px solid var(--border)',background:'none',color:'#2a6010',borderRadius:8,padding:'3px 10px',fontSize:10,cursor:'pointer',fontVariantNumeric:'tabular-nums'}}>{showHH?'Schließen':<><Icon name="settings" size={11}/> Bearbeiten</>}</button>
       </div>
       <div className="card" style={{marginBottom:showHH?4:14}}>
         {persons.map(p=><div key={p.id} className="rl">
@@ -3639,7 +3641,7 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
             <Icon name="user" size={16} color="var(--t2)"/>
             {editName===p.id
               ?<input autoFocus defaultValue={p.name} onBlur={e=>{renamePerson(p.id,e.target.value);setEditName(null);}} onKeyDown={e=>{if(e.key==='Enter'){renamePerson(p.id,e.target.value);setEditName(null);}}}
-                style={{background:'var(--s1)',border:'1px solid var(--lime)',borderRadius:6,padding:'3px 8px',color:'var(--text)',fontSize:12,fontVariantNumeric:'tabular-nums',outline:'none',width:120}}/>
+                style={{background:'var(--s1)',border:'1px solid var(--lime)',borderRadius:8,padding:'3px 8px',color:'var(--text)',fontSize:12,fontVariantNumeric:'tabular-nums',outline:'none',width:120}}/>
               :<div onClick={()=>setEditName(p.id)} style={{cursor:'pointer'}} title="Tippe zum Umbenennen">
                 <div style={{display:'flex',alignItems:'center',gap:5}}>
                   <div style={{fontSize:12}}>{p.name}</div>
@@ -3652,7 +3654,7 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
           </div>
           <div style={{display:'flex',gap:8,alignItems:'center'}}>
             <span style={{fontSize:11,color:'var(--t2)'}}>{fN((BETRIEBE[hh.betrieb||'gaststaetten'].ust7+BETRIEBE[hh.betrieb||'gaststaetten'].ust19)*(PM_FAKTOR[p.typ]!==undefined?PM_FAKTOR[p.typ]:1)/12)} €/M</span>
-            {p.typ!=='inhaber'&&<button onClick={()=>delPerson(p.id)} style={{background:'none',border:'none',color:'var(--red)',cursor:'pointer',fontSize:16,padding:'2px 4px'}}>×</button>}
+            {p.typ!=='inhaber'&&<button className="del" onClick={()=>delPerson(p.id)} title="Person entfernen"><Icon name="x" size={12}/></button>}
           </div>
         </div>)}
         <div className="rl" style={{borderTop:'1px solid var(--border)'}}>
@@ -3672,12 +3674,12 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
 
       <div className="sec" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <span>Abrechnungsperiode</span>
-        <button onClick={()=>{setTmpDay(String(periodDay));setEditing(s=>!s);}} style={{border:'1px solid var(--border)',background:'none',color:'#2a6010',borderRadius:6,padding:'4px 10px',fontSize:11,cursor:'pointer',fontVariantNumeric:'tabular-nums',display:'inline-flex',alignItems:'center',gap:4}}>{editing?'Schließen':<><Icon name="settings" size={11}/> ab {periodDay}.</>}</button>
+        <button onClick={()=>{setTmpDay(String(periodDay));setEditing(s=>!s);}} style={{border:'1px solid var(--border)',background:'none',color:'#2a6010',borderRadius:8,padding:'4px 10px',fontSize:11,cursor:'pointer',fontVariantNumeric:'tabular-nums',display:'inline-flex',alignItems:'center',gap:4}}>{editing?'Schließen':<><Icon name="settings" size={11}/> ab {periodDay}.</>}</button>
       </div>
       {editing&&<div className="card" style={{padding:'14px 16px',marginBottom:12}}>
         <div style={{fontSize:11,color:'var(--t2)',marginBottom:8}}>Periode startet am <strong style={{color:'#2a6010'}}>{tmpDay}.</strong>{tmpDay!=='1'&&<span style={{color:'var(--t2)'}}> → endet {Number(tmpDay)-1}. Folgemonat</span>}</div>
         <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:10}}>
-          {[1,5,10,15,16,20,25].map(d=><button key={d} onClick={()=>setTmpDay(String(d))} style={{border:`1px solid ${tmpDay===String(d)?'var(--lime)':'var(--border)'}`,background:tmpDay===String(d)?'var(--lm)':'none',color:tmpDay===String(d)?'var(--lime)':'var(--t2)',borderRadius:6,padding:'5px 10px',fontSize:11,cursor:'pointer',fontVariantNumeric:'tabular-nums'}}>{d}.</button>)}
+          {[1,5,10,15,16,20,25].map(d=><button key={d} onClick={()=>setTmpDay(String(d))} style={{border:`1px solid ${tmpDay===String(d)?'var(--lime)':'var(--border)'}`,background:tmpDay===String(d)?'var(--lm)':'none',color:tmpDay===String(d)?'var(--lime)':'var(--t2)',borderRadius:8,padding:'5px 10px',fontSize:11,cursor:'pointer',fontVariantNumeric:'tabular-nums'}}>{d}.</button>)}
         </div>
         <button onClick={()=>{const v=Number(tmpDay);setPeriodDay(v);localStorage.setItem('gt_periodDay',JSON.stringify(v));setEditing(false);setSelKey(null);}} style={{width:'100%',background:'var(--lm)',border:'1px solid var(--lime)',borderRadius:8,padding:9,color:'#2a6010',fontSize:12,fontVariantNumeric:'tabular-nums',cursor:'pointer',fontWeight:600}}>Übernehmen</button>
       </div>}
@@ -3824,15 +3826,15 @@ function ArtEditRow({art,onSave,onCancel}){
     onSave(art.id,{name:name.trim(),preis:Math.round(p*100)/100,mwst:parseInt(mwst),einheit,kategorie:kat});
   };
   return(<div style={{background:'var(--bg)',borderRadius:8,padding:8,marginBottom:6,border:'1px solid var(--lime)'}}>
-    <input value={name} onChange={e=>setName(e.target.value)} placeholder="Name" style={{width:'100%',marginBottom:5,fontSize:12,padding:'4px 6px',borderRadius:6,border:'1px solid var(--border)',background:'var(--card)',color:'var(--t1)'}}/>
+    <input value={name} onChange={e=>setName(e.target.value)} placeholder="Name" style={{width:'100%',marginBottom:5,fontSize:12,padding:'4px 6px',borderRadius:8,border:'1px solid var(--border)',background:'var(--card)',color:'var(--t1)'}}/>
     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:5,marginBottom:5}}>
-      <input value={preis} onChange={e=>setPreis(e.target.value)} placeholder="Preis €" style={{fontSize:12,padding:'4px 6px',borderRadius:6,border:'1px solid var(--border)',background:'var(--card)',color:'var(--t1)'}}/>
-      <select value={mwst} onChange={e=>setMwst(e.target.value)} style={{fontSize:11,padding:'4px',borderRadius:6,border:'1px solid var(--border)',background:'var(--card)',color:'var(--t1)'}}>
+      <input value={preis} onChange={e=>setPreis(e.target.value)} placeholder="Preis €" style={{fontSize:12,padding:'4px 6px',borderRadius:8,border:'1px solid var(--border)',background:'var(--card)',color:'var(--t1)'}}/>
+      <select value={mwst} onChange={e=>setMwst(e.target.value)} style={{fontSize:11,padding:'4px',borderRadius:8,border:'1px solid var(--border)',background:'var(--card)',color:'var(--t1)'}}>
         <option value="7">7% MwSt</option><option value="19">19% MwSt</option>
       </select>
-      <input value={einheit} onChange={e=>setEinheit(e.target.value)} placeholder="Einheit" style={{fontSize:12,padding:'4px 6px',borderRadius:6,border:'1px solid var(--border)',background:'var(--card)',color:'var(--t1)'}}/>
+      <input value={einheit} onChange={e=>setEinheit(e.target.value)} placeholder="Einheit" style={{fontSize:12,padding:'4px 6px',borderRadius:8,border:'1px solid var(--border)',background:'var(--card)',color:'var(--t1)'}}/>
     </div>
-    <input value={kat} onChange={e=>setKat(e.target.value)} placeholder="Kategorie (optional)" style={{width:'100%',marginBottom:5,fontSize:11,padding:'4px 6px',borderRadius:6,border:'1px solid var(--border)',background:'var(--card)',color:'var(--t1)'}}/>
+    <input value={kat} onChange={e=>setKat(e.target.value)} placeholder="Kategorie (optional)" style={{width:'100%',marginBottom:5,fontSize:11,padding:'4px 6px',borderRadius:8,border:'1px solid var(--border)',background:'var(--card)',color:'var(--t1)'}}/>
     <div style={{display:'flex',gap:6}}>
       <button onClick={save} className="btn btn-l" style={{flex:1,padding:'5px',fontSize:12}}>✓ Speichern</button>
       <button onClick={onCancel} className="btn" style={{flex:1,padding:'5px',fontSize:12}}>Abbrechen</button>
@@ -4273,12 +4275,12 @@ Alle Lebensmittel=7%, Spirituosen/Getränke=19%.`;
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:10}}>
             {/* Kamera-Button */}
             <button onClick={()=>cameraRef.current?.click()}
-              style={{background:'var(--s2)',border:'1px solid var(--border)',borderRadius:12,padding:'18px 10px',color:'var(--text)',cursor:'pointer',fontSize:12,fontVariantNumeric:'tabular-nums',textAlign:'center',lineHeight:1.8}}>
+              style={{background:'var(--s2)',border:'1px solid var(--border)',borderRadius:14,padding:'18px 10px',color:'var(--text)',cursor:'pointer',fontSize:12,fontVariantNumeric:'tabular-nums',textAlign:'center',lineHeight:1.8}}>
               <Icon name="camera" size={28} color="currentColor"/>Kamera
             </button>
             {/* Datei hochladen */}
             <button onClick={()=>{const i=document.createElement('input');i.type='file';i.accept='image/*,application/pdf';i.onchange=e=>{if(e.target.files[0])analyzeInvoice(e.target.files[0]);};i.click();}}
-              style={{background:'var(--s2)',border:'1px solid var(--border)',borderRadius:12,padding:'18px 10px',color:'var(--text)',cursor:'pointer',fontSize:12,fontVariantNumeric:'tabular-nums',textAlign:'center',lineHeight:1.8}}>
+              style={{background:'var(--s2)',border:'1px solid var(--border)',borderRadius:14,padding:'18px 10px',color:'var(--text)',cursor:'pointer',fontSize:12,fontVariantNumeric:'tabular-nums',textAlign:'center',lineHeight:1.8}}>
               <Icon name="camera" size={28} color="currentColor"/>Foto / PDF
             </button>
           </div>
@@ -4313,7 +4315,7 @@ Alle Lebensmittel=7%, Spirituosen/Getränke=19%.`;
           <div className="card" style={{marginBottom:10}}>
             {invoiceResult.map((it,i)=><div key={i} onClick={()=>setInvoiceSelected(s=>({...s,[i]:!s[i]}))}
               style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',borderBottom:'1px solid var(--border)',cursor:'pointer',opacity:invoiceSelected[i]?1:0.4}}>
-              <div style={{width:18,height:18,borderRadius:4,border:`2px solid ${invoiceSelected[i]?'var(--lime)':'var(--border)'}`,background:invoiceSelected[i]?'var(--lime)':'none',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <div style={{width:18,height:18,borderRadius:8,border:`2px solid ${invoiceSelected[i]?'var(--lime)':'var(--border)'}`,background:invoiceSelected[i]?'var(--lime)':'none',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
                 {invoiceSelected[i]&&<span style={{fontSize:10,color:'var(--bg)',fontWeight:900}}>✓</span>}
               </div>
               <div style={{flex:1,minWidth:0}}>
@@ -4502,7 +4504,7 @@ Alle Lebensmittel=7%, Spirituosen/Getränke=19%.`;
             <span style={{flex:1}}>
               <span style={{display:'flex',alignItems:'center',gap:6,marginBottom:4}}>
                 <span style={{fontSize:14,fontWeight:700,color:'#1a2612'}}>Kostenloses Konto erstellen</span>
-                <span style={{fontSize:10,fontWeight:700,padding:'2px 6px',borderRadius:4,
+                <span style={{fontSize:10,fontWeight:700,padding:'2px 6px',borderRadius:8,
                   background:'#eaf4e0',color:'#2a6010',border:'1px solid #c0dca0'}}>
                   KOSTENLOS
                 </span>
@@ -4580,10 +4582,10 @@ Alle Lebensmittel=7%, Spirituosen/Getränke=19%.`;
                 <div style={{fontSize:10,color:'var(--t2)'}}>{a.liefKuerzel||a.marke||a.quelle} · {a.preis?.toFixed(2)} € / {a.einheit} · <span style={{color:a.mwst===7?'var(--lime2)':'var(--blue)'}}>{a.mwst}%</span>{a.kategorie?` · ${a.kategorie}`:''}</div>
               </div>
               <div style={{display:'flex',gap:4,flexShrink:0}}>
-                <button onClick={()=>setArtEdit(a.id)} style={{background:'none',border:'1px solid var(--border)',borderRadius:6,padding:'3px 8px',fontSize:11,cursor:'pointer',color:'var(--t2)'}}>
+                <button onClick={()=>setArtEdit(a.id)} style={{background:'none',border:'1px solid var(--border)',borderRadius:8,padding:'3px 8px',fontSize:11,cursor:'pointer',color:'var(--t2)'}}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                 </button>
-                <button onClick={()=>deleteArt(a.id)} style={{background:'none',border:'1px solid rgba(240,90,58,.3)',borderRadius:6,padding:'3px 8px',fontSize:11,cursor:'pointer',color:'var(--red)'}}>✕</button>
+                <button className="del" onClick={()=>deleteArt(a.id)} title="Artikel löschen"><Icon name="x" size={12}/></button>
               </div>
             </div>
         )}
@@ -4941,7 +4943,7 @@ function GmbhHomeTab({meals,withdrawals,persons,now,setTab,curPeriod}){
             {tab:'add',icon:'package',label:'Warenmitnahme',sub:'Warenrabatt / Marktwert'},
           ].map(({tab:t,icon,label,sub})=>(
             <button key={t} onClick={()=>setTab&&setTab(t)}
-              style={{padding:'14px 12px',borderRadius:12,border:'1.5px solid var(--border)',
+              style={{padding:'14px 12px',borderRadius:14,border:'1.5px solid var(--border)',
                 background:'var(--s2)',cursor:'pointer',textAlign:'left',
                 display:'flex',flexDirection:'column',gap:4}}>
               <Icon name={icon} size={20} color="var(--gruen)"/>
@@ -5065,7 +5067,7 @@ function GmbhMealsTab({meals,setMeals,persons,cd,cm,curPeriod}){
                   <div className="ml">{ML[t]}</div>
                   <div className="mp">{fmt(GMBH_SB[t])}</div>
                 </button>
-                {c>0&&<button onClick={()=>removeOne(t)} style={{fontSize:11,color:'var(--t2)',background:'none',border:'1px solid var(--border)',borderRadius:6,padding:'2px 10px',cursor:'pointer'}}>− entfernen</button>}
+                {c>0&&<button onClick={()=>removeOne(t)} style={{fontSize:11,color:'var(--t2)',background:'none',border:'1px solid var(--border)',borderRadius:8,padding:'2px 10px',cursor:'pointer'}}>− entfernen</button>}
               </div>
             );
           })}
@@ -5545,7 +5547,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
         <div className="rn">
           {a.name}
           {a.uvp&&<span style={{fontSize:9,marginLeft:6,color:'var(--gruen)',fontWeight:600,
-            background:'rgba(168,208,96,.15)',borderRadius:4,padding:'1px 5px'}}>UVP</span>}
+            background:'rgba(168,208,96,.15)',borderRadius:8,padding:'1px 5px'}}>UVP</span>}
         </div>
         <div className="rm">
           {(a.marke||a.liefKuerzel)&&<span style={{color:a.quelle==='Manuell'?'var(--t3)':'var(--amber)',marginRight:6}}>{a.marke||a.liefKuerzel}</span>}
@@ -5574,7 +5576,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
         return(
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:300,
           display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
-          <div style={{background:'var(--s1)',borderRadius:16,padding:20,maxWidth:420,width:'100%',
+          <div style={{background:'var(--s1)',borderRadius:14,padding:20,maxWidth:420,width:'100%',
             maxHeight:'80vh',overflowY:'auto',boxShadow:'0 8px 40px rgba(0,0,0,.25)'}}>
             <div style={{fontSize:15,fontWeight:700,marginBottom:6}}>Bewertung korrigieren?</div>
             <div style={{fontSize:12,color:'var(--t2)',marginBottom:12,lineHeight:1.5}}>
@@ -5701,7 +5703,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
         {!showForm&&(
           <button onClick={()=>{setForm({...EMPTY,person:form.person,datum:form.datum});setEditId(null);setShowForm(true);}}
             style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,width:'100%',
-              padding:'13px',borderRadius:12,marginTop:8,marginBottom:6,
+              padding:'13px',borderRadius:14,marginTop:8,marginBottom:6,
               border:'1.5px dashed var(--gruen)',background:'transparent',
               color:'var(--gruen)',fontSize:13,fontWeight:600,cursor:'pointer'}}>
             <Icon name="plus_circle" size={16} color="var(--gruen)"/>
@@ -5854,7 +5856,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
                   </div>
                   <input type="number" min="0" step="0.01" inputMode="decimal" value={form.gaesteVP}
                     onChange={e=>setF('gaesteVP')(e.target.value)} placeholder="0,00" style={inp}/>
-                  <div style={{fontSize:11,color:'var(--t3)',marginTop:6,padding:'6px 10px',background:'var(--lm)',borderRadius:6}}>
+                  <div style={{fontSize:11,color:'var(--t3)',marginTop:6,padding:'6px 10px',background:'var(--lm)',borderRadius:8}}>
                     Vorteil = Gäste-VP × 0,96 × Menge · zählt zum 1.080 € Jahres-Freibetrag
                   </div>
                 </div>
@@ -5923,7 +5925,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
                       const converted=(norm!==(parseFloat(form.menge)||1));
                       if(converted)return(
                         <div style={{fontSize:11,color:'var(--amber)',marginTop:4,padding:'5px 8px',
-                          background:'rgba(212,130,10,.08)',borderRadius:6,border:'1px solid rgba(212,130,10,.2)'}}>
+                          background:'rgba(212,130,10,.08)',borderRadius:8,border:'1px solid rgba(212,130,10,.2)'}}>
                           <span style={{display:'flex',alignItems:'center',gap:5}}><Icon name="alert_triangle" size={13} color="var(--amber)"/> Einheit umgerechnet: {form.menge} {form.einheit} → {fN(norm)} {curMV.einheit}</span>
                         </div>
                       );
@@ -5968,7 +5970,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
                   </div>
                   <div style={{fontSize:10,color:'var(--t3)'}}>Nur zur Kennzeichnung – keine Auswirkung auf Bewertung</div>
                 </div>
-                <div style={{width:18,height:18,borderRadius:4,
+                <div style={{width:18,height:18,borderRadius:8,
                   background:form.tagVegan?'var(--gruen)':'transparent',
                   border:`2px solid ${form.tagVegan?'var(--gruen)':'var(--border)'}`,
                   display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
@@ -6005,7 +6007,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
 
             {/* ── SPEICHERN-BUTTON (außerhalb der Card, immer sichtbar) */}
             <button onClick={add} disabled={!!validErr}
-              style={{width:'100%',marginTop:10,padding:'16px',borderRadius:12,border:'none',
+              style={{width:'100%',marginTop:10,padding:'16px',borderRadius:14,border:'none',
                 background:validErr?'var(--border)':'var(--gruen)',
                 color:validErr?'var(--t2)':'#fff',
                 fontSize:validErr?12:15,fontWeight:700,
@@ -6079,9 +6081,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
                   </div>
                   <div className="rr">
                     <div className="rv">{fN(w.vorteil)} €</div>
-                    <button onClick={e=>{e.stopPropagation();if(window.confirm('Eintrag löschen?')){markDeleted(w.id);setWithdrawals(p=>p.filter(x=>x.id!==w.id));}}}
-                      style={{background:'none',border:'none',color:'var(--t3)',
-                        fontSize:18,cursor:'pointer',padding:'2px 0',lineHeight:1}}>×</button>
+                    <button className="del" title="Eintrag löschen" onClick={e=>{e.stopPropagation();if(window.confirm('Eintrag löschen?')){markDeleted(w.id);setWithdrawals(p=>p.filter(x=>x.id!==w.id));}}}><Icon name="x" size={12}/></button>
                   </div>
                 </div>
               ))}
@@ -6962,7 +6962,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
           <span>Abrechnungsperiode</span>
           <button onClick={()=>{setTmpDay(String(pd));setEditPeriod(s=>!s);}}
             style={{border:'1px solid var(--border)',background:'none',color:'var(--gruen)',
-              borderRadius:6,padding:'3px 10px',fontSize:10,cursor:'pointer',
+              borderRadius:8,padding:'3px 10px',fontSize:10,cursor:'pointer',
               fontVariantNumeric:'tabular-nums'}}>
             <span style={{display:'flex',alignItems:'center',gap:4}}>{editPeriod?<><Icon name="x" size={11}/> Schließen</>:<><Icon name="settings" size={11}/> ab {pd}.</>}</span>
           </button>
@@ -6978,7 +6978,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
                 style={{border:`1px solid ${tmpDay===String(d)?'var(--lime)':'var(--border)'}`,
                   background:tmpDay===String(d)?'var(--lm)':'none',
                   color:tmpDay===String(d)?'var(--lime)':'var(--t2)',
-                  borderRadius:6,padding:'5px 10px',fontSize:11,cursor:'pointer',
+                  borderRadius:8,padding:'5px 10px',fontSize:11,cursor:'pointer',
                   fontVariantNumeric:'tabular-nums'}}>{d}.</button>
             ))}
           </div>
@@ -7027,7 +7027,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
                     onKeyDown={e=>{if(e.key==='Enter'){if(setFirma)setFirma(e.target.value);setEditFirmaMode(false);}}}
                     placeholder="Firmenname …"
                     style={{fontWeight:700,fontSize:15,background:'var(--s1)',border:'1px solid var(--lime)',
-                      borderRadius:6,padding:'3px 8px',color:'var(--text)',outline:'none',
+                      borderRadius:8,padding:'3px 8px',color:'var(--text)',outline:'none',
                       width:'100%',marginBottom:4}}/>
                 :<div onClick={()=>setEditFirmaMode(true)} style={{cursor:'pointer',fontWeight:700,fontSize:15,
                     color:firma?'var(--text)':'var(--t3)',marginBottom:4,display:'flex',alignItems:'center',gap:6}}
@@ -7045,7 +7045,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
                     ?<input autoFocus defaultValue={p.name}
                         onBlur={e=>{renamePerson(p.id,e.target.value);setEditName(null);}}
                         onKeyDown={e=>{if(e.key==='Enter'){renamePerson(p.id,e.target.value);setEditName(null);}}}
-                        style={{background:'var(--s1)',border:'1px solid var(--lime)',borderRadius:6,
+                        style={{background:'var(--s1)',border:'1px solid var(--lime)',borderRadius:8,
                           padding:'3px 8px',color:'var(--text)',fontSize:13,
                           fontVariantNumeric:'tabular-nums',outline:'none',width:180}}/>
                     :<div onClick={()=>setEditName(p.id)} style={{cursor:'pointer',display:'flex',alignItems:'center',gap:5}} title="Tippe zum Umbenennen">
@@ -7256,7 +7256,7 @@ function GmbhSettingsTab({persons,setPersons,firma,setFirma,periodDay,setPeriodD
           <span>Abrechnungsperiode</span>
           <button onClick={()=>{setTmpPeriodDay(String(periodDay||20));setEditingPeriod(s=>!s);}}
             style={{border:'1px solid var(--border)',background:'none',color:'var(--gruen)',
-              borderRadius:6,padding:'3px 10px',fontSize:10,cursor:'pointer',
+              borderRadius:8,padding:'3px 10px',fontSize:10,cursor:'pointer',
               fontVariantNumeric:'tabular-nums'}}>
             <span style={{display:'flex',alignItems:'center',gap:4}}>{editingPeriod?<><Icon name="x" size={11}/> Schließen</>:<><Icon name="settings" size={11}/> ab {periodDay||20}.</>}</span>
           </button>
@@ -7274,7 +7274,7 @@ function GmbhSettingsTab({persons,setPersons,firma,setFirma,periodDay,setPeriodD
                 style={{border:`1px solid ${tmpPeriodDay===String(d)?'var(--lime)':'var(--border)'}`,
                   background:tmpPeriodDay===String(d)?'var(--lm)':'none',
                   color:tmpPeriodDay===String(d)?'var(--lime)':'var(--t2)',
-                  borderRadius:6,padding:'5px 10px',fontSize:11,cursor:'pointer',
+                  borderRadius:8,padding:'5px 10px',fontSize:11,cursor:'pointer',
                   fontVariantNumeric:'tabular-nums'}}>{d}.</button>
             ))}
           </div>
@@ -7296,7 +7296,7 @@ function GmbhSettingsTab({persons,setPersons,firma,setFirma,periodDay,setPeriodD
                   ?<input autoFocus defaultValue={p.name}
                       onBlur={e=>{const ps=[...persons];ps[i]={...ps[i],name:e.target.value.trim()||p.name};savePersons(ps);setEditPerson(null);}}
                       onKeyDown={e=>{if(e.key==='Enter'){const ps=[...persons];ps[i]={...ps[i],name:e.target.value.trim()||p.name};savePersons(ps);setEditPerson(null);}}}
-                      style={{background:'var(--s1)',border:'1px solid var(--lime)',borderRadius:6,
+                      style={{background:'var(--s1)',border:'1px solid var(--lime)',borderRadius:8,
                         padding:'3px 8px',color:'var(--text)',fontSize:13,
                         fontVariantNumeric:'tabular-nums',outline:'none',width:200}}/>
                   :<div onClick={()=>setEditPerson(p.id)} style={{cursor:'pointer'}} title="Tippe zum Umbenennen">
@@ -7346,12 +7346,12 @@ function GmbhSettingsTab({persons,setPersons,firma,setFirma,periodDay,setPeriodD
                     <div style={{fontSize:10,color:'var(--t2)',marginBottom:3}}>Wert (€)</div>
                     <input type="number" step="0.1" value={m.wert}
                       onChange={e=>{const n=[...mv];n[i]={...n[i],wert:parseFloat(e.target.value)||0};setMv(n);}}
-                      style={{width:'100%',padding:'7px 8px',borderRadius:6,border:'1px solid var(--border)',fontSize:13,boxSizing:'border-box',background:'var(--s2)',color:'var(--text)'}}/>
+                      style={{width:'100%',padding:'7px 8px',borderRadius:8,border:'1px solid var(--border)',fontSize:13,boxSizing:'border-box',background:'var(--s2)',color:'var(--text)'}}/>
                   </div>
                   <div>
                     <div style={{fontSize:10,color:'var(--t2)',marginBottom:3}}>Einheit</div>
                     <select value={m.einheit} onChange={e=>{const n=[...mv];n[i]={...n[i],einheit:e.target.value};setMv(n);}}
-                      style={{width:'100%',padding:'7px 4px',borderRadius:6,border:'1px solid var(--border)',fontSize:13,background:'var(--s2)',color:'var(--text)'}}>
+                      style={{width:'100%',padding:'7px 4px',borderRadius:8,border:'1px solid var(--border)',fontSize:13,background:'var(--s2)',color:'var(--text)'}}>
                       {['kg','l','Stück'].map(u=><option key={u}>{u}</option>)}
                     </select>
                   </div>

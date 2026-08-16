@@ -4268,8 +4268,11 @@ Alle Lebensmittel=7%, Spirituosen/Getränke=19%.`;
       <div className="sec">Rechnung scannen (KI)</div>
       {!invoiceMode&&<button className="btn btn-l" style={{marginBottom:12,fontSize:13,padding:14,display:'flex',alignItems:'center',justifyContent:'center',gap:10}}
         onClick={()=>setInvoiceMode(true)}>
-        <Icon name="receipt" size={20} color="currentColor"/> Rechnung / Lieferschein (Bild oder PDF) scannen
+        <Icon name="receipt" size={20} color="currentColor"/> Rechnung oder Lieferschein scannen
       </button>}
+      {!invoiceMode&&<div style={{fontSize:11.5,color:'var(--t3)',marginTop:-4,marginBottom:16,textAlign:'center'}}>
+        Foto oder PDF — die Artikel werden automatisch erkannt
+      </div>}
 
       {invoiceMode&&<div style={{marginBottom:16}}>
         {invoiceState==='idle'&&<>
@@ -4444,7 +4447,7 @@ Alle Lebensmittel=7%, Spirituosen/Getränke=19%.`;
           ['2.','Upload-Feld anklicken oder Dateien hineinziehen'],
           ['3.','Mehrere Dateien gleichzeitig: Strg+A oder Strg+Klick'],
           ['4.','Protokoll prüfen – alle Dateien sollten > 0 Artikel zeigen'],
-        ]).map(([n,t])=><div key={n} className="rl" style={{gap:10,alignItems:'flex-start',padding:'9px 16px'}}>
+        ]).map(([n,t])=><div key={n} className="rl" style={{gap:10,alignItems:'flex-start',padding:'9px 16px',justifyContent:'flex-start'}}>
           <span style={{color:'var(--green)',fontWeight:700,flexShrink:0,fontSize:12}}>{n}</span>
           <span style={{color:'var(--t2)',fontSize:12,lineHeight:1.5}}>{t}</span>
         </div>)}

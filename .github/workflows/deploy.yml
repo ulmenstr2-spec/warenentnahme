@@ -23,7 +23,9 @@ jobs:
 
           cp landing.html  dist/root/index.html
           cp htaccess.txt  dist/root/.htaccess
-          # AVV-ENTWURF.md wird bewusst NICHT deployt (ungeprüfter Vertragstext)
+          # Nicht deployt: AVV-ENTWURF.md (ungeprüfter Vertragstext) und
+          # server/ (PHP-Vorlagen, die manuell hochgeladen werden — dort
+          # liegen Zugangsdaten daneben, die nichts im Deploy zu suchen haben)
           cp impressum.html datenschutz.html pauschbetraege.html fuer-steuerberater.html dist/root/
           cp robots.txt sitemap.xml dist/root/
           cp favicon.png og-image.png josef.jpg splash-logo.png dist/root/

@@ -1004,6 +1004,33 @@ function App(){
   // ── AUTH / SYNC STATES
   const[authEmail,setAuthEmail]=useState(()=>{try{return localStorage.getItem('gt_auth_email')||'';}catch{return'';}});
   const[authToken,setAuthToken]=useState(()=>{try{return localStorage.getItem('gt_auth_token')||'';}catch{return'';}});
+  // ── ABO-STATUS ───────────────────────────────────────────
+  // Der zuletzt bekannte Status wird lokal gehalten, damit die App auch
+  // offline weiß, ob geschrieben werden darf. Maßgeblich ist immer die
+  // Antwort des Servers; ohne Konto gilt der Beta-Zustand (schreiben frei).
+  const[abo,setAbo]=useState(()=>{
+    try{return JSON.parse(localStorage.getItem('gt_abo')||'null')||{status:'none'};}catch{return{status:'none'};}
+  });
+  const merkeAbo=a=>{setAbo(a);try{localStorage.setItem('gt_abo',JSON.stringify(a));}catch{}};
+  const ladeAboStatus=async(token=authToken)=>{
+    if(!token)return null;
+    try{
+      const j=await apiCall('subscription_status',{token});
+      if(j&&j.ok!==false&&j.subscription_status){
+        const a={status:j.subscription_status,trialEndsAt:j.trial_ends_at||null,periodEnd:j.current_period_end||null};
+        merkeAbo(a);return a;
+      }
+    }catch(e){console.warn('[abo] Status nicht abrufbar:',e);}
+    return null;
+  };
+  const oeffneAboPortal=async()=>{
+    if(!authToken){setShowSyncModal(true);return;}
+    try{
+      const j=await apiCall('create_portal_session',{token:authToken});
+      if(j&&j.url){window.location.href=j.url;return;}
+      showT(friendlyError(j));
+    }catch(e){showT('Abo-Verwaltung nicht erreichbar');console.error('[abo] Portal:',e);}
+  };
   const[syncStatus,setSyncStatus]=useState('idle'); // idle|syncing|ok|error|unverified
   const[syncLastAt,setSyncLastAt]=useState(()=>{try{return localStorage.getItem('gt_sync_last')||'';}catch{return'';}});
   const[showSyncModal,setShowSyncModal]=useState(false);
@@ -1330,8 +1357,29 @@ function App(){
   // Pull beim App-Start (token aus localStorage)
   useEffect(()=>{
     if(authToken)syncPull(authToken);
+    if(authToken)ladeAboStatus(authToken);
     // URL-Parameter nach E-Mail-Bestätigung verarbeiten
     const params=new URLSearchParams(window.location.search);
+    // Rückkehr aus der Bezahlung: Der Server erfährt das Ergebnis über einen
+    // Webhook, der ein paar Sekunden hinterherhängen kann. Deshalb mehrfach
+    // nachfragen statt einmal — und den Parameter danach aus der Adresse nehmen.
+    if(params.get('checkout')){
+      const erfolg=params.get('checkout')==='success';
+      window.history.replaceState({},'',window.location.pathname);
+      if(erfolg&&authToken){
+        showT('Zahlung wird bestätigt …');
+        (async()=>{
+          for(let i=0;i<6;i++){
+            const a=await ladeAboStatus(authToken);
+            if(a&&(a.status==='trialing'||a.status==='active')){showT('✓ Abo aktiv');return;}
+            await new Promise(r=>setTimeout(r,2500));
+          }
+          showT('Zahlung eingegangen — Freischaltung dauert einen Moment');
+        })();
+      } else if(!erfolg){
+        showT('Bezahlung abgebrochen');
+      }
+    }
     if(params.get('verified')==='1'&&params.get('token')&&params.get('email')){
       const tok=params.get('token');
       const em=params.get('email');
@@ -1420,7 +1468,17 @@ function App(){
   },[curPeriod&&curPeriod.sk]);
   const showT=msg=>{setToast(msg);setTimeout(()=>setToast(null),3000);};
 
+  const darfSchreiben=!authToken||abo.status==='trialing'||abo.status==='active';
+  const [abosperre,setAbosperre]=useState(false);
+  // Gibt true zurück, wenn geschrieben werden darf; sonst Hinweis zeigen.
+  const pruefeSchreibrecht=()=>{
+    if(darfSchreiben)return true;
+    setAbosperre(true);
+    return false;
+  };
+
   const addEnt=(art,qty,customPreis,customEinheit)=>{
+    if(!pruefeSchreibrecht())return;
     const preis=customPreis||art.preis;
     const einheit=customEinheit||pieceEinheit(art.einheit);
     if(editTarget){
@@ -1433,6 +1491,7 @@ function App(){
     }
   };
   const addManual=(art)=>{
+    if(!pruefeSchreibrecht())return;
     // Prüfen ob Artikel mit gleichem Namen schon existiert
     const exists=arts.find(a=>(a.name||'').toLowerCase()===(art.name||'').toLowerCase()&&a.quelle==='Manuell');
     if(!exists){
@@ -1442,6 +1501,7 @@ function App(){
     setModal(saved); // QtyModal öffnen
   };
   const toggleMeal=type=>{
+    if(!pruefeSchreibrecht())return;
     const ex=meals.find(m=>m.datum===cd&&m.type===type);
     if(ex){markDeleted(ex.id);setMeals(p=>p.filter(m=>m.id!==ex.id));showT(`${ML[type]} entfernt`);}
     else{setMeals(p=>[{id:Date.now()+'_'+Math.random().toString(36).slice(2),type,datum:cd,monat:cm,wert:SB[type],label:ML[type]},...p]);showT(`✓ ${ML[type]} – ${fmt(SB[type])}`);}
@@ -1554,6 +1614,40 @@ function App(){
       ⚠️ Gerätespeicher fast voll! Alte Artikel löschen um Datenverlust zu vermeiden.
       <button onClick={()=>setStorageWarn(false)} style={{background:'none',border:'1px solid rgba(255,255,255,0.6)',color:'#fff',borderRadius:8,padding:'1px 6px',cursor:'pointer',fontSize:11}}>✕</button>
     </div>}
+    {/* ── TESTPHASE: verbleibende Tage ── */}
+    {abo.status==='trialing'&&abo.trialEndsAt&&(()=>{
+      const tage=Math.max(0,Math.ceil((new Date(abo.trialEndsAt)-Date.now())/86400000));
+      return <div style={{margin:'12px 16px 0',background:'var(--lm)',border:'1px solid var(--border2)',
+        borderRadius:14,padding:'12px 16px',display:'flex',alignItems:'center',gap:12}}>
+        <Icon name="check_circle" size={18} color="var(--gruen)"/>
+        <span style={{flex:1,fontSize:12.5,color:'var(--t2)',lineHeight:1.5}}>
+          Testphase läuft — <strong style={{color:'var(--text)'}}>noch {tage} {tage===1?'Tag':'Tage'}</strong>.
+          Danach wird das Abo automatisch fortgesetzt.
+        </span>
+        <button onClick={oeffneAboPortal} style={{border:'none',background:'none',color:'var(--gruen)',
+          fontSize:12,fontWeight:700,cursor:'pointer',padding:'4px 2px',whiteSpace:'nowrap'}}>Verwalten</button>
+      </div>;
+    })()}
+
+    {/* ── ABO ABGELAUFEN: Schreiben gesperrt ── */}
+    {abosperre&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:400,
+      display:'flex',alignItems:'center',justifyContent:'center',padding:16}}
+      onClick={e=>{if(e.target===e.currentTarget)setAbosperre(false);}}>
+      <div style={{background:'var(--s1)',borderRadius:14,padding:22,maxWidth:380,width:'100%'}}>
+        <div style={{fontSize:16,fontWeight:700,marginBottom:8}}>Abo abgelaufen</div>
+        <div style={{fontSize:13,color:'var(--t2)',lineHeight:1.6,marginBottom:16}}>
+          Neue Einträge lassen sich derzeit nicht speichern. <strong style={{color:'var(--text)'}}>Deine bisherigen
+          Aufzeichnungen bleiben vollständig erhalten</strong> — Berichte und Exporte als PDF, Excel oder CSV
+          funktionieren weiterhin uneingeschränkt.
+        </div>
+        <button onClick={()=>{setAbosperre(false);oeffneAboPortal();}} className="btn btn-l" style={{width:'100%'}}>
+          Abo verwalten
+        </button>
+        <button onClick={()=>setAbosperre(false)} style={{width:'100%',background:'none',border:'none',
+          color:'var(--t2)',fontSize:12,marginTop:10,cursor:'pointer',padding:8}}>Schließen</button>
+      </div>
+    </div>}
+
     {/* ── DATENSICHERUNG-HINWEIS ──
         Das Cloud-Konto steckt tief im Import-Tab und wird kaum gefunden.
         Deshalb hier auf der Startseite ansprechen — aber erst, wenn es
@@ -1591,8 +1685,8 @@ function App(){
     { rechtsform==='gmbh'
         ? <>
         {tab==='home'&&<GmbhHomeTab meals={gmbhMeals} withdrawals={gmbhWithdrawals} persons={gmbhPersons} now={dKey(now)} setTab={setTab} curPeriod={gmbhCurPeriod}/>}
-        {tab==='meals'&&<GmbhMealsTab meals={gmbhMeals} setMeals={setGmbhMeals} persons={gmbhPersons} cd={cd} cm={cm} curPeriod={gmbhCurPeriod}/>}
-        {tab==='add'&&<GmbhWithdrawTab withdrawals={gmbhWithdrawals} setWithdrawals={setGmbhWithdrawals} persons={gmbhPersons} arts={arts} cd={cd} cm={cm} curPeriod={gmbhCurPeriod} pendingArt={pendingGmbhArt} clearPendingArt={()=>setPendingGmbhArt(null)}/>}
+        {tab==='meals'&&<GmbhMealsTab meals={gmbhMeals} setMeals={setGmbhMeals} persons={gmbhPersons} cd={cd} cm={cm} curPeriod={gmbhCurPeriod} pruefeSchreibrecht={pruefeSchreibrecht}/>}
+        {tab==='add'&&<GmbhWithdrawTab withdrawals={gmbhWithdrawals} setWithdrawals={setGmbhWithdrawals} persons={gmbhPersons} arts={arts} cd={cd} cm={cm} curPeriod={gmbhCurPeriod} pendingArt={pendingGmbhArt} clearPendingArt={()=>setPendingGmbhArt(null)} pruefeSchreibrecht={pruefeSchreibrecht}/>}
         {tab==='scan'&&<ScanTab arts={arts} eanIndex={eanIndex}
           onSel={a=>{setPendingGmbhArt({...a,_fromScan:true});setTab('add');}}
           onNotFound={ean=>{setPendingGmbhArt({_fromScan:true,_notFound:true,_scannedEAN:ean,name:'',id:null});setTab('add');}}
@@ -1605,7 +1699,7 @@ function App(){
         </>
         : <>
         {tab==='home'&&<HomeTab me={me} periodEnts={periodEnts} today={today} todayM={todayM} tw={tw} tm={tm} t7={t7} t19={t19} now={now} curPeriod={curPeriod} hh={hh} onDel={delEnt} onEdit={editEnt}/>}
-        {tab==='meals'&&<MealsTab meals={meals} setMeals={setMeals} cd={cd} cm={cm} curPeriod={curPeriod}/>}
+        {tab==='meals'&&<MealsTab meals={meals} setMeals={setMeals} cd={cd} cm={cm} curPeriod={curPeriod} pruefeSchreibrecht={pruefeSchreibrecht}/>}
         {tab==='scan'&&<ScanTab arts={arts} eanIndex={eanIndex} onSel={a=>setModal(a)} showT={showT}/>}
         {/* onFav/onManual müssen mit übergeben werden — sonst brechen der
             Favoriten-Stern und das manuelle Anlegen mit einem Fehler ab. */}
@@ -2402,7 +2496,7 @@ function HomeTab({me,periodEnts,today,todayM,tw,tm,t7,t19,now,curPeriod,hh,onDel
 }
 
 // ── MEALS
-function MealsTab({meals,setMeals,cd,cm,curPeriod}){
+function MealsTab({meals,setMeals,cd,cm,curPeriod,pruefeSchreibrecht=()=>true}){
   const[selDate,setSelDate]=useState(cd);
   const sk=curPeriod?.sk||cm+'-01';
   const ek=curPeriod?.ek||cm+'-31';
@@ -2414,6 +2508,7 @@ function MealsTab({meals,setMeals,cd,cm,curPeriod}){
   const showT=msg=>{};
 
   const addOne=type=>{
+    if(!pruefeSchreibrecht())return;
     const monat=selDate.slice(0,7);
     setMeals(p=>[{id:Date.now()+'_'+Math.random().toString(36).slice(2),type,datum:selDate,monat,wert:SB[type],label:ML[type]},...p]);
   };
@@ -4972,7 +5067,7 @@ function GmbhHomeTab({meals,withdrawals,persons,now,setTab,curPeriod}){
 // ─────────────────────────────────────────────────────────────────────────────
 // GmbH MAHLZEITEN TAB
 // ─────────────────────────────────────────────────────────────────────────────
-function GmbhMealsTab({meals,setMeals,persons,cd,cm,curPeriod}){
+function GmbhMealsTab({meals,setMeals,persons,cd,cm,curPeriod,pruefeSchreibrecht=()=>true}){
   const[selDate,setSelDate]=useState(cd);
   const[selPerson,setSelPerson]=useState(persons[0]?.id||'gf1');
 
@@ -4985,6 +5080,7 @@ function GmbhMealsTab({meals,setMeals,persons,cd,cm,curPeriod}){
   const isOn=type=>count(type)>0;
 
   const addOne=type=>{
+    if(!pruefeSchreibrecht())return;
     const monat=selDate.slice(0,7);
     setMeals(p=>[{id:'gm_'+Date.now()+'_'+Math.random().toString(36).slice(2),type,datum:selDate,monat,person:selPerson,vorteil:GMBH_SB[type],label:ML[type]},...p]);
   };
@@ -5114,7 +5210,7 @@ function GmbhMealsTab({meals,setMeals,persons,cd,cm,curPeriod}){
 // ─────────────────────────────────────────────────────────────────────────────
 // GmbH WARENMITNAHMEN TAB
 // ─────────────────────────────────────────────────────────────────────────────
-function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPeriod,pendingArt,clearPendingArt}){
+function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPeriod,pendingArt,clearPendingArt,pruefeSchreibrecht=()=>true}){
   const mvList=gmbhLoadMV();
   const personName=id=>persons.find(p=>p.id===id)?.name||id;
   const methLabel={rabatt:'Warenrabatt',marktwert:'Marktwert',ek:'EK+Handling',gast:'Gäste-VK'};
@@ -5390,6 +5486,7 @@ function GmbhWithdrawTab({withdrawals,setWithdrawals,persons,arts,cd,cm,curPerio
   // ── SAVE / UPDATE
   const add=()=>{
     if(validErr)return;
+    if(!pruefeSchreibrecht())return;
     const now=new Date().toISOString();
     const prevEntry=editId?withdrawals.find(x=>x.id===editId):null;
     const entry={

@@ -23,6 +23,10 @@ jobs:
 
           cp landing.html  dist/root/index.html
           cp htaccess.txt  dist/root/.htaccess
+          # Dieser Schritt kopiert ausschliesslich die hier benannten Dateien.
+          # Es gibt bewusst keine Ausschlussliste: Was nicht aufgeführt ist,
+          # wird nicht deployt. config.php und config.stripe.php enthalten
+          # Zugangsdaten und liegen ausschliesslich auf dem Server.
           # Nicht deployt: AVV-ENTWURF.md (ungeprüfter Vertragstext) und
           # server/ (PHP-Vorlagen, die manuell hochgeladen werden — dort
           # liegen Zugangsdaten daneben, die nichts im Deploy zu suchen haben)

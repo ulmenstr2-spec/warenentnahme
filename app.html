@@ -1031,6 +1031,20 @@ function App(){
       showT(friendlyError(j));
     }catch(e){showT('Abo-Verwaltung nicht erreichbar');console.error('[abo] Portal:',e);}
   };
+  const starteCheckout=async()=>{
+    if(!authToken){setShowSyncModal(true);return;}
+    try{
+      const j=await apiCall('create_checkout_session',{token:authToken});
+      if(j&&j.url){window.location.href=j.url;return;}
+      showT(friendlyError(j));
+    }catch(e){showT('Bezahlseite nicht erreichbar');console.error('[abo] Checkout:',e);}
+  };
+  // Wer noch nie ein Abo hatte, hat bei Stripe auch keinen Kundeneintrag —
+  // das Kundenportal liefe dort ins Leere. Erst Checkout, danach Portal.
+  // Nach einer Kündigung ist das Abo beendet; ein neues entsteht ebenfalls
+  // nur über Checkout.
+  const brauchtCheckout=abo.status==='none'||abo.status==='canceled';
+  const oeffneAbo=()=>brauchtCheckout?starteCheckout():oeffneAboPortal();
   const[syncStatus,setSyncStatus]=useState('idle'); // idle|syncing|ok|error|unverified
   const[syncLastAt,setSyncLastAt]=useState(()=>{try{return localStorage.getItem('gt_sync_last')||'';}catch{return'';}});
   const[showSyncModal,setShowSyncModal]=useState(false);
@@ -1634,14 +1648,20 @@ function App(){
       display:'flex',alignItems:'center',justifyContent:'center',padding:16}}
       onClick={e=>{if(e.target===e.currentTarget)setAbosperre(false);}}>
       <div style={{background:'var(--s1)',borderRadius:14,padding:22,maxWidth:380,width:'100%'}}>
-        <div style={{fontSize:16,fontWeight:700,marginBottom:8}}>Abo abgelaufen</div>
-        <div style={{fontSize:13,color:'var(--t2)',lineHeight:1.6,marginBottom:16}}>
-          Neue Einträge lassen sich derzeit nicht speichern. <strong style={{color:'var(--text)'}}>Deine bisherigen
-          Aufzeichnungen bleiben vollständig erhalten</strong> — Berichte und Exporte als PDF, Excel oder CSV
-          funktionieren weiterhin uneingeschränkt.
+        <div style={{fontSize:16,fontWeight:700,marginBottom:8}}>
+          {abo.status==='none'?'Abo starten':abo.status==='past_due'?'Zahlung offen':'Abo abgelaufen'}
         </div>
-        <button onClick={()=>{setAbosperre(false);oeffneAboPortal();}} className="btn btn-l" style={{width:'100%'}}>
-          Abo verwalten
+        <div style={{fontSize:13,color:'var(--t2)',lineHeight:1.6,marginBottom:16}}>
+          {abo.status==='none'
+            ? <>Zum Speichern neuer Einträge ist ein Abo nötig — <strong style={{color:'var(--text)'}}>die
+              ersten 30 Tage sind kostenlos</strong>. Danach 49 € im Jahr, jederzeit kündbar.</>
+            : <>Neue Einträge lassen sich derzeit nicht speichern. <strong style={{color:'var(--text)'}}>Deine bisherigen
+              Aufzeichnungen bleiben vollständig erhalten</strong> — Berichte und Exporte als PDF, Excel oder CSV
+              funktionieren weiterhin uneingeschränkt.</>}
+        </div>
+        <button onClick={()=>{setAbosperre(false);oeffneAbo();}} className="btn btn-l" style={{width:'100%'}}>
+          {abo.status==='none'?'30 Tage kostenlos testen'
+            :abo.status==='past_due'?'Zahlung aktualisieren':'Abo erneut abschließen'}
         </button>
         <button onClick={()=>setAbosperre(false)} style={{width:'100%',background:'none',border:'none',
           color:'var(--t2)',fontSize:12,marginTop:10,cursor:'pointer',padding:8}}>Schließen</button>

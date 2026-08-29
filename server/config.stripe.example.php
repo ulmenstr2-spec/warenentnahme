@@ -24,3 +24,7 @@ define('STRIPE_WEBHOOK_SECRET',  'whsec_HIER_EINTRAGEN');
 // Rücksprungadressen nach der Bezahlung
 define('STRIPE_SUCCESS_URL', 'https://www.warenentnahme.de/app/?checkout=success');
 define('STRIPE_CANCEL_URL',  'https://www.warenentnahme.de/app/?checkout=cancel');
+
+// Rücksprung aus dem Kundenportal (Kündigung, Zahlungsmittel ändern).
+// Ohne Parameter, weil hier nichts bestätigt werden muss.
+define('STRIPE_PORTAL_RETURN_URL', 'https://www.warenentnahme.de/app/');

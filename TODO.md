@@ -28,12 +28,23 @@ sie müssen erledigt sein, bevor echtes Geld fließt.
 
 ## Technisch offen
 
-- [ ] **`api.php`**: die drei Aktionen `create_checkout_session`,
-      `create_portal_session`, `subscription_status` ergänzen.
-      Die Datei liegt nur auf dem Server — sie muss hier vorliegen,
-      damit die Aktionen passend zur bestehenden Authentifizierung
-      eingebaut werden können. Das Frontend ruft sie bereits mit
-      `{token}` auf.
+- [ ] **`api.php`**: den Einbau-Block ergänzen. Die drei Aktionen selbst
+      liegen fertig in `server/api-stripe-actions.php`; in `api.php` fehlen
+      nur noch diese Zeilen, und zwar **hinter** der Token-Prüfung, dort wo
+      auch `sync_pull` behandelt wird:
+
+      ```php
+      if (in_array($action, STRIPE_AKTIONEN, true)) {
+          require_once __DIR__ . '/api-stripe-actions.php';
+          echo json_encode(stripe_aktion($pdo, $user, $action));
+          exit;
+      }
+      ```
+
+      `$user` ist der über den Token aufgelöste Datensatz aus `users`.
+      Steht der Block vor der Token-Prüfung, könnte ein Fremder die
+      Bezahlseite eines beliebigen Kontos öffnen.
+- [ ] **`server/api-stripe-actions.php`** per FTP nach `/public/app/` laden
 - [ ] **Datenbank**: `server/migration-stripe.sql` in phpMyAdmin ausführen
       (vorher Sicherung der Tabelle `users` anlegen)
 - [ ] **Stripe-Bibliothek** installieren: `composer require stripe/stripe-php`

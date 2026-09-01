@@ -81,6 +81,22 @@ function zeit(?int $ts): ?string {
     return $ts ? gmdate('Y-m-d H:i:s', $ts) : null;
 }
 
+/**
+ * Ende der laufenden Abrechnungsperiode.
+ *
+ * Stripe hat dieses Feld im Laufe der API-Versionen vom Abonnement auf die
+ * einzelnen Abo-Positionen verschoben. Welche Version ein Ereignis benutzt,
+ * haengt am Webhook-Endpunkt im Dashboard — und die laesst sich spaeter
+ * aendern, ohne dass jemand an diese Datei denkt. Deshalb beide Stellen
+ * abfragen statt sich auf eine zu verlassen: Steht der Wert oben, wird er
+ * genommen; sonst der der ersten Position.
+ */
+function periodenEnde($sub): ?int {
+    if (!empty($sub->current_period_end)) return $sub->current_period_end;
+    $pos = $sub->items->data[0] ?? null;
+    return !empty($pos->current_period_end) ? $pos->current_period_end : null;
+}
+
 function nutzerSetzen(PDO $pdo, string $customerId, array $felder): void {
     if (!$felder) return;
     $teile = [];
@@ -115,7 +131,7 @@ try {
                 'stripe_subscription_id' => $sub->id,
                 'subscription_status'    => statusAbbilden($sub->status),
                 'trial_ends_at'          => zeit($sub->trial_end ?? null),
-                'current_period_end'     => zeit($sub->current_period_end ?? null),
+                'current_period_end'     => zeit(periodenEnde($sub)),
             ]);
             break;
         }
@@ -124,7 +140,7 @@ try {
             $sub = $event->data->object;
             nutzerSetzen($pdo, $sub->customer, [
                 'subscription_status' => 'canceled',
-                'current_period_end'  => zeit($sub->current_period_end ?? null),
+                'current_period_end'  => zeit(periodenEnde($sub)),
             ]);
             break;
         }

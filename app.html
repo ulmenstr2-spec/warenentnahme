@@ -1017,7 +1017,10 @@ function App(){
     try{
       const j=await apiCall('subscription_status',{token});
       if(j&&j.ok!==false&&j.subscription_status){
-        const a={status:j.subscription_status,trialEndsAt:j.trial_ends_at||null,periodEnd:j.current_period_end||null};
+        // geprueft merkt sich, dass der Server tatsaechlich geantwortet hat.
+        // Ohne diese Auskunft wird nicht gesperrt — siehe darfSchreiben.
+        const a={status:j.subscription_status,trialEndsAt:j.trial_ends_at||null,
+          periodEnd:j.current_period_end||null,geprueft:true};
         merkeAbo(a);return a;
       }
     }catch(e){console.warn('[abo] Status nicht abrufbar:',e);}
@@ -1473,7 +1476,13 @@ function App(){
   },[periodDay,now.toDateString()]);
   const showT=msg=>{setToast(msg);setTimeout(()=>setToast(null),3000);};
 
-  const darfSchreiben=!authToken||abo.status==='trialing'||abo.status==='active';
+  // Gesperrt wird nur, wenn der Server auch wirklich gesagt hat, dass kein
+  // Abo laeuft. Antwortet er nicht — Server aus, Netz weg, Aktion noch nicht
+  // eingebaut —, bleibt das Eintragen offen. Andernfalls koennte eine Panne
+  // auf unserer Seite zahlende Kunden aussperren, und das waere der
+  // schlimmere Fehler. Ein einmal geholter Status bleibt gespeichert, eine
+  // Kuendigung wirkt also weiter, auch offline.
+  const darfSchreiben=!authToken||!abo.geprueft||abo.status==='trialing'||abo.status==='active';
   const [abosperre,setAbosperre]=useState(false);
   // Gibt true zurück, wenn geschrieben werden darf; sonst Hinweis zeigen.
   const pruefeSchreibrecht=()=>{

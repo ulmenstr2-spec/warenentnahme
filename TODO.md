@@ -28,30 +28,21 @@ sie müssen erledigt sein, bevor echtes Geld fließt.
 
 ## Technisch offen
 
-- [ ] **`api.php`**: den Einbau-Block ergänzen. Die drei Aktionen selbst
-      liegen fertig in `server/api-stripe-actions.php`; in `api.php` fehlen
-      nur noch diese Zeilen, und zwar **hinter** der Token-Prüfung, dort wo
-      auch `sync_pull` behandelt wird:
+Der Einbau in `api.php` ist erledigt — die ergänzte Datei liegt als
+`server/api.php` im Repository und muss nur noch hochgeladen werden.
 
-      ```php
-      if (in_array($action, STRIPE_AKTIONEN, true)) {
-          require_once __DIR__ . '/api-stripe-actions.php';
-          echo json_encode(stripe_aktion($pdo, $user, $action));
-          exit;
-      }
-      ```
-
-      `$user` ist der über den Token aufgelöste Datensatz aus `users`.
-      Steht der Block vor der Token-Prüfung, könnte ein Fremder die
-      Bezahlseite eines beliebigen Kontos öffnen.
-- [ ] **`server/api-stripe-actions.php`** per FTP nach `/public/app/` laden
 - [ ] **Datenbank**: `server/migration-stripe.sql` in phpMyAdmin ausführen
-      (vorher Sicherung der Tabelle `users` anlegen)
+      (vorher Sicherung der Tabelle `users` anlegen). Danach nicht vergessen:
+      - Bestandsnutzer freischalten (auskommentierte Zeile am Dateiende)
+      - eigenes Konto dauerhaft freischalten:
+        `UPDATE users SET subscription_status='active' WHERE email='…';`
+- [ ] **Diese vier Dateien** per FTP nach `/public/app/` laden:
+      `api.php`, `api-stripe-actions.php`, `stripe-webhook.php`,
+      `config.stripe.php`
 - [ ] **Stripe-Bibliothek** installieren: `composer require stripe/stripe-php`
       oder Release herunterladen und nach `/public/app/stripe-php/` legen
 - [ ] **`config.stripe.php`** aus `server/config.stripe.example.php`
-      erstellen und per FTP hochladen (Price-ID ist bereits eingetragen)
-- [ ] **`server/stripe-webhook.php`** per FTP nach `/public/app/` laden
+      erstellen (Price-ID ist bereits eingetragen, Schlüssel eintragen)
 - [ ] **Stripe-Dashboard**: Webhook-Endpunkt auf
       `https://www.warenentnahme.de/app/stripe-webhook.php` einrichten,
       die fünf Ereignisse abonnieren, Kundenportal aktivieren (Kündigung

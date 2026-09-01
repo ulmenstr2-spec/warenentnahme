@@ -8,32 +8,22 @@
  * Ungetestet: Diese Umgebung hat keinen Zugriff auf Datenbank, Stripe oder
  * den Server. Bitte mit Stripe-Testschlüsseln prüfen, bevor echtes Geld fließt.
  *
- * ── Einbau in api.php ────────────────────────────────────────────────
- * An der Stelle, an der api.php den Token bereits zu einem Nutzer-Datensatz
- * aufgelöst hat (also da, wo auch sync_pull und sync_push behandelt werden),
- * diese drei Zeilen ergänzen:
- *
- *     if (in_array($action, STRIPE_AKTIONEN, true)) {
- *         require_once __DIR__ . '/api-stripe-actions.php';
- *         echo json_encode(stripe_aktion($pdo, $user, $action));
- *         exit;
- *     }
+ * Der Einbau in api.php ist bereits erledigt: dort gibt es drei zusätzliche
+ * `case`-Zweige im Routing und die Funktion `doStripe()`, die zuerst
+ * `requireAuth()` aufruft und dann hierher weiterreicht.
  *
  * Erwartet wird:
  *   $pdo   — die bestehende PDO-Verbindung
- *   $user  — der über den Token aufgelöste Datensatz aus `users`,
- *            mindestens mit den Feldern `id` und `email`
+ *   $user  — der Rückgabewert von requireAuth(), mindestens mit `id`
+ *            und `email`
  *   $action— der Wert aus dem JSON-Feld "action"
  *
- * Wichtig: Der Block gehört HINTER die Token-Prüfung. Ohne gültigen Token
- * darf keine dieser Aktionen laufen — sonst könnte ein Fremder eine
- * Bezahlseite oder das Kundenportal eines beliebigen Kontos öffnen.
+ * Rückgabe ist immer ein Array mit `ok`. Bei `ok => false` steht in
+ * `error` ein Satz, der direkt in der App angezeigt werden kann.
  */
 
 require_once __DIR__ . '/config.stripe.php';
 require_once __DIR__ . '/stripe-php/init.php';
-
-const STRIPE_AKTIONEN = ['create_checkout_session', 'create_portal_session', 'subscription_status'];
 
 /** MySQL-DATETIME → ISO 8601 mit Zeitzone.
  *

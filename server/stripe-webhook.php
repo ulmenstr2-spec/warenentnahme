@@ -97,6 +97,23 @@ function periodenEnde($sub): ?int {
     return !empty($pos->current_period_end) ? $pos->current_period_end : null;
 }
 
+/**
+ * Ist eine Kuendigung vorgemerkt — laeuft das Abo also bis zum Ende des
+ * bezahlten Zeitraums und dann aus?
+ *
+ * Dieselbe Falle wie beim Periodenende: Stripe kennt dafuer zwei Felder.
+ * Das aeltere `cancel_at_period_end` (ja/nein) und das neuere `cancel_at`
+ * (Zeitpunkt). Welches ein Ereignis mitbringt, haengt an der API-Version
+ * des Endpunkts. Wird nur eines abgefragt und das Ereignis bringt das
+ * andere, bleibt die Kuendigung still unerkannt — kein Fehler, keine
+ * Meldung, nur eine App, die weiter "wird automatisch fortgesetzt" sagt.
+ */
+function kuendigungVorgemerkt($sub): int {
+    if (!empty($sub->cancel_at_period_end)) return 1;
+    if (!empty($sub->cancel_at))            return 1;
+    return 0;
+}
+
 function nutzerSetzen(PDO $pdo, string $customerId, array $felder): void {
     if (!$felder) return;
     $teile = [];
@@ -134,7 +151,7 @@ try {
                 'current_period_end'     => zeit(periodenEnde($sub)),
                 // Vorgemerkte Kuendigung. Der Status bleibt dabei active
                 // bzw. trialing — nur hieran ist sie zu erkennen.
-                'cancel_at_period_end'   => !empty($sub->cancel_at_period_end) ? 1 : 0,
+                'cancel_at_period_end'   => kuendigungVorgemerkt($sub),
             ]);
             break;
         }

@@ -31,6 +31,7 @@ jobs:
           # server/ (PHP-Vorlagen, die manuell hochgeladen werden — dort
           # liegen Zugangsdaten daneben, die nichts im Deploy zu suchen haben)
           cp impressum.html datenschutz.html pauschbetraege.html fuer-steuerberater.html dist/root/
+          cp kuendigung.html dist/root/
           cp robots.txt sitemap.xml dist/root/
           cp favicon.png og-image.png josef.jpg splash-logo.png dist/root/
           cp app-uebersicht.png app-mahlzeiten.png app-bericht.png dist/root/

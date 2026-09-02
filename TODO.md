@@ -12,12 +12,17 @@ sie müssen erledigt sein, bevor echtes Geld fließt.
       Anmeldung nicht sicher unterscheiden lässt, ist die Belehrung der
       sichere Weg. Dazu die Frage, ob ein vorzeitiger Leistungsbeginn
       vereinbart wird (sonst läuft die Frist gegen den Start der Nutzung).
-- [ ] **Kündigungsbutton nach § 312k BGB** — bei online geschlossenen
-      Dauerschuldverhältnissen mit Verbrauchern verlangt das Gesetz eine
-      unmittelbar erreichbare Schaltfläche „Verträge hier kündigen".
-      Das Stripe-Kundenportal allein genügt dafür voraussichtlich nicht,
-      weil es hinter dem Login liegt — die Schaltfläche muss ohne
-      Anmeldung erreichbar sein.
+- [x] **Kündigungsbutton nach § 312k BGB** — gebaut: `kuendigung.html`
+      mit Formular und Schaltfläche „Jetzt kündigen", verlinkt als
+      „Verträge hier kündigen" im Fußbereich aller Seiten, ohne
+      Anmeldung erreichbar. `server/kuendigung.php` nimmt die Erklärung
+      entgegen, bestätigt sofort per Mail und zeigt eine speicher- und
+      druckbare Seite mit Datum, Uhrzeit und Vorgangsnummer.
+      **Die Formulierungen gehören trotzdem einmal geprüft.**
+      Das Abo wird bewusst nicht automatisch beendet: Das Formular ist
+      ohne Anmeldung erreichbar, sonst könnte jemand mit einer fremden
+      E-Mail-Adresse das Abo eines Fremden kündigen. Die Erklärung geht
+      an den Betreiber, der sie in Stripe ausführt.
 - [ ] **Preisangaben nach PAngV** prüfen: Gesamtpreis, Hinweis auf
       § 19 UStG (steht bereits auf der Preisseite), Laufzeit
 - [ ] Rechnungsfußzeile in Stripe: `Gemäß § 19 UStG wird keine
@@ -75,6 +80,16 @@ Der Einbau in `api.php` ist erledigt — die ergänzte Datei liegt als
 - [x] Im Kundenportal kündigen — die App zeigt
       „Gekündigt. Nutzbar noch bis 02.10.2026"
 
+## Kündigungsbutton hochladen
+
+- [ ] `server/mailversand.php` nach `/public/app/` — **zuerst**,
+      `api.php` bricht sonst ab
+- [ ] `server/api.php` nach `/public/app/` (nutzt jetzt mailversand.php)
+- [ ] `server/kuendigung.php` nach `/public/` — **nicht** nach /app/
+- [ ] Nach dem Merge deployt `kuendigung.html` von allein
+- [ ] Prüfen: Fußbereich → „Verträge hier kündigen" → Formular →
+      „Jetzt kündigen" → Bestätigungsseite und zwei Mails
+
 ## Aus früheren Sitzungen
 
 ## Mailversand (02.09.2026)
@@ -85,9 +100,14 @@ die Mailserver aus dem SPF-Eintrag der Domain. SPF und DMARC sind gesetzt,
 ein DKIM-Eintrag war unter den gängigen Namen nicht auffindbar.
 
 Umgestellt auf SMTP mit Anmeldung über das vorhandene Postfach
-`hallo@warenentnahme.de`.
+`hallo@warenentnahme.de`. **Erledigt und bestätigt:** Gmail meldet
+`SPF: PASS`, `DKIM: PASS` (Selektor `s1-ionos`), `DMARC: PASS`,
+Zustellung in 0 Sekunden über `mout.kundenserver.de`.
 
-- [ ] In `config.php` ergänzen:
+Ein DKIM-Eintrag war also die ganze Zeit vorhanden — er wurde nur nicht
+genutzt, weil `mail()` am Mailserver vorbei verschickte.
+
+- [x] In `config.php` ergänzen:
       ```php
       define('SMTP_HOST',   'smtp.ionos.de');
       define('SMTP_PORT',   465);
@@ -95,11 +115,12 @@ Umgestellt auf SMTP mit Anmeldung über das vorhandene Postfach
       define('SMTP_USER',   'hallo@warenentnahme.de');
       define('SMTP_PASS',   'DAS-POSTFACH-PASSWORT');
       ```
-- [ ] `MAIL_FROM` von `noreply@` auf `hallo@warenentnahme.de` ändern —
-      unter fremdem Namen zu verschicken führt wieder zur Abweisung
-- [ ] Neue `server/api.php` hochladen
-- [ ] Mit `server/mailtest.php` prüfen, danach die Datei **löschen**
-- [ ] Zur Sicherheit eine echte Registrierung mit einer Gmail-Adresse
+- [x] `MAIL_FROM` von `noreply@` auf `hallo@warenentnahme.de` geändert
+- [x] Neue `server/api.php` hochgeladen
+- [x] Mit `server/mailtest.php` geprüft
+- [ ] **`mailtest.php` vom Server löschen**
+- [ ] Echte Registrierung mit einer Gmail-Adresse durchspielen
+      (Posteingang, nicht Spam?)
 - [ ] **Datenbank-Passwort ändern** — das alte steht weiterhin in der
       Git-Historie
 - [ ] **AVV mit IONOS** im Kundenkonto abschließen; den Entwurf für eigene

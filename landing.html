@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sachentnahmen & Eigenverbrauch dokumentieren – App für Gastronomie | warenentnahme.de</title>
-<meta name="description" content="Sachentnahmen, Warenentnahmen und Eigenverbrauch einfach erfassen: mit BMF-Pauschbeträgen für Gastronomie, PDF- & Excel-Export für den Steuerberater. Von einem Gastronom gebaut, kostenlos in der Beta.">
+<meta name="description" content="Sachentnahmen, Warenentnahmen und Eigenverbrauch einfach erfassen: mit BMF-Pauschbeträgen für Gastronomie, PDF- & Excel-Export für den Steuerberater. Von einem Gastronom gebaut. 30 Tage kostenlos testen, danach 49 € im Jahr.">
 <meta property="og:title" content="Sachentnahmen & Eigenverbrauch – einfach dokumentiert">
-<meta property="og:description" content="Die App für Gastronomen: BMF-Pauschbeträge, GmbH-Modus, PDF & Excel für die Kanzlei. Kostenlos starten.">
+<meta property="og:description" content="Die App für Gastronomen: BMF-Pauschbeträge, GmbH-Modus, PDF &amp; Excel für die Kanzlei. 30 Tage kostenlos testen.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.warenentnahme.de/">
 <meta property="og:image" content="https://www.warenentnahme.de/og-image.png">
@@ -30,7 +30,7 @@
   "applicationCategory": "BusinessApplication",
   "description": "App zur Dokumentation von Sachentnahmen, Warenentnahmen und Eigenverbrauch in der Gastronomie – mit BMF-Pauschbeträgen, GmbH-Modus und PDF/Excel-Export für den Steuerberater.",
   "url": "https://www.warenentnahme.de/",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+  "offers": { "@type": "Offer", "price": "49", "priceCurrency": "EUR", "description": "Jahresabo, 30 Tage kostenlos testen" },
   "author": { "@type": "Person", "name": "Josef Czerwinski" },
   "inLanguage": "de"
 }
@@ -62,8 +62,8 @@
     },
     {
       "@type": "Question",
-      "name": "Ist die App wirklich kostenlos?",
-      "acceptedAnswer": { "@type": "Answer", "text": "In der aktuellen Beta-Phase ja – vollständig kostenlos, alle Funktionen inklusive. Nach der Beta-Phase wird es weiterhin eine kostenlose Basis-Version geben." }
+      "name": "Was kostet die App?",
+      "acceptedAnswer": { "@type": "Answer", "text": "49 Euro im Jahr, alle Funktionen inklusive. Die ersten 30 Tage sind kostenlos und unverbindlich. Als Kleinunternehmer im Sinne des § 19 UStG wird keine Umsatzsteuer berechnet. Nach einer Kündigung bleiben die bisherigen Aufzeichnungen und alle Exporte zugänglich." }
     },
     {
       "@type": "Question",
@@ -305,7 +305,7 @@ nav {
 .pricing { background: var(--green-dark); padding: 96px 24px; position: relative; overflow: hidden; }
 .pricing::after { content: ''; position: absolute; bottom: -150px; right: -150px; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(143,192,58,0.1) 0%, transparent 70%); }
 .pricing-inner { max-width: 800px; margin: 0 auto; position: relative; z-index: 1; }
-.pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 56px; }
+.pricing-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 56px; max-width: 460px; margin-left: auto; margin-right: auto; }
 .plan { background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 36px; transition: all 0.25s; }
 .plan.featured { background: rgba(143,192,58,0.10); border-color: rgba(143,192,58,0.3); }
 .plan-badge { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--lime); margin-bottom: 16px; }
@@ -583,7 +583,7 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
     <div class="hero-content">
       <div class="hero-badge animate a1">
         <span class="dot"></span>
-        Beta — aktuell kostenlos
+        30 Tage kostenlos testen
       </div>
       <h1 class="display hero-title animate a2">
         Sachentnahmen &<br><em>Eigenverbrauch.</em><br>Einfach dokumentiert.
@@ -596,7 +596,7 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
         <a href="#warum" class="btn-secondary">Die Geschichte</a>
       </div>
       <div class="hero-note animate a5">
-        <span><svg class="ico" style="width:14px;height:14px;color:var(--lime)" aria-hidden="true"><use href="#i-check"/></svg> Keine Kreditkarte</span>
+        <span><svg class="ico" style="width:14px;height:14px;color:var(--lime)" aria-hidden="true"><use href="#i-check"/></svg> 30 Tage kostenlos</span>
         <span><svg class="ico" style="width:14px;height:14px;color:var(--lime)" aria-hidden="true"><use href="#i-check"/></svg> Selbstständige & GmbH</span>
         <span><svg class="ico" style="width:14px;height:14px;color:var(--lime)" aria-hidden="true"><use href="#i-check"/></svg> PDF-Export</span>
       </div>
@@ -815,35 +815,25 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
   <div class="pricing-inner">
     <div class="section-label">Preise</div>
     <h2 class="display section-title">Einfach. <em>Fair.</em></h2>
-    <p class="section-sub">In der Beta-Phase ist die App vollständig kostenlos. Dein Feedback hilft dabei, sie besser zu machen.</p>
+    <p class="section-sub">Ein Preis, alle Funktionen. 30 Tage kostenlos testen, danach 49 € im Jahr.</p>
     <div class="pricing-grid">
-      <div class="plan reveal">
-        <div class="plan-badge">Beta — Jetzt kostenlos</div>
-        <div class="plan-name">Kostenlos</div>
-        <div class="plan-price">0 €<span> /Monat</span></div>
-        <div class="plan-note">Vollständig kostenlos in der Beta</div>
+      <div class="plan featured reveal">
+        <div class="plan-badge">Early-Bird-Preis für die ersten Kunden</div>
+        <div class="plan-name">Jahresabo</div>
+        <div class="plan-price">49 €<span> /Jahr</span></div>
+        <div class="plan-note">30 Tage kostenlos testen · ohne Umsatzsteuer (§ 19 UStG)</div>
         <ul class="plan-list">
-          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Selbstständigen-Modus & GmbH-Modus</li>
-          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> PDF & Excel Export</li>
-          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Cloud-Sync</li>
-          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Monats- & Jahresauswertung</li>
-          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Offline-fähig (PWA)</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Selbstständigen-Modus &amp; GmbH-Modus</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> PDF, Excel &amp; CSV für die Kanzlei</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Rechnungs-Scan und Barcode-Erfassung</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Cloud-Sync über mehrere Geräte</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Monats- &amp; Jahresauswertung</li>
+          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Offline-fähig (PWA), ohne App Store</li>
         </ul>
-        <a href="https://www.warenentnahme.de/app/" class="plan-cta free">Jetzt starten</a>
-      </div>
-      <div class="plan featured reveal reveal-delay-1">
-        <div class="plan-badge">Bald verfügbar</div>
-        <div class="plan-name">Premium</div>
-        <div class="plan-price">9 €<span> /Monat</span></div>
-        <div class="plan-note">Nach der Beta-Phase · ohne Umsatzsteuer (§ 19 UStG)</div>
-        <ul class="plan-list">
-          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Alles aus Kostenlos</li>
-          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Foto- & EAN-Scan (KI)</li>
-          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Rechnungs-Scan (KI)</li>
-          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Prioritäts-Support</li>
-          <li><svg class="ico" style="width:15px;height:15px" aria-hidden="true"><use href="#i-check"/></svg> Früher Zugang zu neuen Features</li>
-        </ul>
-        <a href="https://www.warenentnahme.de/app/" class="plan-cta premium">Jetzt kostenlos testen</a>
+        <a href="https://www.warenentnahme.de/app/" class="plan-cta premium">30 Tage kostenlos testen</a>
+        <div style="font-size:12px;color:rgba(240,245,228,0.55);margin-top:14px;text-align:center;line-height:1.5">
+          Jederzeit kündbar. Deine Aufzeichnungen und Exporte bleiben auch nach einer Kündigung zugänglich.
+        </div>
       </div>
     </div>
   </div>
@@ -904,12 +894,12 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
       </div>
       <div class="faq-item reveal">
         <button class="faq-question" onclick="toggleFaq(this)">
-          Ist die App wirklich kostenlos?
+          Was kostet die App?
           <span class="faq-chevron"><svg class="ico" style="width:14px;height:14px" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
         </button>
         <div class="faq-answer">
           <div class="faq-answer-inner">
-            In der aktuellen Beta-Phase ja — vollständig kostenlos, alle Funktionen inklusive. Nach der Beta-Phase wird es eine kostenlose Basis-Version geben. Wer jetzt dabei ist, bekommt einen besonders günstigen Einstieg in Premium.
+            49 € im Jahr, alle Funktionen inklusive — kein Monatsabo, keine Staffelung. Die ersten <strong>30 Tage sind kostenlos</strong> und unverbindlich. Wer jetzt einsteigt, bekommt den Early-Bird-Preis dauerhaft. Als Kleinunternehmer im Sinne des § 19 UStG wird keine Umsatzsteuer berechnet.<br><br>Wichtig: Auch nach einer Kündigung bleiben deine bisherigen Aufzeichnungen und sämtliche Exporte zugänglich — an deine Steuerdokumentation kommst du immer.
           </div>
         </div>
       </div>
@@ -931,8 +921,8 @@ footer { background: var(--green-dark); padding: 48px 24px 32px; border-top: 1px
 <!-- CTA BANNER -->
 <section class="cta-banner">
   <div class="cta-inner">
-    <h2 class="display cta-title">Bereit? Starte jetzt<br><em>kostenlos.</em></h2>
-    <p class="cta-sub">Keine Kreditkarte. Keine Einrichtungsgebühr. Einfach registrieren und los.</p>
+    <h2 class="display cta-title">Bereit? Teste<br><em>30 Tage kostenlos.</em></h2>
+    <p class="cta-sub">30 Tage kostenlos testen. Danach 49 € im Jahr, jederzeit kündbar.</p>
     <div class="cta-actions">
       <a href="https://www.warenentnahme.de/app/" class="btn-white">Kostenlos starten</a>
       <a href="mailto:hallo@warenentnahme.de" class="btn-outline-white">Frage stellen</a>

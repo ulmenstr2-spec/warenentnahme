@@ -1,4 +1,5 @@
 config.php
+config.stripe.php
 .DS_Store
 node_modules/
 dist/

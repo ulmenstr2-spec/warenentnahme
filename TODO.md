@@ -42,7 +42,9 @@ Der Einbau in `api.php` ist erledigt — die ergänzte Datei liegt als
 - [ ] **Stripe-Bibliothek** installieren: `composer require stripe/stripe-php`
       oder Release herunterladen und nach `/public/app/stripe-php/` legen
 - [ ] **`config.stripe.php`** aus `server/config.stripe.example.php`
-      erstellen (Price-ID ist bereits eingetragen, Schlüssel eintragen)
+      erstellen. Alle vier Werte eintragen — **auch die Price-ID**, und zwar
+      die aus dem Modus, dessen Schlüssel danebenstehen. Eine Live-ID wirft
+      im Testmodus `No such price`.
 - [ ] **Stripe-Dashboard**: Webhook-Endpunkt auf
       `https://www.warenentnahme.de/app/stripe-webhook.php` einrichten,
       die fünf Ereignisse abonnieren, Kundenportal aktivieren (Kündigung

@@ -14,8 +14,16 @@
  * Zum Testen die Testschlüssel (sk_test_… / pk_test_…) verwenden.
  */
 
-// Preis: Jahresabo 49 EUR, 30 Tage Testphase
-define('STRIPE_PRICE_ID',       'price_1U8jq3BlitlFPQjTQWiolg3J');
+/* Preis: Jahresabo 49 EUR, 30 Tage Testphase.
+ *
+ * Die ID gehoert zu genau einem Modus. Test und Live sind bei Stripe zwei
+ * getrennte Welten mit eigenen Produkten — eine Live-ID wirft im Testmodus
+ * "No such price" und umgekehrt. Also die ID immer aus dem Produktkatalog
+ * des Modus holen, dessen Schluessel unten stehen.
+ *
+ * Live-ID (26.08.2026 angelegt): price_1U8jq3BlitlFPQjTQWiolg3J
+ */
+define('STRIPE_PRICE_ID',       'price_HIER_EINTRAGEN');
 
 define('STRIPE_SECRET_KEY',      'sk_test_HIER_EINTRAGEN');
 define('STRIPE_PUBLISHABLE_KEY', 'pk_test_HIER_EINTRAGEN');

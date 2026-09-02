@@ -77,9 +77,29 @@ Der Einbau in `api.php` ist erledigt — die ergänzte Datei liegt als
 
 ## Aus früheren Sitzungen
 
-- [ ] **Bestätigungsmail auf Spam prüfen** (GMX, Web.de, Gmail). Landet sie
-      im Spam-Ordner, gehen neue Nutzer verloren, ohne dass es auffällt.
-      Gegenmittel wären SPF- und DKIM-Einträge im IONOS-Konto.
+## Mailversand (02.09.2026)
+
+Getestet: Bestätigungsmails kamen bei Gmail und Outlook **gar nicht** an —
+auch nicht im Spam. Ursache: `mail()` verschickt vom Webserver, nicht über
+die Mailserver aus dem SPF-Eintrag der Domain. SPF und DMARC sind gesetzt,
+ein DKIM-Eintrag war unter den gängigen Namen nicht auffindbar.
+
+Umgestellt auf SMTP mit Anmeldung über das vorhandene Postfach
+`hallo@warenentnahme.de`.
+
+- [ ] In `config.php` ergänzen:
+      ```php
+      define('SMTP_HOST',   'smtp.ionos.de');
+      define('SMTP_PORT',   465);
+      define('SMTP_SECURE', 'ssl');
+      define('SMTP_USER',   'hallo@warenentnahme.de');
+      define('SMTP_PASS',   'DAS-POSTFACH-PASSWORT');
+      ```
+- [ ] `MAIL_FROM` von `noreply@` auf `hallo@warenentnahme.de` ändern —
+      unter fremdem Namen zu verschicken führt wieder zur Abweisung
+- [ ] Neue `server/api.php` hochladen
+- [ ] Mit `server/mailtest.php` prüfen, danach die Datei **löschen**
+- [ ] Zur Sicherheit eine echte Registrierung mit einer Gmail-Adresse
 - [ ] **Datenbank-Passwort ändern** — das alte steht weiterhin in der
       Git-Historie
 - [ ] **AVV mit IONOS** im Kundenkonto abschließen; den Entwurf für eigene

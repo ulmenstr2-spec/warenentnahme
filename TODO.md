@@ -49,19 +49,31 @@ Der Einbau in `api.php` ist erledigt — die ergänzte Datei liegt als
       `https://www.warenentnahme.de/app/stripe-webhook.php` einrichten,
       die fünf Ereignisse abonnieren, Kundenportal aktivieren (Kündigung
       und Zahlungsmittel ändern, deutsche Sprache)
-- [ ] **Testlauf** mit Karte `4242 4242 4242 4242`: Bezahlung →
-      Status `trialing` → im Portal kündigen → Status `canceled` →
-      neue Einträge gesperrt, Export weiterhin möglich
+- [x] **Testlauf** mit Karte `4242 4242 4242 4242` — am 02.09.2026
+      vollständig durchgespielt: Bezahlung, Testphase, Kündigung im
+      Kundenportal, Sperre neuer Einträge, Export (PDF und Backup)
+      weiterhin möglich.
 
-## Kündigungs-Hinweis (Nachtrag)
+## Für den Livegang
 
-- [ ] `server/migration-stripe-2.sql` in phpMyAdmin ausführen
+- [ ] Produkt und Preis (49 €/Jahr) im **Live-Modus** anlegen — die
+      bisherige ID gehört zur Sandbox und funktioniert dort nicht
+- [ ] Webhook-Endpunkt im Live-Modus einrichten, dieselben fünf
+      Ereignisse, neues Signaturgeheimnis
+- [ ] In `config.stripe.php` vier Werte tauschen: `sk_`, `pk_`,
+      Price-ID, `whsec_` — **kopieren, nicht abtippen** (I und l sehen
+      in diesen IDs gleich aus)
+- [ ] Kundenportal auch im Live-Modus konfigurieren (Kündigung zum
+      Periodenende, Zahlungsmethoden, Rechnungshistorie)
+
+## Kündigungs-Hinweis (erledigt am 02.09.2026)
+
+- [x] `server/migration-stripe-2.sql` in phpMyAdmin ausführen
       (Spalte `cancel_at_period_end`)
-- [ ] `server/stripe-webhook.php` und `server/api-stripe-actions.php`
+- [x] `server/stripe-webhook.php` und `server/api-stripe-actions.php`
       erneut per FTP nach `/public/app/` laden
-- [ ] Danach im Kundenportal kündigen: In der App muss
-      „Gekündigt. Nutzbar noch bis …" stehen statt „wird automatisch
-      fortgesetzt"
+- [x] Im Kundenportal kündigen — die App zeigt
+      „Gekündigt. Nutzbar noch bis 02.10.2026"
 
 ## Aus früheren Sitzungen
 

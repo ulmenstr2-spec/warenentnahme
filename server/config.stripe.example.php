@@ -21,7 +21,17 @@
  * "No such price" und umgekehrt. Also die ID immer aus dem Produktkatalog
  * des Modus holen, dessen Schluessel unten stehen.
  *
- * Live-ID (26.08.2026 angelegt): price_1U8jq3BlitlFPQjTQWiolg3J
+ * Bekannt ist bisher nur die Sandbox-ID:
+ *   price_1U8jq3BlitlFPQjTQWioIg3J
+ *
+ * Eine Live-ID gibt es noch nicht — das Produkt muss im Live-Modus erst
+ * angelegt werden.
+ *
+ * Beim Abtippen aufpassen: In diesen IDs stecken grosses I und kleines l
+ * direkt nebeneinander (…QWioIg3J), und in vielen Schriftarten sehen sie
+ * gleich aus. Ein vertauschtes Zeichen sieht spaeter wie eine ID aus dem
+ * falschen Modus aus und kostet eine Stunde Suche. Immer kopieren, nie
+ * abtippen.
  */
 define('STRIPE_PRICE_ID',       'price_HIER_EINTRAGEN');
 

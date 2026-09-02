@@ -4044,6 +4044,9 @@ function ImportTab({arts,setArts,showT,ents=[],hh,setHH,setEnts,setMeals,setFavs
   const[invoiceState,setInvoiceState]=useState('idle'); // idle|analyzing|done|error
   const[invoiceResult,setInvoiceResult]=useState(null);
   const[invoiceError,setInvoiceError]=useState('');
+  // Hinweis bei brauchbarer, aber moeglicherweise unvollstaendiger Liste.
+  // Getrennt von invoiceError: der wird nur im Fehlerzustand angezeigt.
+  const[invoiceHinweis,setInvoiceHinweis]=useState('');
   const[invoiceDebug,setInvoiceDebug]=useState('');
   const[invoiceSelected,setInvoiceSelected]=useState({});
   const cameraRef=React.useRef(null);
@@ -4205,7 +4208,7 @@ function ImportTab({arts,setArts,showT,ents=[],hh,setHH,setEnts,setMeals,setFavs
 
   const analyzeInvoice=async(file)=>{
     setInvoiceState('analyzing');
-    setInvoiceResult(null);
+    setInvoiceResult(null);setInvoiceHinweis('');
     setInvoiceSelected({});
     setInvoiceError('');
     setInvoiceDebug('');
@@ -4261,41 +4264,100 @@ Alle Lebensmittel=7%, Spirituosen/Getränke=19%.`;
         }
       };
 
-      // Multi-turn extraction loop: keep asking Claude to continue until done
+      // Lange Rechnungen passen nicht in eine Antwort und werden in
+      // mehreren Durchgaengen geholt.
+      //
+      // Frueher wurde die Rechnung ab dem zweiten Durchgang WEGGELASSEN
+      // ("DON'T resend the PDF - too large"). Das Modell sollte "ab dem
+      // letzten weiterlesen" — aus einem Dokument, das es nicht mehr sah.
+      // Es hat dann wiederholt, was es schon genannt hatte, und den Rest
+      // geraten. Genau das hat ein Nutzer gemeldet: Artikel doppelt,
+      // Artikel fehlten. Die Rechnung geht jetzt in jedem Durchgang mit.
+      //
+      // Zusaetzlich bekommt das Modell die zuletzt gefundenen Namen, damit
+      // es weiss, wo es steht — und Dubletten werden hier ohnehin
+      // verworfen, falls es sich doch wiederholt.
+      const dublettenSchluessel=it=>
+        String(it&&it.n||'').toLowerCase().replace(/\s+/g,' ').trim()
+        +'|'+String(it&&it.e||'').toLowerCase().trim();
+
       let allItems=[];
+      const gesehen=new Set();
+      const uebernehmen=batch=>{
+        let neu=0;
+        (batch||[]).forEach(it=>{
+          const k=dublettenSchluessel(it);
+          if(!it||!it.n||gesehen.has(k))return;
+          gesehen.add(k);allItems.push(it);neu++;
+        });
+        return neu;                       // wie viele davon wirklich neu waren
+      };
+
       let messages=[{role:'user',content:[contentBlock,{type:'text',text:prompt}]}];
-      let pass=0;
+      let pass=0, abbruchGrund='';
       const maxPasses=5;
 
       while(pass<maxPasses){
         pass++;
         if(pass>1) setInvoiceError(`Lade Teil ${pass}… (${allItems.length} Artikel bisher)`);
-        const resp=await fetch('./api-proxy.php',{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({model:'claude-sonnet-4-5-20250929',max_tokens:8000,messages})
-        });
-        const data=await resp.json();
+        let data=null;
+        try{
+          const resp=await fetch('./api-proxy.php',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({model:'claude-sonnet-4-5-20250929',max_tokens:8000,messages})
+          });
+          data=await resp.json();
+        }catch(netz){
+          abbruchGrund='netz';
+          setInvoiceDebug('Netzwerkfehler Pass '+pass+': '+netz.message);
+          break;
+        }
         if(!data||!data.content){
+          // Fruher landete das nur in der Debug-Anzeige, die zwei Zeilen
+          // spaeter geleert wurde. Ein technischer Ausfall — leeres
+          // Guthaben, Ueberlastung, falscher Schluessel — sah damit genauso
+          // aus wie eine Rechnung ohne erkennbare Artikel.
+          abbruchGrund='api';
           setInvoiceDebug('API-Fehler Pass '+pass+': '+JSON.stringify(data).substring(0,200));
           break;
         }
         const text=(data.content||[]).map(c=>c.text||'').join('');
         if(pass===1) setInvoiceDebug('RAW:'+text.substring(0,200));
-        const batch=parseItems(text);
-        allItems=[...allItems,...batch];
+        const neu=uebernehmen(parseItems(text));
         const truncated=data.stop_reason==='max_tokens';
-        if(!truncated||batch.length===0) break;
-        // Next turn: DON'T resend the PDF (too large) - just continue text conversation
-        // Remove the PDF document block from the first message for subsequent turns
-        const firstMsgTextOnly={role:'user',content:[{type:'text',text:prompt}]};
+        if(!truncated) break;
+        // Nichts Neues trotz abgeschnittener Antwort: ein weiterer Durchgang
+        // brauchte dasselbe nochmal. Lieber hier aufhoeren und es sagen.
+        if(neu===0){ abbruchGrund='ohne_fortschritt'; break; }
+        if(pass===maxPasses){ abbruchGrund='zu_lang'; break; }
+
+        const zuletzt=allItems.slice(-40).map(it=>it.n).join(' · ');
         messages=[
-          firstMsgTextOnly,
+          {role:'user',content:[contentBlock,{type:'text',text:prompt}]},
           {role:'assistant',content:text},
-          {role:'user',content:[{type:'text',text:'Weiter. Extrahiere die nächsten Artikel ab dem letzten. Nur JSON-Array.'}]}
+          {role:'user',content:[{type:'text',text:
+            'Weiter mit den noch fehlenden Artikeln aus derselben Rechnung. '
+            +'Bereits erfasst und NICHT zu wiederholen: '+zuletzt
+            +'\nNur JSON-Array.'}]}
         ];
       }
+
+      // Erst wenn wirklich nichts kam, ist es ein Fehler. Kamen Artikel und
+      // brach es danach ab, ist die Liste brauchbar — dann nur ein Hinweis.
       setInvoiceError('');
+      if(!allItems.length&&abbruchGrund){
+        // Ueber den vorhandenen Fehlerweg melden, damit der Text auch
+        // wirklich auf dem Bildschirm landet.
+        throw new Error(abbruchGrund==='netz'
+          ? 'Keine Verbindung zur Erkennung. Bitte später nochmal versuchen — oder die Artikel über Import oder von Hand erfassen.'
+          : 'Die Erkennung ist gerade nicht erreichbar. Bitte später nochmal versuchen — oder die Artikel über Import oder von Hand erfassen.');
+      }
+      // Es kamen Artikel, aber der Durchlauf endete vorzeitig: brauchbar,
+      // aber der Nutzer muss wissen, dass die Liste unvollstaendig sein kann.
+      setInvoiceHinweis(abbruchGrund
+        ? `Die Rechnung ist sehr lang. ${allItems.length} Artikel wurden erkannt, weitere können fehlen — bitte die Liste durchsehen und Fehlendes von Hand ergänzen.`
+        : '');
 
       setInvoiceDebug('');
       if(!allItems.length) throw new Error('Keine Artikel erkannt – Format nicht lesbar');
@@ -4505,6 +4567,11 @@ Alle Lebensmittel=7%, Spirituosen/Getränke=19%.`;
         </div>}
 
         {invoiceState==='done'&&invoiceResult&&<div>
+          {invoiceHinweis&&<div style={{background:'var(--lm)',border:'1px solid var(--border2)',
+            borderRadius:12,padding:'10px 14px',marginBottom:10,display:'flex',gap:10,alignItems:'flex-start'}}>
+            <Icon name="alert" size={16} color="var(--amber)"/>
+            <span style={{fontSize:11.5,color:'var(--t2)',lineHeight:1.5}}>{invoiceHinweis}</span>
+          </div>}
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
             <span style={{fontSize:11,color:'#2a6010'}}>{invoiceResult.filter((_,i)=>invoiceSelected[i]).length} von {invoiceResult.length} ausgewählt</span>
             <button onClick={()=>{const all={};invoiceResult.forEach((_,i)=>all[i]=true);setInvoiceSelected(all);}} style={{background:'none',border:'none',color:'var(--t2)',fontSize:10,cursor:'pointer',fontVariantNumeric:'tabular-nums'}}>Alle</button>

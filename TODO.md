@@ -90,6 +90,20 @@ Der Einbau in `api.php` ist erledigt — die ergänzte Datei liegt als
 - [ ] Prüfen: Fußbereich → „Verträge hier kündigen" → Formular →
       „Jetzt kündigen" → Bestätigungsseite und zwei Mails
 
+## Rechnungs-Scan (02.09.2026)
+
+Ein Nutzer meldete: „nicht alle Artikel erfasst oder mehrfach erfasst".
+Ursache gefunden und behoben — ab dem zweiten Durchgang wurde die Rechnung
+nicht mehr mitgeschickt, das Modell sollte aus einem Dokument weiterlesen,
+das es nicht mehr sah.
+
+- [ ] Neue `app.html` geht mit dem Merge automatisch raus
+- [ ] Yves Lhuissier antworten und um einen der fehlgeschlagenen Belege
+      bitten — als echter Testfall wertvoller als jeder nachgebaute
+- [ ] Später prüfen: Zwischenspeicher des Anbieters für das wiederholte
+      Mitschicken der Rechnung. Spart Kosten, konnte hier nicht getestet
+      werden und gehörte deshalb nicht in die Fehlerbehebung.
+
 ## Aus früheren Sitzungen
 
 ## Mailversand (02.09.2026)

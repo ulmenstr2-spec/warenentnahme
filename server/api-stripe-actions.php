@@ -41,7 +41,8 @@ function stripe_zeit_iso(?string $wert): ?string {
  *  geändert haben, der übergebene Datensatz wäre dann veraltet. */
 function stripe_nutzer_laden(PDO $pdo, $userId): ?array {
     $st = $pdo->prepare('SELECT id, email, stripe_customer_id, stripe_subscription_id,
-                                subscription_status, trial_ends_at, current_period_end
+                                subscription_status, trial_ends_at, current_period_end,
+                                cancel_at_period_end
                          FROM users WHERE id = ?');
     $st->execute([$userId]);
     $row = $st->fetch(PDO::FETCH_ASSOC);
@@ -72,10 +73,13 @@ function stripe_aktion(PDO $pdo, array $user, string $action): array {
 
             case 'subscription_status':
                 return [
-                    'ok'                  => true,
-                    'subscription_status' => $u['subscription_status'] ?: 'none',
-                    'trial_ends_at'       => stripe_zeit_iso($u['trial_ends_at']),
-                    'current_period_end'  => stripe_zeit_iso($u['current_period_end']),
+                    'ok'                   => true,
+                    'subscription_status'  => $u['subscription_status'] ?: 'none',
+                    'trial_ends_at'        => stripe_zeit_iso($u['trial_ends_at']),
+                    'current_period_end'   => stripe_zeit_iso($u['current_period_end']),
+                    // Gekuendigt, laeuft aber noch bis zum Ende des bezahlten
+                    // Zeitraums. Der Status allein verraet das nicht.
+                    'cancel_at_period_end' => !empty($u['cancel_at_period_end']),
                 ];
 
             case 'create_checkout_session': {

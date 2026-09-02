@@ -1020,7 +1020,7 @@ function App(){
         // geprueft merkt sich, dass der Server tatsaechlich geantwortet hat.
         // Ohne diese Auskunft wird nicht gesperrt — siehe darfSchreiben.
         const a={status:j.subscription_status,trialEndsAt:j.trial_ends_at||null,
-          periodEnd:j.current_period_end||null,geprueft:true};
+          periodEnd:j.current_period_end||null,gekuendigt:!!j.cancel_at_period_end,geprueft:true};
         merkeAbo(a);return a;
       }
     }catch(e){console.warn('[abo] Status nicht abrufbar:',e);}
@@ -1672,18 +1672,43 @@ function App(){
       ⚠️ Gerätespeicher fast voll! Alte Artikel löschen um Datenverlust zu vermeiden.
       <button onClick={()=>setStorageWarn(false)} style={{background:'none',border:'1px solid rgba(255,255,255,0.6)',color:'#fff',borderRadius:8,padding:'1px 6px',cursor:'pointer',fontSize:11}}>✕</button>
     </div>}
-    {/* ── TESTPHASE: verbleibende Tage ── */}
-    {abo.status==='trialing'&&abo.trialEndsAt&&(()=>{
-      const tage=Math.max(0,Math.ceil((new Date(abo.trialEndsAt)-Date.now())/86400000));
+    {/* ── ABO-HINWEIS: Testphase oder Kuendigung ──
+        Eine gekuendigte Mitgliedschaft laeuft bis zum Ende des bezahlten
+        Zeitraums weiter — der Status bleibt solange trialing bzw. active.
+        Frueher stand hier deshalb auch nach einer Kuendigung noch
+        "wird automatisch fortgesetzt". Wer das liest, haelt seine
+        Kuendigung fuer gescheitert und kuendigt ein zweites Mal oder
+        schreibt eine Beschwerde. */}
+    {(()=>{
+      const laufend=abo.status==='trialing'||abo.status==='active';
+      if(!laufend)return null;
+      const bisStr=d=>{
+        const x=new Date(d);
+        return isNaN(x)?null:x.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+      };
+      let ikone='check_circle',farbe='var(--gruen)',text=null;
+
+      if(abo.gekuendigt){
+        // Zugang endet mit dem bezahlten Zeitraum; in der Testphase ist das
+        // deren Ende, sonst das Ende der Abrechnungsperiode.
+        const bis=bisStr(abo.periodEnd||abo.trialEndsAt);
+        ikone='alert';farbe='var(--amber)';
+        text=<>Gekündigt.{bis&&<> Nutzbar noch <strong style={{color:'var(--text)'}}>bis {bis}</strong>.</>}
+          {' '}Deine Aufzeichnungen und Exporte bleiben auch danach zugänglich.</>;
+      } else if(abo.status==='trialing'&&abo.trialEndsAt){
+        const tage=Math.max(0,Math.ceil((new Date(abo.trialEndsAt)-Date.now())/86400000));
+        text=<>Testphase läuft — <strong style={{color:'var(--text)'}}>noch {tage} {tage===1?'Tag':'Tage'}</strong>.
+          {' '}Danach wird das Abo automatisch fortgesetzt.</>;
+      }
+      if(!text)return null;
+
       return <div style={{margin:'12px 16px 0',background:'var(--lm)',border:'1px solid var(--border2)',
         borderRadius:14,padding:'12px 16px',display:'flex',alignItems:'center',gap:12}}>
-        <Icon name="check_circle" size={18} color="var(--gruen)"/>
-        <span style={{flex:1,fontSize:12.5,color:'var(--t2)',lineHeight:1.5}}>
-          Testphase läuft — <strong style={{color:'var(--text)'}}>noch {tage} {tage===1?'Tag':'Tage'}</strong>.
-          Danach wird das Abo automatisch fortgesetzt.
-        </span>
+        <Icon name={ikone} size={18} color={farbe}/>
+        <span style={{flex:1,fontSize:12.5,color:'var(--t2)',lineHeight:1.5}}>{text}</span>
         <button onClick={oeffneAboPortal} style={{border:'none',background:'none',color:'var(--gruen)',
-          fontSize:12,fontWeight:700,cursor:'pointer',padding:'4px 2px',whiteSpace:'nowrap'}}>Verwalten</button>
+          fontSize:12,fontWeight:700,cursor:'pointer',padding:'4px 2px',whiteSpace:'nowrap'}}>
+          {abo.gekuendigt?'Fortsetzen':'Verwalten'}</button>
       </div>;
     })()}
 

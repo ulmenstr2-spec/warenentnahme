@@ -12,12 +12,17 @@ sie müssen erledigt sein, bevor echtes Geld fließt.
       Anmeldung nicht sicher unterscheiden lässt, ist die Belehrung der
       sichere Weg. Dazu die Frage, ob ein vorzeitiger Leistungsbeginn
       vereinbart wird (sonst läuft die Frist gegen den Start der Nutzung).
-- [ ] **Kündigungsbutton nach § 312k BGB** — bei online geschlossenen
-      Dauerschuldverhältnissen mit Verbrauchern verlangt das Gesetz eine
-      unmittelbar erreichbare Schaltfläche „Verträge hier kündigen".
-      Das Stripe-Kundenportal allein genügt dafür voraussichtlich nicht,
-      weil es hinter dem Login liegt — die Schaltfläche muss ohne
-      Anmeldung erreichbar sein.
+- [x] **Kündigungsbutton nach § 312k BGB** — gebaut: `kuendigung.html`
+      mit Formular und Schaltfläche „Jetzt kündigen", verlinkt als
+      „Verträge hier kündigen" im Fußbereich aller Seiten, ohne
+      Anmeldung erreichbar. `server/kuendigung.php` nimmt die Erklärung
+      entgegen, bestätigt sofort per Mail und zeigt eine speicher- und
+      druckbare Seite mit Datum, Uhrzeit und Vorgangsnummer.
+      **Die Formulierungen gehören trotzdem einmal geprüft.**
+      Das Abo wird bewusst nicht automatisch beendet: Das Formular ist
+      ohne Anmeldung erreichbar, sonst könnte jemand mit einer fremden
+      E-Mail-Adresse das Abo eines Fremden kündigen. Die Erklärung geht
+      an den Betreiber, der sie in Stripe ausführt.
 - [ ] **Preisangaben nach PAngV** prüfen: Gesamtpreis, Hinweis auf
       § 19 UStG (steht bereits auf der Preisseite), Laufzeit
 - [ ] Rechnungsfußzeile in Stripe: `Gemäß § 19 UStG wird keine
@@ -74,6 +79,16 @@ Der Einbau in `api.php` ist erledigt — die ergänzte Datei liegt als
       erneut per FTP nach `/public/app/` laden
 - [x] Im Kundenportal kündigen — die App zeigt
       „Gekündigt. Nutzbar noch bis 02.10.2026"
+
+## Kündigungsbutton hochladen
+
+- [ ] `server/mailversand.php` nach `/public/app/` — **zuerst**,
+      `api.php` bricht sonst ab
+- [ ] `server/api.php` nach `/public/app/` (nutzt jetzt mailversand.php)
+- [ ] `server/kuendigung.php` nach `/public/` — **nicht** nach /app/
+- [ ] Nach dem Merge deployt `kuendigung.html` von allein
+- [ ] Prüfen: Fußbereich → „Verträge hier kündigen" → Formular →
+      „Jetzt kündigen" → Bestätigungsseite und zwei Mails
 
 ## Aus früheren Sitzungen
 

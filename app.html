@@ -1026,6 +1026,14 @@ function App(){
     }catch(e){console.warn('[abo] Status nicht abrufbar:',e);}
     return null;
   };
+  // Den Abo-Stand bei jedem Kontowechsel holen, nicht nur beim App-Start.
+  // Vorher hing der Aufruf im Start-Effekt: Wer sich frisch anmeldete,
+  // behielt bis zum naechsten Start den Anfangswert — also einen Stand,
+  // den der Server nie bestaetigt hat. Zusammen mit der Absicherung
+  // (ohne Serverauskunft wird nicht gesperrt) blieb die Sperre dadurch
+  // nach jeder Neuanmeldung aus.
+  useEffect(()=>{ if(authToken)ladeAboStatus(authToken); },[authToken]);
+
   const oeffneAboPortal=async()=>{
     if(!authToken){setShowSyncModal(true);return;}
     try{
@@ -1362,6 +1370,11 @@ function App(){
     setAuthEmail('');setAuthToken('');
     localStorage.removeItem('gt_auth_email');
     localStorage.removeItem('gt_auth_token');
+    // Abo-Stand mitnehmen: Er gehoert zum abgemeldeten Konto. Bliebe er
+    // liegen, wuerde sich das naechste Konto bis zur ersten Serverantwort
+    // mit dem Abo des vorigen schmuecken.
+    setAbo({status:'none'});
+    try{localStorage.removeItem('gt_abo');}catch{}
     setSyncStatus('idle');
     if(confirm)showT('Abgemeldet');
   };
@@ -1374,7 +1387,6 @@ function App(){
   // Pull beim App-Start (token aus localStorage)
   useEffect(()=>{
     if(authToken)syncPull(authToken);
-    if(authToken)ladeAboStatus(authToken);
     // URL-Parameter nach E-Mail-Bestätigung verarbeiten
     const params=new URLSearchParams(window.location.search);
     // Rückkehr aus der Bezahlung: Der Server erfährt das Ergebnis über einen

@@ -19,6 +19,34 @@ Options -Indexes
   Require all denied
 </FilesMatch>
 
+# Zwischenspeicher im Browser
+#
+# Ohne Angabe denkt sich jeder Browser die Haltbarkeit selbst aus und liegt
+# dabei gern bei Stunden bis Tagen. Nach einem Deploy sehen Besucher dann
+# weiter die alte Seite — ohne Fehlermeldung, ohne dass es jemandem auffaellt.
+<IfModule mod_headers.c>
+  # HTML: darf zwischengespeichert werden, aber nur nach Rueckfrage beim
+  # Server. Hat sich nichts geaendert, antwortet der mit "unveraendert"
+  # und es wird nichts uebertragen — kostet also fast nichts.
+  <FilesMatch "\.html?$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+  # Bilder und Schriften aendern sich praktisch nie und tragen keine
+  # Aussagen, die falsch werden koennen. Die duerfen liegen bleiben.
+  <FilesMatch "\.(png|jpe?g|webp|svg|ico|woff2?)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+</IfModule>
+
+# Beipack der Stripe-Bibliothek nicht ausliefern. README, CHANGELOG und
+# VERSION verraten die genaue Fassung und helfen nur jemandem, der nach
+# bekannten Luecken sucht. Die PHP-Dateien werden ausgefuehrt statt
+# angezeigt und bleiben unberuehrt; manifest.json und sitemap.xml
+# ebenfalls, die werden gebraucht.
+<FilesMatch "\.(md|lock|dist|ya?ml|gitignore)$|^(VERSION|LICENSE|CODEGEN_VERSION|OPENAPI_VERSION)$">
+  Require all denied
+</FilesMatch>
+
 # X-Frame-Options ENTFERNT — blockiert iframe auf gleicher Domain
 # Stattdessen: CSP frame-ancestors erlaubt nur eigene Domain
 <IfModule mod_headers.c>

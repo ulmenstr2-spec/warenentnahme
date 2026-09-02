@@ -85,9 +85,14 @@ die Mailserver aus dem SPF-Eintrag der Domain. SPF und DMARC sind gesetzt,
 ein DKIM-Eintrag war unter den gängigen Namen nicht auffindbar.
 
 Umgestellt auf SMTP mit Anmeldung über das vorhandene Postfach
-`hallo@warenentnahme.de`.
+`hallo@warenentnahme.de`. **Erledigt und bestätigt:** Gmail meldet
+`SPF: PASS`, `DKIM: PASS` (Selektor `s1-ionos`), `DMARC: PASS`,
+Zustellung in 0 Sekunden über `mout.kundenserver.de`.
 
-- [ ] In `config.php` ergänzen:
+Ein DKIM-Eintrag war also die ganze Zeit vorhanden — er wurde nur nicht
+genutzt, weil `mail()` am Mailserver vorbei verschickte.
+
+- [x] In `config.php` ergänzen:
       ```php
       define('SMTP_HOST',   'smtp.ionos.de');
       define('SMTP_PORT',   465);
@@ -95,11 +100,12 @@ Umgestellt auf SMTP mit Anmeldung über das vorhandene Postfach
       define('SMTP_USER',   'hallo@warenentnahme.de');
       define('SMTP_PASS',   'DAS-POSTFACH-PASSWORT');
       ```
-- [ ] `MAIL_FROM` von `noreply@` auf `hallo@warenentnahme.de` ändern —
-      unter fremdem Namen zu verschicken führt wieder zur Abweisung
-- [ ] Neue `server/api.php` hochladen
-- [ ] Mit `server/mailtest.php` prüfen, danach die Datei **löschen**
-- [ ] Zur Sicherheit eine echte Registrierung mit einer Gmail-Adresse
+- [x] `MAIL_FROM` von `noreply@` auf `hallo@warenentnahme.de` geändert
+- [x] Neue `server/api.php` hochgeladen
+- [x] Mit `server/mailtest.php` geprüft
+- [ ] **`mailtest.php` vom Server löschen**
+- [ ] Echte Registrierung mit einer Gmail-Adresse durchspielen
+      (Posteingang, nicht Spam?)
 - [ ] **Datenbank-Passwort ändern** — das alte steht weiterhin in der
       Git-Historie
 - [ ] **AVV mit IONOS** im Kundenkonto abschließen; den Entwurf für eigene

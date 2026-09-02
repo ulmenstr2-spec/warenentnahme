@@ -132,6 +132,9 @@ try {
                 'subscription_status'    => statusAbbilden($sub->status),
                 'trial_ends_at'          => zeit($sub->trial_end ?? null),
                 'current_period_end'     => zeit(periodenEnde($sub)),
+                // Vorgemerkte Kuendigung. Der Status bleibt dabei active
+                // bzw. trialing — nur hieran ist sie zu erkennen.
+                'cancel_at_period_end'   => !empty($sub->cancel_at_period_end) ? 1 : 0,
             ]);
             break;
         }
@@ -139,8 +142,12 @@ try {
         case 'customer.subscription.deleted': {
             $sub = $event->data->object;
             nutzerSetzen($pdo, $sub->customer, [
-                'subscription_status' => 'canceled',
-                'current_period_end'  => zeit(periodenEnde($sub)),
+                'subscription_status'  => 'canceled',
+                'current_period_end'   => zeit(periodenEnde($sub)),
+                // Die Vormerkung ist eingetreten; sie steht jetzt nicht
+                // mehr bevor. Sonst zeigte ein spaeter neu abgeschlossenes
+                // Abo faelschlich weiter "gekuendigt".
+                'cancel_at_period_end' => 0,
             ]);
             break;
         }

@@ -53,6 +53,16 @@ Der Einbau in `api.php` ist erledigt — die ergänzte Datei liegt als
       Status `trialing` → im Portal kündigen → Status `canceled` →
       neue Einträge gesperrt, Export weiterhin möglich
 
+## Kündigungs-Hinweis (Nachtrag)
+
+- [ ] `server/migration-stripe-2.sql` in phpMyAdmin ausführen
+      (Spalte `cancel_at_period_end`)
+- [ ] `server/stripe-webhook.php` und `server/api-stripe-actions.php`
+      erneut per FTP nach `/public/app/` laden
+- [ ] Danach im Kundenportal kündigen: In der App muss
+      „Gekündigt. Nutzbar noch bis …" stehen statt „wird automatisch
+      fortgesetzt"
+
 ## Aus früheren Sitzungen
 
 - [ ] **Bestätigungsmail auf Spam prüfen** (GMX, Web.de, Gmail). Landet sie

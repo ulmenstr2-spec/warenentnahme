@@ -80,15 +80,25 @@ Der Einbau in `api.php` ist erledigt — die ergänzte Datei liegt als
 - [x] Im Kundenportal kündigen — die App zeigt
       „Gekündigt. Nutzbar noch bis 02.10.2026"
 
-## Kündigungsbutton hochladen
+## Kündigungsbutton (erledigt am 03.09.2026)
 
-- [ ] `server/mailversand.php` nach `/public/app/` — **zuerst**,
-      `api.php` bricht sonst ab
-- [ ] `server/api.php` nach `/public/app/` (nutzt jetzt mailversand.php)
-- [ ] `server/kuendigung.php` nach `/public/` — **nicht** nach /app/
-- [ ] Nach dem Merge deployt `kuendigung.html` von allein
-- [ ] Prüfen: Fußbereich → „Verträge hier kündigen" → Formular →
-      „Jetzt kündigen" → Bestätigungsseite und zwei Mails
+**Merke: Es sind ZWEI Dateien mit fast gleichem Namen.**
+
+| Datei | Was | Wie sie auf den Server kommt |
+|---|---|---|
+| `kuendigung.html` | das Formular | automatisch mit dem Deploy |
+| `kuendigung.php` | der Empfänger, verschickt die Mails | **von Hand** nach `/public/` |
+
+Beide gehören nach `/public/`, nicht nach `/public/app/`. Fehlt der
+Empfänger, zeigt das Formular beim Absenden nur sich selbst noch einmal.
+Genau das ist beim Einrichten passiert.
+
+- [x] `server/mailversand.php` nach `/public/app/`
+- [x] `server/api.php` nach `/public/app/`
+- [x] `server/kuendigung.php` nach `/public/`
+- [x] Vollständig durchgespielt: Formular → Bestätigungsseite mit
+      Vorgangsnummer → Kopie an den Betreiber → Bestätigung an den Kunden,
+      bei T-Online im Posteingang
 - [x] Auch in der App verlinkt, unten neben der Versionszeile. Dort
       schließt man das Abo ab, also sucht man dort auch die Kündigung.
 
@@ -105,6 +115,23 @@ das es nicht mehr sah.
 - [ ] Später prüfen: Zwischenspeicher des Anbieters für das wiederholte
       Mitschicken der Rechnung. Spart Kosten, konnte hier nicht getestet
       werden und gehörte deshalb nicht in die Fehlerbehebung.
+
+## Aus der anwaltlichen Prüfung (03.09.2026)
+
+Die Kanzlei empfiehlt die Umstellung auf ein **reines B2B-Modell**. Damit
+entfallen Widerrufsrecht, PAngV-Pflichten und der Zwang zur monatlichen
+Kündigung — die jährliche Verlängerung darf bleiben.
+
+- [x] **Google Fonts lokal** — war als Abmahnrisiko eingestuft, umgesetzt
+- [ ] **B2B-Schranke bei der Registrierung**: Klartext-Hinweis, aktive
+      Checkbox, Pflichtfeld Firmenname. Steuernummer ist ausdrücklich
+      **nicht** nötig. Wortlaut kommt von der Kanzlei.
+- [ ] **Nachweis speichern**: Zeitstempel (UTC), Firmenbezeichnung,
+      Versionsnummern von AGB und AVV, Kunden-ID
+- [ ] **Bestandskonten**: Beim nächsten Login eine Zwischenseite, die
+      erst nach Bestätigung der Unternehmereigenschaft weiterlässt.
+      Ohne Bestätigung kein Zahlungsvorgang.
+- [ ] Nach Erhalt der Texte: AGB, Datenschutz-Ergänzung und AVV einbauen
 
 ## Aus früheren Sitzungen
 

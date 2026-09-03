@@ -2483,11 +2483,29 @@ function App(){
       </svg>
     </button>
 
-    {/* ── VERSIONSANZEIGE ── */}
-    <div style={{textAlign:'center',fontSize:10,color:'var(--t3)',padding:'10px 0 6px',opacity:.75}}>
-      {window.__APP_BUILD__&&!window.__APP_BUILD__.startsWith('__')
-        ?`Version ${window.__APP_BUILD_DATE__} · ${window.__APP_BUILD__.slice(0,7)}`
-        :'Lokale Entwicklungsversion'}
+    {/* ── FUSSZEILE: Version und Kuendigung ──
+        Die Schaltflaeche nach § 312k BGB steht auch im Fussbereich der
+        Website. Sie gehoert zusaetzlich hierher: Das Abo wird in der App
+        abgeschlossen, also sucht sie dort auch, wer kuendigen will.
+        Findet er nichts, schreibt er im Zweifel nicht — er bucht zurueck.
+        Bewusst ein normaler Link nach draussen: Die Seite muss ohne
+        Anmeldung erreichbar sein, und in der App koennte jemand angemeldet
+        sein oder nicht. */}
+    <div style={{textAlign:'center',display:'flex',flexDirection:'column',
+      alignItems:'center',gap:5,paddingTop:10,
+      // Die Navigationsleiste liegt fest ueber dem Seitenende. Ohne diesen
+      // Abstand liegt der Link zwar sichtbar da, laesst sich aber nicht
+      // antippen — die Leiste faengt die Beruehrung ab.
+      paddingBottom:'calc(var(--nh) + env(safe-area-inset-bottom, 0px) + 16px)'}}>
+      <div style={{fontSize:10,color:'var(--t3)',opacity:.75}}>
+        {window.__APP_BUILD__&&!window.__APP_BUILD__.startsWith('__')
+          ?`Version ${window.__APP_BUILD_DATE__} · ${window.__APP_BUILD__.slice(0,7)}`
+          :'Lokale Entwicklungsversion'}
+      </div>
+      <a href="/kuendigung.html" style={{fontSize:10.5,color:'var(--t2)',
+        textDecoration:'underline',textUnderlineOffset:2,padding:'4px 8px'}}>
+        Verträge hier kündigen
+      </a>
     </div>
 
     <nav className="nav" style={{gridTemplateColumns:`repeat(${TABS.length},1fr)`}}>

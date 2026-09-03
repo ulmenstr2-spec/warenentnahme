@@ -89,6 +89,8 @@ Der Einbau in `api.php` ist erledigt — die ergänzte Datei liegt als
 - [ ] Nach dem Merge deployt `kuendigung.html` von allein
 - [ ] Prüfen: Fußbereich → „Verträge hier kündigen" → Formular →
       „Jetzt kündigen" → Bestätigungsseite und zwei Mails
+- [x] Auch in der App verlinkt, unten neben der Versionszeile. Dort
+      schließt man das Abo ab, also sucht man dort auch die Kündigung.
 
 ## Rechnungs-Scan (02.09.2026)
 

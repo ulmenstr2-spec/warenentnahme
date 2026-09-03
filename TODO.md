@@ -116,6 +116,23 @@ das es nicht mehr sah.
       Mitschicken der Rechnung. Spart Kosten, konnte hier nicht getestet
       werden und gehörte deshalb nicht in die Fehlerbehebung.
 
+## Aus der anwaltlichen Prüfung (03.09.2026)
+
+Die Kanzlei empfiehlt die Umstellung auf ein **reines B2B-Modell**. Damit
+entfallen Widerrufsrecht, PAngV-Pflichten und der Zwang zur monatlichen
+Kündigung — die jährliche Verlängerung darf bleiben.
+
+- [x] **Google Fonts lokal** — war als Abmahnrisiko eingestuft, umgesetzt
+- [ ] **B2B-Schranke bei der Registrierung**: Klartext-Hinweis, aktive
+      Checkbox, Pflichtfeld Firmenname. Steuernummer ist ausdrücklich
+      **nicht** nötig. Wortlaut kommt von der Kanzlei.
+- [ ] **Nachweis speichern**: Zeitstempel (UTC), Firmenbezeichnung,
+      Versionsnummern von AGB und AVV, Kunden-ID
+- [ ] **Bestandskonten**: Beim nächsten Login eine Zwischenseite, die
+      erst nach Bestätigung der Unternehmereigenschaft weiterlässt.
+      Ohne Bestätigung kein Zahlungsvorgang.
+- [ ] Nach Erhalt der Texte: AGB, Datenschutz-Ergänzung und AVV einbauen
+
 ## Aus früheren Sitzungen
 
 ## Mailversand (02.09.2026)

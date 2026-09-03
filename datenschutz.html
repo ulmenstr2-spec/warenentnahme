@@ -14,7 +14,8 @@ body{font-family:'Figtree',sans-serif;background:var(--cream);color:var(--text);
 main{max-width:680px;margin:0 auto}
 a{color:var(--green)}
 .back{display:inline-block;font-size:14px;font-weight:600;text-decoration:none;margin-bottom:36px}
-h1{font-family:'Fraunces',serif;font-size:38px;margin-bottom:32px}
+h1,h2{overflow-wrap:break-word;hyphens:auto}
+h1{font-family:'Fraunces',serif;font-size:clamp(26px,7vw,38px);line-height:1.15;margin-bottom:32px}
 h2{font-family:'Fraunces',serif;font-size:20px;margin:28px 0 10px;color:var(--green)}
 p{margin-bottom:12px;color:var(--text-mid)}
 footer{max-width:680px;margin:64px auto 0;padding-top:24px;border-top:1px solid var(--border);font-size:13px;color:var(--text-mid)}
@@ -33,21 +34,24 @@ footer{max-width:680px;margin:64px auto 0;padding-top:24px;border-top:1px solid 
   <p>Die App nutzt localStorage für die lokale Datenspeicherung auf deinem Gerät. Es werden keine Tracking-Cookies verwendet und keine Daten an Dritte zu Werbezwecken weitergegeben.</p>
   <h2>4. Zahlungsabwicklung</h2>
   <p>Für das kostenpflichtige Abo arbeiten wir mit Stripe Technology Company Limited, One Wilton Park, Wilton Place, Dublin 2, D02 FX04, Irland zusammen. Der Bezahlvorgang selbst läuft auf einer von Stripe betriebenen Seite ab — <strong>Kartendaten und Bankverbindungen erreichen unsere Server zu keinem Zeitpunkt</strong> und werden von uns weder gespeichert noch eingesehen.</p>
-  <p>An Stripe übermittelt werden deine E-Mail-Adresse sowie die Angaben, die du im Bezahlvorgang oder im Kundenportal selbst einträgst (etwa Name und Rechnungsanschrift). Stripe verarbeitet zudem den Verlauf deiner Zahlungen und deines Abos. Rechtsgrundlage ist die Erfüllung des Vertrags (Art. 6 Abs. 1 lit. b DSGVO).</p>
+  <p>An Stripe übermittelt werden deine E-Mail-Adresse sowie die Angaben, die du im Bezahlvorgang oder im Kundenportal selbst einträgst (etwa Name und Rechnungsanschrift). Stripe verarbeitet zudem den Verlauf deiner Zahlungen und deines Abos. Rechtsgrundlage ist die Erfüllung des Vertrags (Art. 6 Abs. 1 lit. b DSGVO) sowie unser berechtigtes Interesse an einer sicheren Zahlungsabwicklung (Art. 6 Abs. 1 lit. f DSGVO).</p>
   <p>Stripe kann Daten an verbundene Unternehmen in den USA übermitteln. Grundlage dafür sind die Standardvertragsklauseln der EU-Kommission. Näheres in der Datenschutzerklärung von Stripe: <a href="https://stripe.com/de/privacy" rel="noopener">stripe.com/de/privacy</a>.</p>
   <h2>5. Rechnungserkennung mit KI</h2>
   <p>Die App bietet an, Lieferantenrechnungen und Lieferscheine zu fotografieren oder als PDF hochzuladen; die enthaltenen Artikel werden dann automatisch erkannt. <strong>Diese Funktion ist freiwillig</strong> — sie läuft nur, wenn du eine Datei dafür auswählst. Alle übrigen Teile der App funktionieren ohne sie.</p>
   <p>Zur Auswertung wird die Datei an Anthropic Ireland Limited, Irland übermittelt — nach Angaben des Anbieters erbringt diese Gesellschaft die Leistungen innerhalb der EU. Damit gehen auch alle Angaben mit, die auf dem Dokument stehen — also neben Artikeln und Preisen etwa der Name und die Anschrift des Lieferanten. Rechtsgrundlage ist die Erfüllung des Vertrags (Art. 6 Abs. 1 lit. b DSGVO), soweit Daten Dritter betroffen sind unser berechtigtes Interesse an einer funktionierenden Erfassung (Art. 6 Abs. 1 lit. f DSGVO).</p>
-  <p>Der Anbieter sichert in seinen Geschäftsbedingungen ausdrücklich zu, <strong>die übermittelten Inhalte nicht zum Training von Modellen zu verwenden</strong>. Die Verarbeitung richtet sich nach seinem Data Processing Addendum, das Bestandteil des Vertrags ist. Eine Verarbeitung durch verbundene Unternehmen außerhalb der EU ist dabei nicht ausgeschlossen; Grundlage dafür sind die Standardvertragsklauseln der EU-Kommission. Wir selbst speichern die hochgeladenen Dateien nicht dauerhaft; sie werden nur für die Dauer der Erkennung verarbeitet.</p>
+  <p>Mit dem Anbieter besteht ein Vertrag zur Auftragsverarbeitung (Data Processing Addendum). Vertraglich zugesichert ist, dass <strong>die übermittelten Inhalte nicht zum Training von Modellen verwendet werden</strong>. Eine Verarbeitung durch verbundene Unternehmen außerhalb der EU ist dabei nicht ausgeschlossen; Grundlage dafür sind die Standardvertragsklauseln der EU-Kommission. Wir selbst speichern die hochgeladenen Dateien nicht dauerhaft; sie werden nur für die Dauer der Erkennung verarbeitet.</p>
   <p>Näheres in den Unterlagen des Anbieters: <a href="https://www.anthropic.com/legal/privacy" rel="noopener">Datenschutzerklärung</a> und <a href="https://www.anthropic.com/legal/data-processing-addendum" rel="noopener">Data Processing Addendum</a>.</p>
   <p>Wenn du das nicht möchtest, erfasse deine Artikel stattdessen über den Import einer Lieferantendatei oder von Hand.</p>
   <h2>6. Schriftarten</h2>
   <p>Die verwendeten Schriftarten liegen auf unserem eigenen Server und werden von dort geladen. <strong>Es besteht dabei keine Verbindung zu Google oder einem anderen Anbieter</strong>, und es wird keine IP-Adresse an Dritte übertragen.</p>
   <h2>7. Auftragsverarbeitung</h2>
-  <p>Nutzt du die App gewerblich und speicherst dabei personenbezogene Daten Dritter — etwa Namen mitarbeitender Angehöriger —, verarbeiten wir diese Daten in deinem Auftrag. Einen Vertrag zur Auftragsverarbeitung nach Art. 28 DSGVO stellen wir auf Anfrage bereit: <a href="mailto:hallo@warenentnahme.de?subject=AVV%20Anfrage">hallo@warenentnahme.de</a>. Weitere Angaben für Kanzleien findest du auf der Seite <a href="./fuer-steuerberater.html">Für Steuerberater</a>.</p>
-  <h2>8. Deine Rechte</h2>
+  <p>Nutzt du die App gewerblich und speicherst dabei personenbezogene Daten Dritter — etwa Namen mitarbeitender Angehöriger —, verarbeiten wir diese Daten in deinem Auftrag. Den <a href="./avv.html">Vertrag zur Auftragsverarbeitung nach Art. 28 DSGVO</a> schließt du bei der Registrierung mit ab; er ist jederzeit auf dieser Website einsehbar. Bei Rückfragen: <a href="mailto:hallo@warenentnahme.de?subject=AVV%20Anfrage">hallo@warenentnahme.de</a>. Weitere Angaben für Kanzleien findest du auf der Seite <a href="./fuer-steuerberater.html">Für Steuerberater</a>.</p>
+  <h2>8. Speicherdauer und Löschung</h2>
+  <p>Wir speichern personenbezogene Daten nur so lange, wie es für den jeweiligen Zweck erforderlich ist. Nach einer Kündigung wird dein Zugang für die Neuerfassung gesperrt. Bestehende Aufzeichnungen bleiben im Nur-Lese-Modus erhalten, damit du deine steuerlichen Aufbewahrungspflichten (§ 147 AO, GoBD) erfüllen kannst — nach den <a href="./agb.html">AGB</a> für 12 Monate ab Kündigung.</p>
+  <p>Die vollständige Löschung deines Kontos kannst du jederzeit verlangen, soweit keine gesetzlichen Aufbewahrungspflichten entgegenstehen: <a href="mailto:hallo@warenentnahme.de?subject=Konto%20l%C3%B6schen">hallo@warenentnahme.de</a></p>
+  <h2>9. Deine Rechte</h2>
   <p>Du hast jederzeit das Recht auf Auskunft, Berichtigung und Löschung deiner Daten sowie das Recht auf Beschwerde bei einer Aufsichtsbehörde. Schreib uns: <a href="mailto:hallo@warenentnahme.de">hallo@warenentnahme.de</a></p>
 </main>
-<footer>© 2026 warenentnahme.de · <a href="./impressum.html">Impressum</a> · <a href="./kuendigung.html">Verträge hier kündigen</a></footer>
+<footer>© 2026 warenentnahme.de · <a href="./impressum.html">Impressum</a> · <a href="./agb.html">AGB</a> · <a href="./avv.html">AVV</a> · <a href="./kuendigung.html">Verträge hier kündigen</a></footer>
 </body>
 </html>

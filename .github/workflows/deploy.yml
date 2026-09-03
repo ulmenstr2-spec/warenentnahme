@@ -31,7 +31,7 @@ jobs:
           # server/ (PHP-Vorlagen, die manuell hochgeladen werden — dort
           # liegen Zugangsdaten daneben, die nichts im Deploy zu suchen haben)
           cp impressum.html datenschutz.html pauschbetraege.html fuer-steuerberater.html dist/root/
-          cp kuendigung.html dist/root/
+          cp kuendigung.html agb.html avv.html dist/root/
           # Schriftarten liegen lokal — sie duerfen nicht wieder von Google
           # nachgeladen werden (unzulaessige Uebermittlung der IP-Adresse).
           cp schriften.css dist/root/

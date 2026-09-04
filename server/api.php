@@ -23,6 +23,10 @@ require __DIR__ . '/config.php';
 // unterhalb davon wuerde nie ausgefuehrt, und sendMail() waere bei der
 // Registrierung nicht vorhanden — ein Absturz statt einer Bestaetigungsmail.
 require_once __DIR__ . '/mailversand.php';
+// Fassungen von AGB/AVV und der Wortlaut der Unternehmerbestaetigung.
+// Aus demselben Grund hier oben: unterhalb des Verteilers wuerde es nie
+// geladen, und die Registrierung wuerde mit einem Fehler abbrechen.
+require_once __DIR__ . '/rechtsstand.php';
 
 // ── CORS ────────────────────────────────────────────────────
 header('Access-Control-Allow-Origin: ' . ALLOWED_ORIGIN);
@@ -106,6 +110,9 @@ switch($action){
     case 'reset_do':  doResetDo($pdo, $in);   break;
     case 'status':    doStatus($pdo, $in);    break;
 
+    // Bestandskonten holen die Unternehmerbestaetigung nach.
+    case 'confirm_b2b': doConfirmB2b($pdo, $in); break;
+
     // Abo-Aktionen. Die Umsetzung liegt in api-stripe-actions.php,
     // damit diese Datei uebersichtlich bleibt.
     case 'create_checkout_session':
@@ -128,6 +135,20 @@ function doRegister(PDO $pdo, array $in): void {
     if(mb_strlen($pin) < 4) jsonErr('PIN mindestens 4 Zeichen');
     if(mb_strlen($pin) > 50) jsonErr('PIN zu lang');
 
+    // ── B2B-Schranke ────────────────────────────────────────
+    // Das Angebot richtet sich ausschliesslich an Unternehmer (§ 14 BGB).
+    // Beides wird hier geprueft und nicht nur in der App: Wer die Anfrage
+    // von Hand stellt, umginge eine reine Bildschirmpruefung muehelos.
+    $firma = firma_pruefen($in['firma'] ?? '');
+    if(!$firma) jsonErr('Bitte den Namen deines Betriebs angeben.');
+    if(($in['b2b'] ?? false) !== true){
+        jsonErr('Bitte bestätige, dass du die App als Unternehmer nutzt.');
+    }
+    // Zeitpunkt bewusst in UTC. Der Server steht auf deutscher Zeit und
+    // wechselt zweimal im Jahr — bei einer Bestaetigung um 2:30 Uhr in der
+    // Umstellungsnacht liesse sich sonst nicht sagen, welche gemeint ist.
+    $bestaetigtAm = gmdate('Y-m-d H:i:s');
+
     // Bereits registriert?
     $existing = $pdo->prepare("SELECT id, verified FROM users WHERE email = ?");
     $existing->execute([$email]);
@@ -142,18 +163,29 @@ function doRegister(PDO $pdo, array $in): void {
     $verifyExp  = date('Y-m-d H:i:s', strtotime('+' . VERIFY_CODE_MINUTES . ' minutes'));
 
     if($user) {
-        // Nicht verifiziert — Code erneuern
+        // Nicht verifiziert — Code erneuern. Die Bestaetigung kommt aus
+        // diesem Anlauf und wird mitgeschrieben, sie ersetzt die des
+        // abgebrochenen Versuchs.
         $upd = $pdo->prepare("
-            UPDATE users SET pin_hash=?, verify_code=?, verify_exp=? WHERE email=?
+            UPDATE users SET pin_hash=?, verify_code=?, verify_exp=?,
+                   firma=?, b2b_bestaetigt_am=?, b2b_erklaerung=?,
+                   agb_version=?, avv_version=?
+            WHERE email=?
         ");
-        $upd->execute([$pinHash, $verifyCode, $verifyExp, $email]);
+        $upd->execute([$pinHash, $verifyCode, $verifyExp,
+                       $firma, $bestaetigtAm, B2B_ERKLAERUNG_NEU,
+                       AGB_VERSION, AVV_VERSION, $email]);
     } else {
         // Neu anlegen
         $ins = $pdo->prepare("
-            INSERT INTO users (email, pin_hash, verify_code, verify_exp)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO users (email, pin_hash, verify_code, verify_exp,
+                               firma, b2b_bestaetigt_am, b2b_erklaerung,
+                               agb_version, avv_version)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
-        $ins->execute([$email, $pinHash, $verifyCode, $verifyExp]);
+        $ins->execute([$email, $pinHash, $verifyCode, $verifyExp,
+                       $firma, $bestaetigtAm, B2B_ERKLAERUNG_NEU,
+                       AGB_VERSION, AVV_VERSION]);
     }
 
     // Bestätigungsmail senden
@@ -161,7 +193,18 @@ function doRegister(PDO $pdo, array $in): void {
     sendMail(
         $email,
         'warenentnahme.de – E-Mail bestätigen',
-        "Hallo,\n\nbitte bestätige deine E-Mail-Adresse:\n\n{$verifyUrl}\n\nDer Link ist " . VERIFY_CODE_MINUTES . " Minuten gültig.\n\nWenn du dich nicht registriert hast, ignoriere diese Mail.\n\nDein warenentnahme.de Team"
+        "Hallo,\n\nbitte bestätige deine E-Mail-Adresse:\n\n{$verifyUrl}\n\n"
+      . "Der Link ist " . VERIFY_CODE_MINUTES . " Minuten gültig.\n\n"
+      . "Wenn du dich nicht registriert hast, ignoriere diese Mail.\n\n"
+      // Der Kunde bekommt seine Erklaerung schriftlich in die Hand. Das
+      // verlangt niemand ausdruecklich, es ist aber die Seite des
+      // Nachweises, die sonst nur der Anbieter haette.
+      . "── Deine Angaben bei der Anmeldung ──\n"
+      . "Betrieb: {$firma}\n"
+      . "Erklärung: " . B2B_ERKLAERUNG_NEU . "\n"
+      . "AGB: https://www.warenentnahme.de/agb.html (Fassung " . AGB_VERSION . ")\n"
+      . "AVV: https://www.warenentnahme.de/avv.html (Fassung " . AVV_VERSION . ")\n\n"
+      . "Dein warenentnahme.de Team"
     );
 
     jsonOk(['message' => 'Bestätigungsmail gesendet. Bitte prüfe dein Postfach.']);
@@ -348,9 +391,46 @@ function doResetDo(PDO $pdo, array $in): void {
 function doStatus(PDO $pdo, array $in): void {
     $user = requireAuth($pdo, $in);
     jsonOk([
-        'email'    => $user['email'],
-        'lastSync' => $user['last_sync'],
+        'email'          => $user['email'],
+        'lastSync'       => $user['last_sync'],
+        'firma'          => $user['firma'],
+        'b2bBestaetigt'  => !empty($user['b2b_bestaetigt_am']),
     ]);
+}
+
+/**
+ * Unternehmerbestaetigung fuer ein bestehendes Konto nachholen.
+ *
+ * Die vier Konten aus der Beta wurden ohne B2B-Schranke angelegt. Eine
+ * solche Beschraenkung wirkt nicht rueckwirkend — diese Konten duerfen
+ * also weiterarbeiten. Vor dem ersten Zahlungsvorgang muss die
+ * Bestaetigung aber vorliegen; das erzwingt create_checkout_session.
+ *
+ * Eine bereits erteilte Bestaetigung wird nicht ueberschrieben. Sonst
+ * wanderte bei jedem versehentlichen Aufruf der Zeitstempel nach vorn
+ * und der urspruengliche Vertragsschluss waere nicht mehr belegbar.
+ */
+function doConfirmB2b(PDO $pdo, array $in): void {
+    $user = requireAuth($pdo, $in);
+
+    if(!empty($user['b2b_bestaetigt_am'])){
+        jsonOk(['message' => 'Bereits bestätigt', 'firma' => $user['firma']]);
+    }
+
+    $firma = firma_pruefen($in['firma'] ?? '');
+    if(!$firma) jsonErr('Bitte den Namen deines Betriebs angeben.');
+    if(($in['b2b'] ?? false) !== true){
+        jsonErr('Bitte bestätige, dass du das Konto als Unternehmer nutzt.');
+    }
+
+    $pdo->prepare("
+        UPDATE users SET firma=?, b2b_bestaetigt_am=?, b2b_erklaerung=?,
+               agb_version=?, avv_version=?
+        WHERE id=?
+    ")->execute([$firma, gmdate('Y-m-d H:i:s'), B2B_ERKLAERUNG_BESTAND,
+                 AGB_VERSION, AVV_VERSION, $user['id']]);
+
+    jsonOk(['message' => 'Danke, dein Konto ist bestätigt.', 'firma' => $firma]);
 }
 
 /**
@@ -384,7 +464,7 @@ function requireAuth(PDO $pdo, array $in): array {
     if(!$token) jsonErr('Nicht authentifiziert', 401);
 
     $stmt = $pdo->prepare("
-        SELECT id, email, last_sync FROM users
+        SELECT id, email, last_sync, firma, b2b_bestaetigt_am FROM users
         WHERE token=? AND token_exp > NOW() AND verified=1
     ");
     $stmt->execute([$token]);

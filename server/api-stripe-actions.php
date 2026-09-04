@@ -42,7 +42,7 @@ function stripe_zeit_iso(?string $wert): ?string {
 function stripe_nutzer_laden(PDO $pdo, $userId): ?array {
     $st = $pdo->prepare('SELECT id, email, stripe_customer_id, stripe_subscription_id,
                                 subscription_status, trial_ends_at, current_period_end,
-                                cancel_at_period_end
+                                cancel_at_period_end, firma, b2b_bestaetigt_am
                          FROM users WHERE id = ?');
     $st->execute([$userId]);
     $row = $st->fetch(PDO::FETCH_ASSOC);
@@ -53,10 +53,12 @@ function stripe_nutzer_laden(PDO $pdo, $userId): ?array {
 function stripe_kunde_sichern(PDO $pdo, array $u): string {
     if (!empty($u['stripe_customer_id'])) return $u['stripe_customer_id'];
 
-    $kunde = \Stripe\Customer::create([
-        'email'    => $u['email'],
-        'metadata' => ['user_id' => (string)$u['id']],
-    ]);
+    // Der Betriebsname geht mit an Stripe. Ohne ihn steht auf der Rechnung
+    // nur eine E-Mail-Adresse — fuer die Buchhaltung des Kunden zu wenig.
+    $daten = ['email' => $u['email'], 'metadata' => ['user_id' => (string)$u['id']]];
+    if (!empty($u['firma'])) $daten['name'] = $u['firma'];
+
+    $kunde = \Stripe\Customer::create($daten);
     $pdo->prepare('UPDATE users SET stripe_customer_id = ? WHERE id = ?')
         ->execute([$kunde->id, $u['id']]);
     return $kunde->id;
@@ -80,9 +82,27 @@ function stripe_aktion(PDO $pdo, array $user, string $action): array {
                     // Gekuendigt, laeuft aber noch bis zum Ende des bezahlten
                     // Zeitraums. Der Status allein verraet das nicht.
                     'cancel_at_period_end' => !empty($u['cancel_at_period_end']),
+                    // Steuert das Fenster fuer Bestandskonten in der App.
+                    // Die eigentliche Sperre haengt nicht daran, sondern
+                    // steht unten in create_checkout_session.
+                    'b2b_bestaetigt'       => !empty($u['b2b_bestaetigt_am']),
+                    'firma'                => $u['firma'],
                 ];
 
             case 'create_checkout_session': {
+                // Kein Vertragsschluss ohne Unternehmerbestaetigung.
+                //
+                // Das ist die Stelle, an der die B2B-Schranke wirklich
+                // haelt. Das Fenster in der App laesst sich umgehen — der
+                // Weg zur Bezahlseite fuehrt aber zwingend hier vorbei.
+                // Betrifft in der Praxis nur die vier Konten aus der Beta:
+                // wer sich neu anmeldet, hat schon bei der Registrierung
+                // bestaetigt.
+                if (empty($u['b2b_bestaetigt_am'])) {
+                    return ['ok' => false, 'error' =>
+                        'Bitte bestätige zuerst deine Betriebsangaben. '
+                      . 'Lade die App neu — das Fenster erscheint dann von selbst.'];
+                }
                 if (in_array($u['subscription_status'], ['trialing', 'active'], true)) {
                     return ['ok' => false, 'error' => 'Es läuft bereits ein Abo für dieses Konto.'];
                 }

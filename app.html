@@ -1018,7 +1018,8 @@ function App(){
         // geprueft merkt sich, dass der Server tatsaechlich geantwortet hat.
         // Ohne diese Auskunft wird nicht gesperrt — siehe darfSchreiben.
         const a={status:j.subscription_status,trialEndsAt:j.trial_ends_at||null,
-          periodEnd:j.current_period_end||null,gekuendigt:!!j.cancel_at_period_end,geprueft:true};
+          periodEnd:j.current_period_end||null,gekuendigt:!!j.cancel_at_period_end,
+          b2bBestaetigt:!!j.b2b_bestaetigt,firma:j.firma||'',geprueft:true};
         merkeAbo(a);return a;
       }
     }catch(e){console.warn('[abo] Status nicht abrufbar:',e);}
@@ -1063,8 +1064,23 @@ function App(){
   const[authInputEmail,setAuthInputEmail]=useState('');
   const[authInputPin,setAuthInputPin]=useState('');
   const[authInputPin2,setAuthInputPin2]=useState('');
+  const[authInputFirma,setAuthInputFirma]=useState('');
+  const[authB2b,setAuthB2b]=useState(false);
   const[authMsg,setAuthMsg]=useState('');
   const[authLoading,setAuthLoading]=useState(false);
+  // ── UNTERNEHMERBESTAETIGUNG FUER BESTANDSKONTEN ──────────
+  // Konten aus der Beta wurden ohne B2B-Schranke angelegt. Sie duerfen
+  // weiterarbeiten, muessen die Bestaetigung aber vor dem ersten
+  // Zahlungsvorgang nachholen. Der Server laesst ohne sie keine
+  // Bezahlseite oeffnen — dieses Fenster ist der bequeme Weg dorthin.
+  const[b2bFirma,setB2bFirma]=useState('');
+  const[b2bHaken,setB2bHaken]=useState(false);
+  const[b2bLaeuft,setB2bLaeuft]=useState(false);
+  const[b2bMsg,setB2bMsg]=useState('');
+  // Bewusst nicht im localStorage: „Später" gilt fuer diesen Besuch, nicht
+  // fuer immer. Sonst waere die Bestaetigung mit einem Klick dauerhaft
+  // abgeraeumt und der Nachweis kaeme nie zustande.
+  const[b2bSpaeter,setB2bSpaeter]=useState(false);
   // Legacy: syncPin für Abwärtskompatibilität (wird ignoriert wenn authToken gesetzt)
   const syncPin = authToken ? authEmail : '';
 
@@ -1333,12 +1349,17 @@ function App(){
     const email=authInputEmail.trim().toLowerCase();
     const pin=authInputPin.trim();
     const pin2=authInputPin2.trim();
+    const firma=authInputFirma.trim();
     if(!email||!pin){setAuthMsg('E-Mail und PIN eingeben');return;}
     if(pin!==pin2){setAuthMsg('PINs stimmen nicht überein');return;}
     if(pin.length<4){setAuthMsg('PIN mindestens 4 Zeichen');return;}
+    // Die B2B-Schranke. Der Server prueft dasselbe noch einmal — hier steht
+    // es nur, damit die Rueckmeldung sofort und am richtigen Feld kommt.
+    if(firma.length<2){setAuthMsg('Bitte den Namen deines Betriebs angeben');return;}
+    if(!authB2b){setAuthMsg('Bitte bestätige, dass du die App für deinen Betrieb nutzt');return;}
     setAuthLoading(true);setAuthMsg('');
     try{
-      const j=await apiCall('register',{email,pin});
+      const j=await apiCall('register',{email,pin,firma,b2b:true});
       if(j.ok){
         setAuthView('register_done');
         setAuthMsg('Bestätigungsmail gesendet! Bitte prüfe dein Postfach.');
@@ -1348,6 +1369,32 @@ function App(){
     }catch{setAuthMsg('Verbindungsfehler');}
     setAuthLoading(false);
   };
+
+  // ── AUTH: Unternehmerbestaetigung nachholen (Bestandskonten)
+  const doConfirmB2b=async()=>{
+    const firma=b2bFirma.trim();
+    if(firma.length<2){setB2bMsg('Bitte den Namen deines Betriebs angeben');return;}
+    if(!b2bHaken){setB2bMsg('Bitte setze das Häkchen');return;}
+    setB2bLaeuft(true);setB2bMsg('');
+    try{
+      const j=await apiCall('confirm_b2b',{token:authToken,firma,b2b:true});
+      if(j&&j.ok){
+        // Den Abo-Stand neu holen statt ihn hier zu erraten: Die Antwort
+        // des Servers ist maßgeblich, und an ihr haengt, ob das Fenster
+        // wieder erscheint.
+        await ladeAboStatus(authToken);
+        setB2bHaken(false);
+        showT('✓ Danke, dein Konto ist bestätigt');
+      } else {
+        setB2bMsg(friendlyError(j));
+      }
+    }catch(e){setB2bMsg('Verbindungsfehler — bitte später nochmal');console.error('[b2b]',e);}
+    setB2bLaeuft(false);
+  };
+  // Das Fenster erscheint erst, wenn der Server geantwortet hat. Ohne
+  // Auskunft wird nichts verlangt — sonst stuende ein Kunde bei einer
+  // Serverstoerung vor einer Huerde, die er nicht nehmen kann.
+  const brauchtB2bBestaetigung=!!authToken&&abo.geprueft&&!abo.b2bBestaetigt;
 
   // ── AUTH: PIN-Reset anfordern
   const doResetReq=async()=>{
@@ -1373,6 +1420,9 @@ function App(){
     // mit dem Abo des vorigen schmuecken.
     setAbo({status:'none'});
     try{localStorage.removeItem('gt_abo');}catch{}
+    // Die Eingaben aus dem Bestaetigungsfenster gehoeren zum abgemeldeten
+    // Konto und duerfen dem naechsten nicht vorausgefuellt werden.
+    setB2bFirma('');setB2bHaken(false);setB2bMsg('');setB2bSpaeter(false);
     setSyncStatus('idle');
     if(confirm)showT('Abgemeldet');
   };
@@ -1709,6 +1759,62 @@ function App(){
           {abo.gekuendigt?'Fortsetzen':'Verwalten'}</button>
       </div>;
     })()}
+
+    {/* ── UNTERNEHMERBESTAETIGUNG NACHHOLEN ──
+        Nur fuer die Konten aus der Beta, die vor der B2B-Umstellung
+        angelegt wurden. Wer sich neu anmeldet, hat schon dort bestaetigt.
+
+        Wegklickbar, und das mit Absicht: Eine nachtraegliche Beschraenkung
+        wirkt nicht rueckwirkend auf einen bereits geschlossenen Vertrag.
+        Jemanden auszusperren, dessen Steuerunterlagen hier liegen, waere
+        auch das Gegenteil dessen, was die AGB zusagen. Die Sperre, auf die
+        es ankommt, sitzt im Server: ohne Bestaetigung keine Bezahlseite.
+        Das Fenster kommt beim naechsten Start wieder. */}
+    {brauchtB2bBestaetigung&&!b2bSpaeter&&
+      <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:420,
+        display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+      <div style={{background:'var(--s1)',borderRadius:14,padding:22,maxWidth:400,width:'100%',
+        maxHeight:'88vh',overflowY:'auto'}}>
+        <div style={{fontSize:16,fontWeight:700,marginBottom:8}}>Kurz dein Betrieb bestätigen</div>
+        <div style={{fontSize:13,color:'var(--t2)',lineHeight:1.6,marginBottom:16}}>
+          warenentnahme.de ist ein Angebot für Betriebe. Dein Konto stammt noch
+          aus der Zeit davor — bitte ergänze einmalig deine Betriebsangaben.
+          <strong style={{color:'var(--text)'}}> Deine Daten bleiben unverändert.</strong>
+        </div>
+        <label style={{display:'block',fontSize:12,fontWeight:600,color:'var(--t2)',marginBottom:7}}>
+          Name deines Betriebs
+        </label>
+        <input type="text" placeholder="z. B. Grüne Kombüse" autoComplete="organization"
+          value={b2bFirma} onChange={e=>setB2bFirma(e.target.value)}
+          onKeyDown={e=>e.key==='Enter'&&doConfirmB2b()}
+          style={{width:'100%',padding:'12px 14px',borderRadius:11,fontSize:16,
+            border:'1.5px solid var(--border)',background:'var(--bg)',color:'var(--text)',
+            fontFamily:'inherit',marginBottom:14,boxSizing:'border-box'}}/>
+        <label style={{display:'flex',alignItems:'flex-start',gap:9,cursor:'pointer',
+          padding:'12px 14px',borderRadius:11,background:'var(--bg)',
+          border:'1px solid var(--border)',marginBottom:14}}>
+          <input type="checkbox" checked={b2bHaken} onChange={e=>setB2bHaken(e.target.checked)}
+            style={{marginTop:2,width:17,height:17,flexShrink:0,accentColor:'#3a7020'}}/>
+          <span style={{fontSize:11.5,color:'var(--t2)',lineHeight:1.5}}>
+            Ich bestätige, dass ich das Nutzerkonto ausschließlich als Unternehmer
+            im Sinne des § 14 BGB nutze und akzeptiere die{' '}
+            <a href="/agb.html" target="_blank" rel="noopener"
+              style={{color:'var(--gruen)',fontWeight:600}}>AGB</a> sowie den{' '}
+            <a href="/avv.html" target="_blank" rel="noopener"
+              style={{color:'var(--gruen)',fontWeight:600}}>AVV</a>.
+          </span>
+        </label>
+        {b2bMsg&&<div style={{fontSize:12,color:'#c0392b',lineHeight:1.5,marginBottom:12}}>{b2bMsg}</div>}
+        <button onClick={doConfirmB2b} disabled={b2bLaeuft} className="btn btn-l"
+          style={{width:'100%',opacity:b2bLaeuft?.6:1}}>
+          {b2bLaeuft?'Einen Moment…':'Konto bestätigen & fortfahren'}
+        </button>
+        <button onClick={()=>setB2bSpaeter(true)} style={{width:'100%',background:'none',
+          border:'none',color:'var(--t2)',fontSize:12,marginTop:10,cursor:'pointer',padding:8}}>
+          Später
+        </button>
+      </div>
+    </div>}
 
     {/* ── ABO ABGELAUFEN: Schreiben gesperrt ── */}
     {abosperre&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:400,
@@ -2102,6 +2208,18 @@ function App(){
                   <input type="email" placeholder="deine@email.de" className="auth-inp"
                     value={authInputEmail} onChange={e=>setAuthInputEmail(e.target.value)}/>
                 </div>
+                {/* Pflichtfeld. Zusammen mit dem Haken darunter und dem
+                    Klartext-Hinweis bildet es die B2B-Schranke: Sie soll
+                    erkennbar machen, dass hier ein Betrieb einen Vertrag
+                    schliesst und keine Privatperson. */}
+                <div style={{marginBottom:12}}>
+                  <label style={{display:'block',fontSize:12,fontWeight:600,color:'#4a5c3a',marginBottom:8,letterSpacing:.2}}>
+                    Name deines Betriebs
+                  </label>
+                  <input type="text" placeholder="z. B. Grüne Kombüse" className="auth-inp"
+                    autoComplete="organization"
+                    value={authInputFirma} onChange={e=>setAuthInputFirma(e.target.value)}/>
+                </div>
                 <div style={{marginBottom:12}}>
                   <label style={{display:'block',fontSize:12,fontWeight:600,color:'#4a5c3a',marginBottom:8,letterSpacing:.2}}>
                     PIN wählen
@@ -2116,6 +2234,36 @@ function App(){
                   <input type="password" placeholder="PIN bestätigen" className="auth-inp"
                     value={authInputPin2} onChange={e=>setAuthInputPin2(e.target.value)}
                     onKeyDown={e=>e.key==='Enter'&&doRegister()}/>
+                </div>
+                {/* Klartext-Hinweis und aktive Bestaetigung. Der Wortlaut
+                    stammt aus der anwaltlichen Vorlage und ist bewusst
+                    nicht umformuliert — er wird beim Absenden im Wortlaut
+                    beim Konto gespeichert. Der Haken ist nicht
+                    vorangekreuzt: eine vorbelegte Zustimmung waere keine. */}
+                <div style={{marginBottom:16,padding:'12px 14px',borderRadius:12,
+                  background:'var(--bg)',border:'1px solid #e0e8d8'}}>
+                  <div style={{fontSize:11,color:'#5a6a4a',lineHeight:1.5,marginBottom:10}}>
+                    Das Angebot richtet sich ausschließlich an Unternehmer im Sinne
+                    des § 14 BGB — Gastronomie, Bäckereien, Kanzleien und andere
+                    Betriebe. Für Privatpersonen ist die App nicht bestimmt.
+                  </div>
+                  <label style={{display:'flex',alignItems:'flex-start',gap:9,cursor:'pointer'}}>
+                    <input type="checkbox" checked={authB2b}
+                      onChange={e=>setAuthB2b(e.target.checked)}
+                      style={{marginTop:2,width:17,height:17,flexShrink:0,accentColor:'#3a7020'}}/>
+                    <span style={{fontSize:11.5,color:'#4a5c3a',lineHeight:1.5}}>
+                      Ich bestätige, dass ich die Anwendung ausschließlich als
+                      Unternehmer / Gewerbetreibender (§ 14 BGB) für betriebliche
+                      Zwecke nutze. Ich akzeptiere die{' '}
+                      <a href="/agb.html" target="_blank" rel="noopener"
+                        style={{color:'#3a7020',fontWeight:600}}>AGB</a>, die{' '}
+                      <a href="/datenschutz.html" target="_blank" rel="noopener"
+                        style={{color:'#3a7020',fontWeight:600}}>Datenschutzerklärung</a>{' '}
+                      sowie den{' '}
+                      <a href="/avv.html" target="_blank" rel="noopener"
+                        style={{color:'#3a7020',fontWeight:600}}>Vertrag zur Auftragsverarbeitung (AVV)</a>.
+                    </span>
+                  </label>
                 </div>
                 {authMsg&&(
                   <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',
@@ -2500,6 +2648,19 @@ function App(){
           ?`Version ${window.__APP_BUILD_DATE__} · ${window.__APP_BUILD__.slice(0,7)}`
           :'Lokale Entwicklungsversion'}
       </div>
+      {/* Der Weg ins Kundenportal — Zahlungsmittel, Rechnungen, Kuendigung.
+          Bisher fuehrte dorthin nur die Schaltflaeche im Hinweisbanner, und
+          das erscheint ausschliesslich waehrend der Testphase oder nach
+          einer Kuendigung. Ein laufender Jahreskunde hatte also gar keinen
+          Zugang — obwohl § 5 Abs. 3 der AGB ihn in den Kontoeinstellungen
+          zusagt. Ein Versprechen, das die App nicht einloest, ist teurer
+          als der Link, der es einloest. */}
+      {authToken&&abo.status!=='none'&&
+        <button onClick={oeffneAboPortal} style={{background:'none',border:'none',
+          fontFamily:'inherit',fontSize:10.5,color:'var(--t2)',cursor:'pointer',
+          textDecoration:'underline',textUnderlineOffset:2,padding:'4px 8px'}}>
+          Abo verwalten
+        </button>}
       <a href="/kuendigung.html" style={{fontSize:10.5,color:'var(--t2)',
         textDecoration:'underline',textUnderlineOffset:2,padding:'4px 8px'}}>
         Verträge hier kündigen

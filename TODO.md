@@ -123,15 +123,47 @@ entfallen Widerrufsrecht, PAngV-Pflichten und der Zwang zur monatlichen
 Kündigung — die jährliche Verlängerung darf bleiben.
 
 - [x] **Google Fonts lokal** — war als Abmahnrisiko eingestuft, umgesetzt
-- [ ] **B2B-Schranke bei der Registrierung**: Klartext-Hinweis, aktive
-      Checkbox, Pflichtfeld Firmenname. Steuernummer ist ausdrücklich
-      **nicht** nötig. Wortlaut kommt von der Kanzlei.
-- [ ] **Nachweis speichern**: Zeitstempel (UTC), Firmenbezeichnung,
-      Versionsnummern von AGB und AVV, Kunden-ID
-- [ ] **Bestandskonten**: Beim nächsten Login eine Zwischenseite, die
-      erst nach Bestätigung der Unternehmereigenschaft weiterlässt.
-      Ohne Bestätigung kein Zahlungsvorgang.
-- [ ] Nach Erhalt der Texte: AGB, Datenschutz-Ergänzung und AVV einbauen
+- [x] **AGB, AVV und Datenschutz-Ergänzung eingebaut** (`agb.html`,
+      `avv.html`, `datenschutz.html`), im Fußbereich aller Seiten verlinkt
+- [x] **B2B-Schranke bei der Registrierung**: Klartext-Hinweis, aktive
+      Checkbox (nicht vorangekreuzt), Pflichtfeld Betriebsname.
+      Steuernummer ist ausdrücklich **nicht** nötig.
+- [x] **Nachweis speichern**: Zeitstempel in UTC, Betriebsname, Wortlaut
+      der Erklärung, Fassungen von AGB und AVV — beim Konto in der
+      Datenbank. Der Kunde bekommt dieselben Angaben per Mail.
+- [x] **Bestandskonten**: Fenster beim nächsten Start, das die
+      Bestätigung nachholt. Wegklickbar (die Beschränkung wirkt nicht
+      rückwirkend, und wer seine Steuerunterlagen hier hat, darf nicht
+      ausgesperrt werden) — die Sperre sitzt im Server:
+      **ohne Bestätigung keine Bezahlseite.**
+- [x] **Weg ins Kundenportal** für laufende Kunden ergänzt. Bis dahin
+      führte dorthin nur die Schaltfläche im Hinweisbanner, und das
+      erscheint nur in der Testphase oder nach einer Kündigung — ein
+      laufender Jahreskunde hatte gar keinen Zugang, obwohl § 5 Abs. 3
+      der AGB ihn in den Kontoeinstellungen zusagt.
+
+### Reihenfolge beim Einspielen — die ist wichtig
+
+Erst die Datenbank, dann die PHP-Dateien, **erst danach mergen**. Wird
+zuerst gemergt, geht die neue App raus, während der alte Server die
+Bestätigung noch gar nicht kennt: Es würde sich jemand anmelden und der
+Nachweis käme nie zustande. Rückwirkend lässt sich das nicht heilen.
+
+1. [ ] `server/migration-b2b.sql` in phpMyAdmin ausführen
+       (vorher Sicherung der Tabelle `users`)
+2. [ ] **Drei** Dateien per FTP nach `/public/app/`:
+       `api.php`, `api-stripe-actions.php` und — neu, leicht zu
+       übersehen — **`rechtsstand.php`**. Dort stehen der Wortlaut der
+       Erklärung und die Fassungen von AGB und AVV. Fehlt die Datei,
+       antwortet die API auf **jede** Anfrage mit einem Serverfehler,
+       auch beim Login. Das ist derselbe Fehler wie damals bei
+       `kuendigung.php`.
+3. [ ] Erst jetzt den Pull Request mergen — `app.html` geht dann raus.
+4. [ ] Danach selbst einmal ausprobieren: App neu laden, das Fenster
+       „Kurz dein Betrieb bestätigen" muss erscheinen.
+
+- [ ] Der Kanzlei melden: Tippfehler „Ntzungsverhältnis" in der AGB-Vorlage
+      (korrigiert) und die drei voneinander abweichenden Stripe-Anschriften
 
 ## Aus früheren Sitzungen
 

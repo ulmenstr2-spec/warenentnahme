@@ -208,6 +208,37 @@ Brief.
 - [ ] **`server/mailversand.php` per FTP nach `/public/app/` laden.**
       `kuendigung.php` selbst bleibt unverändert.
 
+## PIN-Reset war kaputt (05.09.2026)
+
+Aufgefallen an einer echten Mail im Posteingang, nicht im Code.
+
+Der Link lautete `https://www.warenentnahme.de?reset=…` — ohne `/app/`.
+Dort steht die Werbeseite, und die kennt `?reset=` nicht. Der Code wird
+**ausschließlich** über diesen Link zugestellt: Wer seinen PIN vergessen
+hatte, kam damit nicht mehr in sein Konto. Ohne Fehlermeldung, ohne
+Hinweis — die Seite sah einfach normal aus.
+
+`APP_URL` zeigt auf die Wurzel der Domain. An einer Stelle stand deshalb
+richtig `APP_URL . '/app/api.php?verify='`, an fünf anderen fehlte das
+`/app/`.
+
+Bei der E-Mail-Bestätigung fiel es nie auf, weil dort nur die *bequeme*
+Hälfte verloren ging: Das Konto wurde freigeschaltet, nur die
+automatische Anmeldung blieb aus. Man landete auf der Werbeseite und
+meldete sich eben von Hand an. Beim PIN-Reset gibt es diesen zweiten Weg
+nicht.
+
+- [x] `appUrl()` in `api.php`. Die Adresse wird nur noch dort
+      zusammengesetzt — wer sie anderswo von Hand baut, macht denselben
+      Fehler wieder.
+- [x] Alle fünf Stellen umgestellt und mit der echten `api.php` geprüft,
+      `APP_URL` dabei auf `https://www.warenentnahme.de` gesetzt wie auf
+      dem Server: beide Mail-Links und alle drei Weiterleitungsseiten
+      zeigen jetzt auf `/app/`.
+- [ ] **`server/api.php` erneut per FTP nach `/public/app/` laden.**
+- [ ] Danach selbst durchspielen: „PIN vergessen" → Mail → Link
+      anklicken → die App muss sich öffnen und nach einem neuen PIN fragen.
+
 ## Offen für den Livegang (Stand 05.09.2026)
 
 - [ ] Probeanmeldung mit einer fremden Adresse — die B2B-Schranke ist im

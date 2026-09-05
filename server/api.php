@@ -58,19 +58,19 @@ if($_SERVER['REQUEST_METHOD'] === 'GET'){
         echo '<!DOCTYPE html><html><head><meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
         <title>warenentnahme.de – PIN zurücksetzen</title>
-        <meta http-equiv="refresh" content="1;url=' . APP_URL . '?reset=' . $resetCode . '&email=' . $email . '">
+        <meta http-equiv="refresh" content="1;url=' . appUrl('?reset=') . $resetCode . '&email=' . $email . '">
         </head><body style="font-family:-apple-system,sans-serif;text-align:center;padding:60px 20px;background:#f4f6f2;">
         <div style="max-width:360px;margin:0 auto;">
         <div style="font-size:48px;margin-bottom:16px;">🔑</div>
         <h2 style="color:#1a2612;margin-bottom:8px;">PIN zurücksetzen</h2>
         <p style="color:#5a6a4a;">Du wirst zur App weitergeleitet…</p>
-        <a href="' . APP_URL . '?reset=' . $resetCode . '&email=' . $email . '"
+        <a href="' . appUrl('?reset=') . $resetCode . '&email=' . $email . '"
            style="display:inline-block;margin-top:16px;padding:12px 24px;background:#3a7020;color:#fff;
            border-radius:10px;text-decoration:none;font-weight:600;">Jetzt öffnen</a>
         </div></body></html>';
         exit;
     } else {
-        header('Location: ' . APP_URL);
+        header('Location: ' . appUrl());
         exit;
     }
     exit;
@@ -189,7 +189,7 @@ function doRegister(PDO $pdo, array $in): void {
     }
 
     // Bestätigungsmail senden
-    $verifyUrl = APP_URL . '/app/api.php?verify=' . urlencode($verifyCode) . '&email=' . urlencode($email);
+    $verifyUrl = appUrl('api.php?verify=') . urlencode($verifyCode) . '&email=' . urlencode($email);
     sendMail(
         $email,
         'warenentnahme.de – E-Mail bestätigen',
@@ -230,7 +230,7 @@ function doVerify(PDO $pdo, array $in): void {
             echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>warenentnahme.de</title></head><body style="font-family:sans-serif;text-align:center;padding:60px;">
             <h2>❌ Link ungültig oder abgelaufen</h2>
             <p>Bitte registriere dich erneut.</p>
-            <a href="' . APP_URL . '">Zur App</a></body></html>';
+            <a href="' . appUrl() . '">Zur App</a></body></html>';
             exit;
         }
         jsonErr('Ungültiger oder abgelaufener Bestätigungslink');
@@ -248,11 +248,11 @@ function doVerify(PDO $pdo, array $in): void {
     // Per GET → HTML mit Auto-Redirect
     if(isset($_GET['verify'])){
         echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>warenentnahme.de</title>
-        <meta http-equiv="refresh" content="3;url=' . APP_URL . '?verified=1&token=' . urlencode($token) . '&email=' . urlencode($email) . '">
+        <meta http-equiv="refresh" content="3;url=' . appUrl('?verified=1&token=') . urlencode($token) . '&email=' . urlencode($email) . '">
         </head><body style="font-family:sans-serif;text-align:center;padding:60px;">
         <h2>✓ E-Mail bestätigt!</h2>
         <p>Du wirst automatisch zur App weitergeleitet…</p>
-        <a href="' . APP_URL . '?verified=1&token=' . urlencode($token) . '&email=' . urlencode($email) . '">Jetzt öffnen</a>
+        <a href="' . appUrl('?verified=1&token=') . urlencode($token) . '&email=' . urlencode($email) . '">Jetzt öffnen</a>
         </body></html>';
         exit;
     }
@@ -349,7 +349,7 @@ function doResetReq(PDO $pdo, array $in): void {
     $pdo->prepare("UPDATE users SET reset_code=?, reset_exp=? WHERE id=?")
         ->execute([$resetCode, $resetExp, $user['id']]);
 
-    $resetUrl = APP_URL . '?reset=' . urlencode($resetCode) . '&email=' . urlencode($email);
+    $resetUrl = appUrl('?reset=') . urlencode($resetCode) . '&email=' . urlencode($email);
     sendMail(
         $email,
         'warenentnahme.de – PIN zurücksetzen',
@@ -478,6 +478,26 @@ function normalizeEmail(string $email): string {
     return strtolower(trim($email));
 }
 
+/**
+ * Adresse der Anwendung.
+ *
+ * APP_URL zeigt auf die Wurzel der Domain (https://www.warenentnahme.de).
+ * Die Anwendung liegt aber unter /app/ — auf der Wurzel steht die
+ * Werbeseite, und die kann mit ?reset= und ?verified= nichts anfangen.
+ *
+ * Genau daran ist der PIN-Reset gescheitert: Die Mail verwies auf
+ * "https://www.warenentnahme.de?reset=…", der Besucher landete auf der
+ * Werbeseite und der Code kam nie bei der Anwendung an. Da der Code
+ * ausschliesslich ueber diesen Link zugestellt wird, war ein vergessener
+ * PIN damit endgueltig — ohne jede Fehlermeldung.
+ *
+ * Deshalb wird die Adresse nur noch hier zusammengesetzt. Wer sie
+ * anderswo von Hand baut, macht denselben Fehler wieder.
+ */
+function appUrl(string $anhang = ''): string {
+    return rtrim(APP_URL, '/') . '/app/' . ltrim($anhang, '/');
+}
+
 function jsonOk(array $data): never {
     echo json_encode(['ok' => true, ...$data], JSON_UNESCAPED_UNICODE);
     exit;
@@ -498,7 +518,7 @@ function showHtmlError(string $msg): never {
     <div style="max-width:360px;margin:0 auto;">
     <h2 style="color:#c0392b;margin-bottom:12px;">Fehler</h2>
     <p style="color:#5a6a4a;margin-bottom:24px;">' . htmlspecialchars($msg) . '</p>
-    <a href="' . APP_URL . '" style="display:inline-block;padding:12px 24px;background:#3a7020;
+    <a href="' . appUrl() . '" style="display:inline-block;padding:12px 24px;background:#3a7020;
     color:#fff;border-radius:10px;text-decoration:none;font-weight:600;">Zur App</a>
     </div></body></html>';
     exit;

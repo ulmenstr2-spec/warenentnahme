@@ -36,6 +36,13 @@ Options -Indexes
   <FilesMatch "\.(png|jpe?g|webp|svg|ico|woff2?)$">
     Header set Cache-Control "public, max-age=2592000"
   </FilesMatch>
+  # Programmbausteine unter /app/lib/ tragen die Fassungsnummer im
+  # Dateinamen. Eine neue Fassung heisst anders und wird deshalb ohnehin
+  # neu geladen — die alte darf ein Jahr liegen bleiben. Das holt die
+  # Geschwindigkeit zurueck, die vorher der fremde Auslieferdienst brachte.
+  <FilesMatch "^(react|react-dom|xlsx|jspdf|pdf|pdf\.worker)-[0-9].*\.js$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
 </IfModule>
 
 # Beipack der Stripe-Bibliothek nicht ausliefern. README, CHANGELOG und

@@ -101,7 +101,7 @@ if ($fehlen) {
     seite('Angaben unvollständig',
         '<h1>Da fehlt noch etwas</h1><p>Bitte ergänze: <strong>'
         . htmlspecialchars(implode(', ', $fehlen)) . '</strong></p>'
-        . '<p><a href="/kuendigung.html">Zurück zum Formular</a></p>', true);
+        . '<p><a href="/kuendigung">Zurück zum Formular</a></p>', true);
 }
 
 if (!darfSenden()) {

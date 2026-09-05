@@ -239,6 +239,42 @@ nicht.
 - [ ] Danach selbst durchspielen: „PIN vergessen" → Mail → Link
       anklicken → die App muss sich öffnen und nach einem neuen PIN fragen.
 
+## Adressen ohne .html (05.09.2026)
+
+`warenentnahme.de/impressum` statt `warenentnahme.de/impressum.html`.
+
+Zwei Regeln in der `.htaccess`, die zusammengehören: Die erste nimmt das
+`.html` aus der sichtbaren Adresse, die zweite hängt es intern wieder an,
+damit die Datei gefunden wird.
+
+**Warum sich das nicht im Kreis dreht:** Die erste Regel prüft
+`%{THE_REQUEST}` — die Zeile, die der Browser geschickt hat. Die ändert
+sich beim internen Umschreiben *nicht*. Ohne diese Bedingung sähe die
+erste Regel das Ergebnis der zweiten und beide riefen sich endlos
+gegenseitig auf.
+
+**`/app/` bleibt ausgenommen.** Dort liegt die Anwendung, und `sw.js`
+legt `/app/index.html` vorsorglich im Zwischenspeicher ab. Eine
+Weiterleitung mitten in einem vorgehaltenen Pfad bringt den
+Zwischenspeicher durcheinander.
+
+- [x] Alte Adressen mit `.html` leiten dauerhaft weiter (301). Wichtig:
+      Sie stehen in schon verschickten Mails, in der Suchmaschine und im
+      Schreiben an die Kanzlei.
+- [x] Alle internen Links, `canonical`-Angaben, `og:url`, `sitemap.xml`
+      und die Adressen in den Mails umgestellt — sie zeigen direkt auf
+      die neue Adresse, nicht auf den Umweg.
+- [x] Mit **echtem Apache** geprüft, nicht nachgebaut: 34 Prüfungen,
+      dazu jeder verlinkte Pfad einmal abgerufen. `pruefung/adressen-*`.
+
+**Was noch `.php` zeigt:** Nach dem Absenden des Kündigungsformulars
+steht `/kuendigung.php` in der Adresszeile. Das lässt sich nicht wie bei
+`.html` verstecken, weil `kuendigung.html` und `kuendigung.php`
+denselben Namen tragen — `/kuendigung` ist schon vergeben. Ließe sich
+lösen, indem der Empfänger anders heißt; dafür müsste eine Datei auf dem
+Server umbenannt werden, die von Hand dort liegt. Für eine
+Schönheitskorrektur an einer rechtlich wichtigen Strecke zu riskant.
+
 ## Offen für den Livegang (Stand 05.09.2026)
 
 - [ ] Probeanmeldung mit einer fremden Adresse — die B2B-Schranke ist im

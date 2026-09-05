@@ -202,8 +202,8 @@ function doRegister(PDO $pdo, array $in): void {
       . "── Deine Angaben bei der Anmeldung ──\n"
       . "Betrieb: {$firma}\n"
       . "Erklärung: " . B2B_ERKLAERUNG_NEU . "\n"
-      . "AGB: https://www.warenentnahme.de/agb.html (Fassung " . AGB_VERSION . ")\n"
-      . "AVV: https://www.warenentnahme.de/avv.html (Fassung " . AVV_VERSION . ")\n\n"
+      . "AGB: https://www.warenentnahme.de/agb (Fassung " . AGB_VERSION . ")\n"
+      . "AVV: https://www.warenentnahme.de/avv (Fassung " . AVV_VERSION . ")\n\n"
       . "Dein warenentnahme.de Team"
     );
 

@@ -48,6 +48,10 @@ const server = http.createServer((req, res) => {
 await new Promise(r => server.listen(0, r));
 const port = server.address().port;
 
+// Dateinamen, nicht die oeffentlichen Adressen: Dieser Testserver kann
+// keine .htaccess und liefert die Dateien direkt aus. Geprueft wird hier
+// der Inhalt der Seiten, nicht die Adressumschreibung — die haengt an
+// Apache und wird gesondert geprueft.
 const seiten = ['/', '/agb.html', '/avv.html', '/datenschutz.html', '/impressum.html',
                 '/pauschbetraege.html', '/fuer-steuerberater.html', '/kuendigung.html', '/app/'];
 

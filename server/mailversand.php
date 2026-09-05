@@ -54,8 +54,8 @@ function mailFusszeile(): string {
          . "Josef Czerwinski, Ulmenstr. 2, 18057 Rostock\n"
          . "hallo@warenentnahme.de · Telefon +49 176 75192451\n"
          . "Kleinunternehmer nach § 19 UStG, keine USt-IdNr.\n"
-         . "Impressum: https://www.warenentnahme.de/impressum.html\n"
-         . "Datenschutz: https://www.warenentnahme.de/datenschutz.html";
+         . "Impressum: https://www.warenentnahme.de/impressum\n"
+         . "Datenschutz: https://www.warenentnahme.de/datenschutz";
 }
 
 function sendMail(string $to, string $subject, string $body): void {

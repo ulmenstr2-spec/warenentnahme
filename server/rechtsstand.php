@@ -17,9 +17,17 @@
  * zuordenbar — genau darum steht sie in der Datenbank.
  */
 
-// Fassungen. Entsprechen dem „Stand" in agb.html und avv.html.
+// Fassungen. Entsprechen der Angabe „Fassung …" in agb.html und avv.html.
+//
+// Wird ein Text geaendert, gehoert die Nummer hier mit geaendert UND eine
+// unveraenderte Kopie nach recht/fassungen/ gelegt. Sonst zeigt die beim
+// Kunden gespeicherte Nummer auf einen Wortlaut, den es nicht mehr gibt —
+// und der Nachweis, dem er zugestimmt hat, ist wertlos.
+//
+// 2026-09b: § 3 Abs. 3 des AVV verweist jetzt ausdruecklich auf die
+// dokumentierten TOMs und sagt ihre Herausgabe auf Verlangen zu.
 define('AGB_VERSION', '2026-09');
-define('AVV_VERSION', '2026-09');
+define('AVV_VERSION', '2026-09b');
 
 // Wortlaut bei der Registrierung von Neukunden.
 define('B2B_ERKLAERUNG_NEU',

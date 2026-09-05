@@ -52,6 +52,12 @@ jobs:
           cp manifest.json   dist/app/manifest.json
           cp splash-logo.png dist/app/splash-logo.png
 
+          # Programmbausteine (React, xlsx, jsPDF, pdf.js) liegen lokal.
+          # Vorher kamen sie von cdnjs.cloudflare.com — das uebermittelte die
+          # IP-Adresse jedes Nutzers an ein US-Unternehmen, genau wie zuvor
+          # die Schriftarten an Google.
+          cp -r lib dist/app/lib
+
           sed "s/__BUILD_ID__/${{ github.sha }}/g" sw.js > dist/app/sw.js
 
       - name: Install lftp

@@ -12,12 +12,28 @@
      Einstiegspunkt für Suchende ist die Startseite. "follow" lässt Google den
      Links weiter folgen. Zum Umkehren diese Zeile entfernen. -->
 <meta name="robots" content="noindex, follow">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<!-- Programmbausteine liegen auf dem eigenen Server, nicht bei einem
+     fremden Anbieter.
+
+     Vorher kamen sie von cdnjs.cloudflare.com. Damit ging beim Oeffnen der
+     App die IP-Adresse des Kunden an ein US-Unternehmen, ohne dass er
+     gefragt wurde — derselbe Vorgang, wegen dem die Schriftarten von
+     Google weichen mussten. Wer hier wieder eine fremde Adresse eintraegt,
+     macht genau das rueckgaengig.
+
+     Die Fassungsnummer steht im Dateinamen: So laesst sich eine Datei
+     dauerhaft zwischenspeichern, und ein Wechsel der Fassung faellt beim
+     Lesen sofort auf. -->
+<script src="./lib/react-18.2.0.min.js"></script>
+<script src="./lib/react-dom-18.2.0.min.js"></script>
+<!-- Babel bleibt als fremde Adresse stehen und ist trotzdem kein Problem:
+     build.mjs entfernt diese Zeile beim Deploy, weil das JSX dann schon
+     uebersetzt ist. Auf dem Server landet sie nie — geprueft. Sie wird nur
+     gebraucht, wenn man app.html hier ohne Build direkt im Browser oeffnet. -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="./lib/xlsx-0.18.5.full.min.js"></script>
+<script src="./lib/jspdf-2.5.1.umd.min.js"></script>
+<script src="./lib/pdf-3.11.174.min.js"></script>
 
 <meta name="theme-color" content="#f7f9f4">
 <meta name="mobile-web-app-capable" content="yes">
@@ -356,7 +372,10 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 <script>
   // Configure pdf.js worker
   if(typeof pdfjsLib !== 'undefined') {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    // Auch die Arbeitsdatei vom eigenen Server. Sie wird erst beim Scannen
+    // eines PDF nachgeladen — dadurch faellt eine fremde Adresse hier beim
+    // Durchsehen nicht auf, sie geht aber genauso nach draussen.
+    pdfjsLib.GlobalWorkerOptions.workerSrc = './lib/pdf.worker-3.11.174.min.js';
   }
 </script>
 <script>

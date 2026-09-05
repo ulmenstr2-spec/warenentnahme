@@ -36,8 +36,31 @@
  * Fehlt SMTP_HOST, laeuft der alte Weg weiter. So macht ein Hochladen
  * dieser Datei nichts kaputt, bevor die config.php ergaenzt ist.
  */
+/**
+ * Absenderangaben unter jeder Mail.
+ *
+ * Geschaeftsmaessige E-Mail traegt dieselben Pflichtangaben wie ein Brief:
+ * Name und ladungsfaehige Anschrift des Anbieters. Vorher endeten alle drei
+ * Mails mit „Dein warenentnahme.de Team" — ohne Namen, ohne Anschrift.
+ *
+ * Bewusst hier und nicht an den drei Absendestellen: So kann es beim
+ * Schreiben einer vierten Mail niemand vergessen, und die Angaben koennen
+ * nicht auseinanderlaufen.
+ */
+function mailFusszeile(): string {
+    return "\n\n"
+         . "-- \n"
+         . "warenentnahme.de\n"
+         . "Josef Czerwinski, Ulmenstr. 2, 18057 Rostock\n"
+         . "hallo@warenentnahme.de · Telefon +49 176 75192451\n"
+         . "Kleinunternehmer nach § 19 UStG, keine USt-IdNr.\n"
+         . "Impressum: https://www.warenentnahme.de/impressum.html\n"
+         . "Datenschutz: https://www.warenentnahme.de/datenschutz.html";
+}
+
 function sendMail(string $to, string $subject, string $body): void {
     $betreff = '=?UTF-8?B?' . base64_encode($subject) . '?=';
+    $body    = rtrim($body) . mailFusszeile();
 
     if (!defined('SMTP_HOST') || !SMTP_HOST) {
         $headers  = "From: " . MAIL_FROM_NAME . " <" . MAIL_FROM . ">\r\n";

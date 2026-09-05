@@ -285,7 +285,59 @@ Schönheitskorrektur an einer rechtlich wichtigen Strecke zu riskant.
       `.txt` ist in der `.htaccess` nicht gesperrt und wird im Klartext
       ausgeliefert, anders als die `.php`-Dateien daneben.
 
-## Papiere nach den Vorgaben der Kanzlei (offen)
+## Papiere nach den Vorgaben der Kanzlei (05.09.2026)
+
+Alle vier liegen unter `recht/`. Sie gehen **nicht** auf den Server —
+der Deploy nimmt nur ausdrücklich benannte Dateien mit, und `recht/`
+steht nicht auf der Liste. Nachgemessen: `/recht/TOM.md` ist nicht
+erreichbar, und `.md` sperrt die `.htaccess` zusätzlich.
+
+- [x] **`recht/TOM.md`** — die Maßnahmen nach Art. 32. Beschrieben ist
+      nur, was sich aus dem Quelltext belegen lässt: bcrypt statt
+      Klartext, 256-Bit-Sitzungsschlüssel mit Ablauf, vorbereitete
+      Anweisungen ohne Emulation, erzwungenes HTTPS, keine Verbindungen
+      zu Dritten (gemessen), Zahlungsdaten erreichen den Server nie.
+- [x] **`recht/VERZEICHNIS.md`** — zwei Teile, weil derselbe Betrieb in
+      zwei Rollen auftritt: acht Tätigkeiten als Verantwortlicher, zwei
+      als Auftragsverarbeiter. Die beiden Lücken, die die Kanzlei am
+      häufigsten sieht, sind bewusst abgedeckt: die eigenen Abläufe
+      (Buchhaltung, Stripe, Support-Mails, Server-Protokolle) und
+      konkrete Fristen statt „nach Kündigung".
+- [x] **`recht/LOESCHKONZEPT.md`** — mit Fristentabelle.
+- [x] **`recht/DATENPANNE.md`** — Ablaufplan mit Mailvorlage.
+- [x] **`recht/fassungen/`** — unveränderte Kopien je Fassung.
+- [x] AVV § 3 Abs. 3 verweist jetzt auf die dokumentierten TOMs und sagt
+      ihre Herausgabe auf Verlangen zu — so wollte es die Kanzlei.
+      Dadurch neue Fassung **2026-09b**; die alte liegt im Archiv.
+
+### Was daran noch nicht stimmt
+
+Drei Stellen sind ehrlich als Lücke markiert, statt sie zu erfinden:
+
+- [ ] **Datensicherung.** Welche Sicherung enthält der IONOS-Tarif, wie
+      oft, wie lange aufbewahrt? Steht in `TOM.md` Abschnitt 7 als offen.
+      **Die Maßnahmenbeschreibung sollte erst danach an einen Kunden
+      gehen** — eine Zusage zur Verfügbarkeit ohne geprüfte Sicherung
+      trägt nicht.
+- [ ] **Aufbewahrungsdauer der Server-Protokolle** bei IONOS erfragen.
+      Fehlt im Verzeichnis (A7) und im Löschkonzept.
+- [ ] **Löschung nach zwölf Monaten läuft nicht von allein.** Die Sperre
+      nach Kündigung wirkt, die Löschung danach müsste von Hand erfolgen
+      — und niemand erinnert daran. Solange das so ist, beschreibt das
+      Löschkonzept eine Absicht, keine Automatik.
+- [ ] Kontaktdaten des LfDI Mecklenburg-Vorpommern gegenprüfen und den
+      Link zum Meldeformular eintragen. Von hier aus nicht erreichbar.
+- [ ] **AVV mit IONOS** im Kundenkonto abschließen — IONOS ist in § 4 des
+      eigenen AVV als Subunternehmer benannt.
+- [ ] Zwei-Faktor-Anmeldung bei IONOS und Stripe.
+
+### Nach dem Merge
+
+- [ ] **`server/rechtsstand.php` per FTP nach `/public/app/`** — sonst
+      steht bei neuen Anmeldungen weiter die alte AVV-Fassung im
+      Nachweis.
+
+## Papiere nach den Vorgaben der Kanzlei (alter Eintrag)
 
 - [ ] **TOM-Datenblatt**, zwei Seiten: HTTPS/TLS, PIN als Hash, IONOS nach
       ISO 27001, Rollen und Rechte, tägliche Sicherungen. Nicht öffentlich

@@ -61,15 +61,100 @@ Der Einbau in `api.php` ist erledigt — die ergänzte Datei liegt als
 
 ## Für den Livegang
 
-- [ ] Produkt und Preis (49 €/Jahr) im **Live-Modus** anlegen — die
-      bisherige ID gehört zur Sandbox und funktioniert dort nicht
-- [ ] Webhook-Endpunkt im Live-Modus einrichten, dieselben fünf
-      Ereignisse, neues Signaturgeheimnis
-- [ ] In `config.stripe.php` vier Werte tauschen: `sk_`, `pk_`,
-      Price-ID, `whsec_` — **kopieren, nicht abtippen** (I und l sehen
-      in diesen IDs gleich aus)
-- [ ] Kundenportal auch im Live-Modus konfigurieren (Kündigung zum
-      Periodenende, Zahlungsmethoden, Rechnungshistorie)
+**Merke: Test und Live sind bei Stripe zwei getrennte Welten.** Produkte,
+Preise, Webhooks, Kundenportal und Rechnungsfußzeile gibt es in jedem
+Modus einmal. Was in der Sandbox eingestellt ist, ist live nicht da.
+
+### Zuerst: zwei Dinge, die noch nie jemand durchgespielt hat
+
+Beides läuft noch im Testmodus, kostet also nichts.
+
+- [ ] **Probeanmeldung** mit einer fremden E-Mail-Adresse. Feld „Name
+      deines Betriebs" und Haken mit § 14 BGB müssen da sein,
+      Bestätigungsmail muss ankommen, Anmeldung muss klappen. Danach die
+      Zeile in `users` löschen, sonst blockiert die Adresse eine spätere
+      echte Anmeldung. Diese Strecke ist Stripe-unabhängig.
+- [ ] **Ein Rechnungs-PDF aus der Sandbox ansehen.** Steht die
+      Kleinunternehmer-Fußzeile drauf? Und stehen **Name und Anschrift
+      des Ausstellers** darüber? Das Zweite zieht Stripe aus den
+      Geschäftsdaten, nicht aus der Fußzeile — fehlt es, ist die Rechnung
+      unvollständig, und das sieht man erst am fertigen PDF.
+
+### Schritt 0 — Konto freigeschaltet?
+
+- [ ] Auf „wechseln Sie zum Live-Konto" klicken. Fragt Stripe nach
+      Identität, Geschäftsangaben und Bankverbindung, ist das Schritt 0 —
+      ohne das nimmt es kein Geld an. Kann ein bis zwei Tage dauern.
+
+### Schritte 1 bis 5 — im Live-Modus
+
+- [ ] **Produkt und Preis** anlegen: `warenentnahme.de Jahresabo`,
+      49,00 EUR, wiederkehrend jährlich, Steuern im Preis enthalten.
+      Price-ID kopieren.
+- [ ] **Kundenportal** einrichten: Kündigung zum Ende des
+      Abrechnungszeitraums, Zahlungsmittel ändern, Rechnungshistorie,
+      deutsche Sprache.
+- [ ] **Rechnungsfußzeile** eintragen (`dashboard.stripe.com/settings/billing/invoice`,
+      im Live-Modus eine andere Seite als im Test):
+      `Gemäß § 19 UStG wird keine Umsatzsteuer berechnet und ausgewiesen
+      (Kleinunternehmerregelung). Steuernummer: 079/211/00250`
+- [ ] **Webhook** auf `https://www.warenentnahme.de/app/stripe-webhook.php`,
+      dieselben fünf Ereignisse, **neues** Signaturgeheimnis kopieren.
+- [ ] **Vier Werte** in `config.stripe.php` (`/public/app/`) tauschen:
+      Price-ID, `sk_live_`, `pk_live_`, `whsec_`. Die drei
+      Rücksprungadressen bleiben.
+      **Kopieren, nicht abtippen** — in diesen IDs stehen großes I und
+      kleines l nebeneinander und sehen gleich aus.
+      **Die Sandbox-Werte nicht überschreiben, sondern als
+      auskommentierte Zeilen darunter stehen lassen.** Sonst gibt es nach
+      dem Umzug keinen Ort mehr zum Ausprobieren.
+
+### Schritt 6 — einmal mit echtem Geld
+
+- [ ] Neue Adresse, eigene Karte, ganzer Weg: Zahlung → „Abo aktiv" →
+      Kundenportal erreichbar → kündigen → Sperre greift → Export geht
+      weiterhin. Danach im Dashboard erstatten und beenden. Kostet die
+      Kartengebühr von etwa 1,80 € — dafür ist der erste echte Kunde
+      nicht der Testfall.
+
+## Danach: SEO (Befund vom 07.09.2026)
+
+Aus der Search Console, drei Monate: 21 Klicks, 1.017 Impressionen,
+Klickrate 2,1 %, Durchschnittsposition 6,7.
+
+**Die Lage in einem Satz: Seite eins für das Wort, Seite vier bis sieben
+für das Problem.**
+
+| Suchanfrage | Position | Klicks |
+|---|---|---|
+| warenentnahme | 3,1 | 6 |
+| warenentnahmen | 2,2 | **0** |
+| entnahme waren 2026 | 9,0 | 0 |
+| pauschbeträge unentgeltliche wertabgaben 2026 | **34,0** | 0 |
+| eigenverbrauch buchen | **63,8** | 0 |
+
+Alle sechs Klicks kommen von „warenentnahme" — und das ist kein
+Markenname, sondern das deutsche Wort für die Sache. Wer das googelt,
+will wissen, was es ist oder welche Zahlen gelten. Nicht, welche App es
+dafür gibt.
+
+- [ ] **„unentgeltliche Wertabgaben" in Titel und Überschrift** der
+      Pauschbeträge-Seite. Der amtliche Begriff des BMF steht dort bisher
+      nur in der Beschreibung — daher Platz 34, obwohl der Inhalt passt.
+      Das ist das Wort, das ein Steuerberater tippt.
+- [ ] **Seite zu „Eigenverbrauch buchen"** — Buchungssätze, Konten in
+      SKR03/SKR04, wie oft. Platz 64 heißt: dazu gibt es nichts. Und es
+      ist die natürliche Stelle für „oder du lässt es die App machen".
+- [ ] Titel und Beschreibungen auf Klickrate hin überarbeiten. 6,1 % auf
+      Platz 3 ist etwa die Hälfte des Üblichen.
+
+**Ehrliche Erwartung:** Selbst wenn beides gut klappt — fünffache
+Impressionen, Klickrate auf 5 % — sind das etwa fünfzig Anmeldungen im
+Jahr statt vier. Ein Fortschritt, aber nicht der Weg zu 200 Kunden.
+
+Zwei Zeilen aus der Tabelle sind übrigens Rauschen: „kostet das was?" und
+„es muss kostenlos sein" stehen nirgends auf den Seiten, Google hat
+sinngemäß geraten. Zwei Impressionen, null Klicks. Nicht hinterherlaufen.
 
 ## Kündigungs-Hinweis (erledigt am 02.09.2026)
 

@@ -126,6 +126,41 @@ function stripe_aktion(PDO $pdo, array $user, string $action): array {
                     // Auch während der Testphase eine Zahlungsmethode verlangen,
                     // sonst endet das Abo nach 30 Tagen still statt zu starten.
                     'payment_method_collection'  => 'always',
+
+                    // Anschrift des Kunden erheben.
+                    //
+                    // Rechnungsrechtlich nicht noetig: Bei 49 EUR liegt eine
+                    // Kleinbetragsrechnung nach § 33 UStDV vor (bis 250 EUR),
+                    // da entfaellt die Anschrift des Empfaengers. Und weil hier
+                    // nach § 19 UStG keine Umsatzsteuer ausgewiesen wird, hat
+                    // der Kunde ohnehin keinen Vorsteuerabzug.
+                    //
+                    // Trotzdem erhoben, aus einem anderen Grund: Ohne sie gibt
+                    // es von keinem Kunden mehr als eine E-Mail-Adresse. Hier
+                    // werden B2B-Vertraege mit automatischer Jahresverlaengerung
+                    // geschlossen — wird davon je einer streitig, ist eine
+                    // E-Mail-Adresse kein Vertragspartner, den man anschreiben
+                    // kann.
+                    'billing_address_collection' => 'required',
+
+                    // Ohne diese Zeile waere die Erhebung wirkungslos.
+                    //
+                    // Oben wird ein bestehender Kunde uebergeben ('customer').
+                    // Die Bezahlseite schreibt erhobene Angaben dann NICHT von
+                    // sich aus in den Kundeneintrag zurueck — Voreinstellung
+                    // ist 'never'. Die Anschrift laege danach nur an der
+                    // einzelnen Zahlung, und die Rechnung zieht ihre
+                    // Empfaengerangaben aus dem Kundeneintrag. Ergebnis waere:
+                    // Kunde tippt seine Anschrift ein, auf der Rechnung steht
+                    // sie trotzdem nicht.
+                    //
+                    // Bewusst nur 'address'. Der Name bleibt, wie er beim
+                    // Anlegen gesetzt wurde — die Firmenbezeichnung aus der
+                    // Registrierung. Mit 'name' => 'auto' wuerde sie durch das
+                    // ersetzt, was jemand im Adressfeld eintippt, und das ist
+                    // oft ein Personenname statt des Betriebs.
+                    'customer_update'            => ['address' => 'auto'],
+
                     'allow_promotion_codes'      => true,
                     'locale'                     => 'de',
                     'success_url'                => STRIPE_SUCCESS_URL,

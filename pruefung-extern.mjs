@@ -53,7 +53,7 @@ const port = server.address().port;
 // der Inhalt der Seiten, nicht die Adressumschreibung — die haengt an
 // Apache und wird gesondert geprueft.
 const seiten = ['/', '/agb.html', '/avv.html', '/datenschutz.html', '/impressum.html',
-                '/pauschbetraege.html', '/fuer-steuerberater.html', '/kuendigung.html', '/app/'];
+                '/pauschbetraege.html', '/fuer-steuerberater.html', '/eigenverbrauch-buchen.html', '/kuendigung.html', '/app/'];
 
 const browser = await chromium.launch({
   executablePath: process.env.PLAYWRIGHT_CHROMIUM || undefined,

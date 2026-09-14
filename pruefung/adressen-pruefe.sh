@@ -25,11 +25,12 @@ p /datenschutz.html        301 /datenschutz
 p /kuendigung.html         301 /kuendigung
 p /pauschbetraege.html     301 /pauschbetraege
 p /fuer-steuerberater.html 301 /fuer-steuerberater
+p /eigenverbrauch-buchen.html 301 /eigenverbrauch-buchen
 p /index.html              301 /
 
 echo
 echo "── Neue Adressen liefern die Seite"
-for s in / /impressum /agb /avv /datenschutz /kuendigung /pauschbetraege /fuer-steuerberater; do
+for s in / /impressum /agb /avv /datenschutz /kuendigung /pauschbetraege /fuer-steuerberater /eigenverbrauch-buchen; do
   p "$s" 200 ""
 done
 
@@ -66,7 +67,8 @@ echo
 echo "── Inhalt stimmt (nicht nur der Rueckgabecode)"
 for paar in "/impressum:Impressum" "/agb:Allgemeine Geschäftsbedingungen" \
             "/avv:Auftragsverarbeitung" "/datenschutz:Datenschutzerklärung" \
-            "/kuendigung:Vertrag" "/pauschbetraege:Pauschbeträge"; do
+            "/kuendigung:Vertrag" "/pauschbetraege:Pauschbeträge" \
+            "/eigenverbrauch-buchen:Buchungssatz"; do
   pfad=${paar%%:*}; wort=${paar#*:}
   if curl -sk "$U$pfad" | grep -q "$wort"; then
     printf '  ok   │ %-28s enthaelt „%s"\n' "$pfad" "$wort"

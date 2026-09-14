@@ -6,7 +6,13 @@ Der Rest der Datei ist Chronik — hier steht, woran noch etwas hängt.
 
 **Am Produkt**
 
-- [ ] `server/api-stripe-actions.php` hochladen (Anschrift des Kunden)
+- [ ] **`server/api.php` hochladen** — Kopie jeder Anmeldung an den
+      Betreiber. Bei einer Kündigung gab es die schon, bei einer Anmeldung
+      nicht: ausgerechnet beim wichtigeren Ereignis. Solange es nur eine
+      Handvoll Anmeldungen im Monat gibt, ist jede einzelne eine Nachricht
+      über den Markt, die man nicht in der Datenbank suchen will. Und
+      bleibt eine Anmeldung unbestätigt, ist genau das die Information —
+      dann kommt die Mail beim Kunden nicht an.
 - [ ] Löschung nach zwölf Monaten läuft nicht von allein — bisher Handarbeit,
       und niemand erinnert daran
 - [ ] `api_php_patch.txt` in `/public/app/` ansehen und vermutlich löschen;

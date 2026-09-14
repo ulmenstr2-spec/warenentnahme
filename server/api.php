@@ -207,6 +207,31 @@ function doRegister(PDO $pdo, array $in): void {
       . "Dein warenentnahme.de Team"
     );
 
+    // Kopie an den Betreiber.
+    //
+    // Bei einer Kuendigung gab es die schon, bei einer Anmeldung nicht —
+    // ausgerechnet beim wichtigeren Ereignis. Solange es nur eine Handvoll
+    // Anmeldungen im Monat gibt, ist jede einzelne eine Nachricht ueber den
+    // Markt, die man nicht in der Datenbank suchen will.
+    //
+    // Bewusst schon hier und nicht erst bei der Bestaetigung: Bleibt eine
+    // Anmeldung unbestaetigt, ist genau das die Information. Dann kommt die
+    // Mail beim Kunden nicht an — derselbe Fehler, der im September zwei
+    // Wochen lang unbemerkt blieb.
+    $wiederholung = $user ? ' (erneuter Versuch, Konto war unbestaetigt)' : '';
+    sendMail(
+        MAIL_FROM,
+        'Neue Anmeldung — ' . $firma,
+        "Betrieb:   {$firma}\n"
+      . "E-Mail:    {$email}{$wiederholung}\n"
+      . "Zeitpunkt: " . date('d.m.Y H:i') . " Uhr\n\n"
+      . "Die Bestaetigungsmail ist unterwegs. Erst wenn der Link geklickt\n"
+      . "wurde, ist das Konto nutzbar — bleibt es aus, kam die Mail nicht an.\n\n"
+      . "Nachsehen:\n"
+      . "SELECT id, email, firma, verified, b2b_bestaetigt_am, last_sync\n"
+      . "FROM users ORDER BY id DESC LIMIT 5;"
+    );
+
     jsonOk(['message' => 'Bestätigungsmail gesendet. Bitte prüfe dein Postfach.']);
 }
 

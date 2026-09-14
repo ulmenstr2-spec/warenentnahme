@@ -17,8 +17,9 @@ Der Rest der Datei ist Chronik — hier steht, woran noch etwas hängt.
       und niemand erinnert daran
 - [ ] `api_php_patch.txt` in `/public/app/` ansehen und vermutlich löschen;
       `.txt` ist in der `.htaccess` nicht gesperrt
-- [ ] Produktbeschreibung auf der Bezahlseite: „Vollzugriff für 12 Monate"
-      klingt nach Ende, das Abo verlängert sich aber automatisch
+- [ ] **`app.html` geht mit dem Merge raus** — CSV mit Dezimalkomma
+- [ ] Wenn ein Kunde nach DATEV importiert: prüfen, ob dort Punkt oder
+      Komma erwartet wird (Fremdformate blieben bewusst beim Punkt)
 
 **Papiere (Lücken sind in `recht/` markiert)**
 
@@ -158,6 +159,38 @@ Anschrift ein, und auf der Rechnung stünde sie trotzdem nicht.
       verlängert sich aber automatisch (§ 5 AGB). Besser:
       „Jahresabo, verlängert sich automatisch, jederzeit kündbar."
 - [ ] Unternehmensbeschreibung: „in form einer App" → „in Form einer App"
+
+## CSV zeigte Datumsangaben statt Beträgen (14.09.2026)
+
+Aufgefallen beim Öffnen eines echten Monatsberichts in Excel — kurz bevor
+er an eine Steuerberaterin gehen sollte.
+
+In den Spalten `bewertungBrutto` und `bewertungNetto` standen Werte wie
+**`Apr 57`**, `Jan 76`, `Mai 66`, `05. Mrz`. Das waren keine Datumsangaben,
+sondern die Beträge: aus `4.57 €` hatte Excel „April 1957" gemacht.
+
+**Ursache:** Das CSV nutzt Semikolon als Feldtrennzeichen. Deutsches Excel
+erwartet dann ein **Komma** als Dezimaltrennzeichen. Der Punkt wurde als
+Datumstrennzeichen gelesen.
+
+**Warum es so lange unbemerkt blieb:** Es trifft nur Werte, deren
+ganzzahliger Teil zwischen 1 und 12 liegt. `0,87` und `30` bleiben stehen.
+Die Tabelle sieht also überwiegend richtig aus — kaputt sind ausgerechnet
+die Beträge in der Mitte.
+
+- [x] `formatNumberCSV` gibt jetzt ein Dezimalkomma aus (GmbH-CSV)
+- [x] Im EU-Modus ein zweiter Formatierer `cnDE` nur für das neutrale CSV
+- [x] **DATEV, Lexware und sevDesk bleiben beim Punkt.** Dort steht im Code
+      ausdrücklich „kein Komma", und keines der drei Importformate lässt
+      sich von hier prüfen. Wenn der erste Kunde wirklich nach DATEV
+      importiert, gehört das einmal nachgesehen.
+- [x] Steuerberater-Seite sagt jetzt „Dezimalkomma" statt „Dezimalpunkt"
+- [x] Der XLSX-Export war **nicht** betroffen — er schreibt echte Zahlen,
+      keine Zeichenketten. Nur das CSV war es.
+
+**Merke:** Ein Export ist erst geprüft, wenn ihn jemand in dem Programm
+geöffnet hat, in dem der Empfänger ihn öffnet. Die Datei war formal
+korrekt — sie kam nur falsch an.
 
 ## Danach: SEO (Befund vom 07.09.2026)
 

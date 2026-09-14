@@ -3593,8 +3593,13 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
 
   const exportCSV=()=>{
     if(!sel)return;
-    // ── cn(): reine Zahl mit Dezimalpunkt, keine Währung, max 2 Dezimalstellen
+    // cn(): Dezimalpunkt. Bleibt so fuer die drei Fremdformate unten —
+    // DATEV, Lexware und sevDesk erwarten laut den dortigen Kommentaren
+    // ausdruecklich kein Komma, und keines davon laesst sich hier pruefen.
     const cn=v=>{const p=parseFloat(v);return isNaN(p)?'':String(roundCurrency(p));};
+    // cnDE(): Dezimalkomma. Fuer das neutrale CSV, das ein Mensch in Excel
+    // oeffnet. Mit Punkt wird daraus ein Datum — siehe formatNumberCSV.
+    const cnDE=v=>{const p=parseFloat(v);return isNaN(p)?'':String(roundCurrency(p)).replace('.',',');};
     const dateDE=d=>d.slice(0,10);
     const exportTS=new Date().toISOString();
     const EU_REPORT_VERSION='1.4';
@@ -3622,20 +3627,20 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
       // Standard (neutral) — erweitert mit Brutto/Netto/USt + Archiv-Spalten
       // betragBrutto = wert (EK-Preis netto * Menge); betragNetto = brutto / (1 + ust/100)
       // ustBetrag = brutto - netto; Personalessen USt = 7% (Sachbezugswert)
-      const cnBrutto=e=>cn(e.wert);
-      const cnNetto=e=>cn(calcNetFromGross(e.wert,e.mwst||7));
-      const cnUst=e=>cn(roundCurrency(roundCurrency(e.wert)-calcNetFromGross(e.wert,e.mwst||7)));
-      const mNetto=m=>cn(calcNetFromGross(m.wert,7));
-      const mUst=m=>cn(roundCurrency(roundCurrency(m.wert)-calcNetFromGross(m.wert,7)));
+      const cnBrutto=e=>cnDE(e.wert);
+      const cnNetto=e=>cnDE(calcNetFromGross(e.wert,e.mwst||7));
+      const cnUst=e=>cnDE(roundCurrency(roundCurrency(e.wert)-calcNetFromGross(e.wert,e.mwst||7)));
+      const mNetto=m=>cnDE(calcNetFromGross(m.wert,7));
+      const mUst=m=>cnDE(roundCurrency(roundCurrency(m.wert)-calcNetFromGross(m.wert,7)));
       rows=[
         'typ;datum;beschreibung;menge;einheit;ekPreisNetto;ustSatz;betragBrutto;betragNetto;ustBetrag;exportTimestamp;reportVersion;zeitraumVon;zeitraumBis;betrieb;personenAktiv',
         ...me.map(e=>[
           'Warenentnahme',
           dateDE(e.datum),
           e.name,
-          cn(e.menge),
+          cnDE(e.menge),
           e.einheit||'',
-          cn(e.preis),
+          cnDE(e.preis),
           String(e.mwst||7),
           cnBrutto(e),
           cnNetto(e),
@@ -3655,7 +3660,7 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
           'Tag',
           '',
           '7',
-          cn(m.wert),
+          cnDE(m.wert),
           mNetto(m),
           mUst(m),
           exportTS,
@@ -5168,9 +5173,24 @@ const formatCurrencyPDF = (value) => {
   return n.toFixed(2).replace('.', ',');
 };
 // CSV: Punkt als Dezimaltrennzeichen, reine Zahl ohne Einheit
+// Zahl fuer die CSV-Ausgabe — mit DEZIMALKOMMA.
+//
+// Vorher stand hier ein Punkt, und das hat die Exporte unbrauchbar gemacht:
+// Deutsches Excel liest bei Semikolon als Trennzeichen ein Komma als
+// Dezimaltrennzeichen. Ein Punkt wird stattdessen als Datum gedeutet —
+// aus 4.57 EUR wird "Apr 57", aus 1.76 wird "Jan 76".
+//
+// Besonders heimtueckisch: Es trifft nur Werte, deren ganzzahliger Teil
+// zwischen 1 und 12 liegt. 0,87 und 30 bleiben unveraendert stehen. Die
+// Tabelle sieht also ueberwiegend richtig aus, und genau die Betraege in
+// der Mitte sind kaputt.
+//
+// Semikolon plus Komma ist die deutsche Schreibweise, die Excel selbst
+// erzeugt und die deutsche Kanzleisoftware erwartet. Da das Komma nicht
+// das Feldtrennzeichen ist, entsteht dabei kein Mehrdeutigkeitsproblem.
 const formatNumberCSV = (value) => {
   const n = parseFloat(value);
-  return isNaN(n) ? '' : String(Math.round(n * 100) / 100);
+  return isNaN(n) ? '' : String(Math.round(n * 100) / 100).replace('.', ',');
 };
 
 // ── ZENTRALE FINANZ-HELPERS ────────────────────────────────

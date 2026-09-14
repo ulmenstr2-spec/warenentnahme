@@ -17,7 +17,7 @@ rm -rf "$B/dist"; mkdir -p "$B/dist/root" "$B/dist/app"
 # Genau die Schritte aus .github/workflows/deploy.yml
 cp "$W/landing.html"  "$B/dist/root/index.html"
 cp "$W/htaccess.txt"  "$B/dist/root/.htaccess"
-cp "$W/impressum.html" "$W/datenschutz.html" "$W/pauschbetraege.html" "$W/fuer-steuerberater.html" "$B/dist/root/"
+cp "$W/impressum.html" "$W/datenschutz.html" "$W/pauschbetraege.html" "$W/fuer-steuerberater.html" "$W/eigenverbrauch-buchen.html" "$B/dist/root/"
 cp "$W/kuendigung.html" "$W/agb.html" "$W/avv.html" "$B/dist/root/"
 cp "$W/schriften.css" "$B/dist/root/"
 cp -r "$W/fonts" "$B/dist/root/fonts"

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eigenverbrauch buchen – Buchungssatz, Pauschbetrag und Ablauf</title>
+<meta name="description" content="Eigenverbrauch buchen: Wie unentgeltliche Wertabgaben nach § 3 Abs. 1b UStG gebucht werden, welcher Buchungssatz gilt, wann der BMF-Pauschbetrag genügt und was bei GmbH und Personalessen anders läuft.">
+<meta property="og:title" content="Eigenverbrauch buchen – Buchungssatz, Pauschbetrag und Ablauf">
+<meta property="og:description" content="Der Buchungssatz für unentgeltliche Wertabgaben, die Aufteilung nach 7 und 19 Prozent, der monatliche Ablauf und die beiden Sonderfälle GmbH und Personalessen.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://www.warenentnahme.de/eigenverbrauch-buchen">
+<meta property="og:image" content="https://www.warenentnahme.de/og-image.png">
+<meta property="og:locale" content="de_DE">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.warenentnahme.de/og-image.png">
+<meta name="theme-color" content="#2d5a1b">
+<link rel="icon" type="image/png" href="./favicon.png">
+<link rel="apple-touch-icon" href="./favicon.png">
+<link rel="canonical" href="https://www.warenentnahme.de/eigenverbrauch-buchen">
+<link rel="stylesheet" href="/schriften.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Eigenverbrauch buchen – Buchungssatz, Pauschbetrag und Ablauf",
+  "description": "Wie unentgeltliche Wertabgaben nach § 3 Abs. 1b UStG gebucht werden, welcher Buchungssatz gilt und wann der BMF-Pauschbetrag genügt.",
+  "inLanguage": "de",
+  "author": { "@type": "Person", "name": "Josef Czerwinski" },
+  "publisher": { "@type": "Organization", "name": "warenentnahme.de", "url": "https://www.warenentnahme.de/" },
+  "mainEntityOfPage": "https://www.warenentnahme.de/eigenverbrauch-buchen"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Wie lautet der Buchungssatz für Eigenverbrauch?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Die Entnahme wird nicht als Minderung des Wareneinsatzes gebucht, sondern als Ertrag: Privatentnahmen an unentgeltliche Wertabgaben, getrennt nach 7 und 19 Prozent Umsatzsteuer. In den DATEV-Kontenrahmen sind die Erlöskonten Automatikkonten, die die Umsatzsteuer selbst herausrechnen; ohne Automatik wird sie getrennt gebucht. Die konkreten Kontonummern hängen vom Kontenrahmen ab." }
+    },
+    {
+      "@type": "Question",
+      "name": "Wie oft muss Eigenverbrauch gebucht werden?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Üblich ist monatlich, passend zur Umsatzsteuer-Voranmeldung. Bei Anwendung der BMF-Pauschbeträge wird ein Zwölftel des Jahreswerts je Person angesetzt. Wer einzeln aufzeichnet, bucht die tatsächlichen Entnahmen des Monats." }
+    },
+    {
+      "@type": "Question",
+      "name": "Heißt es Eigenverbrauch oder unentgeltliche Wertabgabe?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Eigenverbrauch ist der ältere, umgangssprachlich gebliebene Begriff. Im Umsatzsteuergesetz heißt der Vorgang seit 1999 unentgeltliche Wertabgabe: § 3 Abs. 1b UStG für die Entnahme von Gegenständen, § 3 Abs. 9a UStG für sonstige Leistungen. Gemeint ist dasselbe." }
+    },
+    {
+      "@type": "Question",
+      "name": "Muss ich jede einzelne Entnahme aufschreiben?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Nein, wenn der Betrieb zu einem der Gewerbezweige gehört, für die das Bundesfinanzministerium jährlich Pauschbeträge veröffentlicht. Dann genügt der Pauschbetrag je Person und Monat. Wer den Pauschbetrag nicht anwendet oder nicht anwenden kann, muss die Entnahmen einzeln und zeitnah aufzeichnen." }
+    },
+    {
+      "@type": "Question",
+      "name": "Gilt Eigenverbrauch auch für eine GmbH?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Nein. Eine Entnahme setzt einen Unternehmer voraus, der aus seinem eigenen Betriebsvermögen entnimmt. Bei einer GmbH oder UG gehört das Vermögen der Gesellschaft. Nimmt der Gesellschafter-Geschäftsführer Waren mit, ist das in der Regel Arbeitslohn oder eine verdeckte Gewinnausschüttung — nicht Eigenverbrauch." }
+    }
+  ]
+}
+</script>
+<style>
+:root {
+  --green-dark:#1a2e0e; --green:#2d5a1b; --green-mid:#3d7a25; --green-light:#4a9630;
+  --lime:#8fc03a; --cream:#f5f2ea; --cream-dark:#ede9df; --text:#1a2612;
+  --text-mid:#3d4a30; --text-soft:#6a7a58; --border:#d8e0cc; --white:#fff;
+  --amber:#8a6410; --amber-bg:#fdf6e3; --amber-br:#e8d9a8;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Figtree',sans-serif;background:var(--cream);color:var(--text);line-height:1.7;-webkit-font-smoothing:antialiased}
+.display{font-family:'Fraunces',serif;line-height:1.1;letter-spacing:-1px}
+
+nav{position:sticky;top:0;z-index:50;background:rgba(245,242,234,0.94);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:9px;text-decoration:none}
+.nav-logo img{height:30px;width:30px;border-radius:8px;display:block}
+.nav-logo-text{font-family:'Fraunces',serif;font-size:19px;font-weight:700;color:var(--green);letter-spacing:-.2px}
+.nav-logo-de{color:var(--text-soft);font-weight:400}
+.nav-cta{background:var(--green);color:#fff;font-size:14px;font-weight:600;padding:9px 18px;border-radius:10px;text-decoration:none;white-space:nowrap;transition:background .2s}
+.nav-cta:hover{background:var(--green-light)}
+
+main{max-width:800px;margin:0 auto;padding:48px 24px 96px}
+.crumb{font-size:13px;color:var(--text-soft);margin-bottom:28px}
+.crumb a{color:var(--green);text-decoration:none}
+.crumb a:hover{text-decoration:underline}
+
+h1{font-size:clamp(32px,5vw,46px);margin-bottom:18px}
+h1 em{font-style:italic;color:var(--green-mid)}
+.lead{font-size:19px;color:var(--text-mid);margin-bottom:14px}
+.updated{font-size:13px;color:var(--text-soft);margin-bottom:36px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+
+h2{font-family:'Fraunces',serif;font-size:28px;font-weight:700;letter-spacing:-.5px;margin:48px 0 14px;color:var(--text)}
+h3{font-family:'Fraunces',serif;font-size:20px;font-weight:700;margin:32px 0 8px;color:var(--green)}
+p{margin-bottom:16px;color:var(--text-mid)}
+p strong,li strong{color:var(--text);font-weight:600}
+ul{margin:0 0 18px 22px;color:var(--text-mid)}
+li{margin-bottom:7px}
+a{color:var(--green)}
+
+.toc{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:8px}
+.toc-title{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-soft);margin-bottom:12px}
+.toc ul{margin:0;list-style:none}
+.toc li{margin-bottom:6px}
+.toc a{text-decoration:none;font-weight:500;font-size:15px}
+.toc a:hover{text-decoration:underline}
+
+.table-wrap{overflow-x:auto;margin:0 0 10px;border:1px solid var(--border);border-radius:14px;background:var(--white)}
+table{width:100%;border-collapse:collapse;min-width:600px}
+caption{text-align:left;font-size:13px;color:var(--text-soft);padding:14px 18px 0;caption-side:top}
+th,td{padding:13px 18px;text-align:left;border-bottom:1px solid var(--border);font-size:15px}
+thead th{background:var(--cream-dark);font-size:12px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-mid);white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(143,192,58,0.05)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.total{font-weight:700;color:var(--text)}
+.tbl-note{font-size:13px;color:var(--text-soft);margin-bottom:28px}
+
+.callout{border-radius:14px;padding:18px 22px;margin:26px 0;font-size:15px;line-height:1.65}
+.callout p{margin-bottom:0;color:inherit}
+.callout p + p{margin-top:10px}
+.callout.warn{background:var(--amber-bg);border:1px solid var(--amber-br);color:var(--amber)}
+.callout.warn strong{color:var(--amber)}
+.callout.info{background:rgba(143,192,58,0.1);border:1px solid rgba(143,192,58,0.35);color:var(--text-mid)}
+
+.example{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:22px 24px;margin:22px 0}
+.example-title{font-family:'Fraunces',serif;font-size:17px;font-weight:700;margin-bottom:14px;color:var(--green)}
+
+
+.faq-q{font-family:'Fraunces',serif;font-size:18px;font-weight:700;margin:28px 0 6px;color:var(--text)}
+
+.cta{background:linear-gradient(135deg,var(--green) 0%,var(--green-dark) 100%);border-radius:18px;padding:36px 32px;margin:56px 0 0;text-align:center;color:#fff}
+.cta h2{font-size:26px;color:#fff;margin:0 0 10px}
+.cta p{color:rgba(255,255,255,0.85);margin-bottom:22px;font-size:16px}
+.cta a{display:inline-block;background:var(--lime);color:var(--green-dark);font-weight:700;font-size:16px;
+  padding:14px 30px;border-radius:12px;text-decoration:none;transition:transform .2s}
+.cta a:hover{transform:translateY(-2px)}
+
+footer{border-top:1px solid var(--border);background:var(--cream-dark)}
+.footer-inner{max-width:800px;margin:0 auto;padding:28px 24px;display:flex;flex-wrap:wrap;gap:16px;
+  justify-content:space-between;align-items:center;font-size:13px;color:var(--text-soft)}
+.footer-inner a{color:var(--text-mid);text-decoration:none;margin-left:16px}
+.footer-inner a:first-child{margin-left:0}
+.footer-inner a:hover{color:var(--green)}
+
+@media(max-width:480px){
+  nav{padding:0 16px}
+  .nav-logo-de{display:none}
+  .nav-cta{padding:9px 14px;font-size:13px}
+  main{padding:32px 20px 72px}
+  th,td{padding:11px 14px;font-size:14px}
+  .footer-inner{flex-direction:column;text-align:center}
+  .footer-inner a{margin:0 8px}
+}</style>
+</head>
+<body>
+
+<nav>
+  <a href="./" class="nav-logo">
+    <img src="./favicon.png" alt="" width="30" height="30" aria-hidden="true">
+    <span class="nav-logo-text">warenentnahme<span class="nav-logo-de">.de</span></span>
+  </a>
+  <a href="./app/" class="nav-cta">App kostenlos nutzen</a>
+</nav>
+
+<main>
+  <div class="crumb"><a href="./">Startseite</a> › Eigenverbrauch buchen</div>
+
+  <h1 class="display">Eigenverbrauch <em>buchen</em></h1>
+  <p class="lead">Wer Waren aus dem eigenen Betrieb für sich selbst verwendet, muss das buchen.
+  Hier steht, wie der Buchungssatz aussieht, wann der Pauschbetrag des Bundesfinanzministeriums
+  genügt und was bei einer GmbH und beim Personalessen anders läuft.</p>
+  <p class="updated">Stand: September 2026 · Keine Steuerberatung — im Zweifel mit der Kanzlei abstimmen.</p>
+
+  <div class="toc">
+    <div class="toc-title">Inhalt</div>
+    <ul>
+      <li><a href="#begriff">Eigenverbrauch oder unentgeltliche Wertabgabe?</a></li>
+      <li><a href="#buchungssatz">Der Buchungssatz</a></li>
+      <li><a href="#zwei-wege">Pauschbetrag oder Einzelaufzeichnung</a></li>
+      <li><a href="#wann">Wie oft gebucht wird</a></li>
+      <li><a href="#aufteilung">Die Aufteilung nach 7 und 19 Prozent</a></li>
+      <li><a href="#gmbh">Sonderfall GmbH</a></li>
+      <li><a href="#personalessen">Sonderfall Personalessen</a></li>
+      <li><a href="#pruefung">Was bei einer Betriebsprüfung verlangt wird</a></li>
+      <li><a href="#faq">Häufige Fragen</a></li>
+    </ul>
+  </div>
+
+  <h2 id="begriff">Eigenverbrauch oder unentgeltliche Wertabgabe?</h2>
+  <p>Gemeint ist dasselbe. <strong>Eigenverbrauch</strong> ist der ältere Begriff, der
+  umgangssprachlich geblieben ist. Im Umsatzsteuergesetz heißt der Vorgang seit 1999
+  <strong>unentgeltliche Wertabgabe</strong>:</p>
+  <ul>
+    <li><strong>§ 3 Abs. 1b UStG</strong> — Entnahme von <em>Gegenständen</em>, also die Wurst
+      aus der Theke, der Kasten Bier, das Brot vom Vortag</li>
+    <li><strong>§ 3 Abs. 9a UStG</strong> — unentgeltliche <em>sonstige Leistungen</em>, etwa die
+      private Nutzung eines betrieblichen Fahrzeugs</li>
+  </ul>
+  <p>Auf dieser Seite geht es um den ersten Fall: Waren, die den Betrieb verlassen, ohne dass
+  jemand dafür bezahlt. In der Gastronomie und im Lebensmittelhandel ist das der Regelfall, und
+  dafür hat die Finanzverwaltung eine Vereinfachung geschaffen — die
+  <a href="./pauschbetraege">Pauschbeträge</a>.</p>
+
+  <div class="callout info">
+    <p><strong>Warum das überhaupt gebucht werden muss:</strong> Die Ware wurde als Wareneinsatz
+    gewinnmindernd verbucht, als sie eingekauft wurde. Verlässt sie den Betrieb ohne Verkauf,
+    wäre der Gewinn zu niedrig und die Umsatzsteuer zu gering. Die Entnahme gleicht beides aus.</p>
+  </div>
+
+  <h2 id="buchungssatz">Der Buchungssatz</h2>
+  <p>Die häufigste Verwechslung zuerst: <strong>Die Entnahme mindert nicht den Wareneinsatz.</strong>
+  Sie wird auf der Ertragsseite erfasst — als hätte der Betrieb die Ware an den Inhaber verkauft.</p>
+
+  <div class="example">
+    <div class="example-title">Grundform</div>
+    <div class="table-wrap" style="margin-bottom:0">
+      <table style="min-width:0">
+        <thead><tr><th>Soll</th><th>Haben</th></tr></thead>
+        <tbody>
+          <tr><td>Privatentnahmen</td><td>Unentgeltliche Wertabgaben 7 %</td></tr>
+          <tr><td>Privatentnahmen</td><td>Unentgeltliche Wertabgaben 19 %</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p>In den gängigen Kontenrahmen sind die Erlöskonten für unentgeltliche Wertabgaben
+  <strong>Automatikkonten</strong>: Man bucht den Bruttobetrag dagegen, und die Umsatzsteuer wird
+  automatisch herausgerechnet und auf das Umsatzsteuerkonto gestellt. Wer ohne Automatik bucht,
+  trennt sie selbst:</p>
+
+  <div class="example">
+    <div class="example-title">Ohne Automatikkonto</div>
+    <div class="table-wrap" style="margin-bottom:0">
+      <table style="min-width:0">
+        <thead><tr><th>Soll</th><th>Haben</th></tr></thead>
+        <tbody>
+          <tr><td>Privatentnahmen (brutto)</td><td>Unentgeltliche Wertabgaben (netto)</td></tr>
+          <tr><td></td><td>Umsatzsteuer 7 % bzw. 19 %</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <p><strong>Kontonummern nennen wir hier bewusst nicht.</strong> Sie hängen vom Kontenrahmen ab
+    — SKR03, SKR04 oder ein branchenspezifischer — und eine falsche Nummer ist schlimmer als gar
+    keine. In der Kontenbeschriftung heißen die richtigen Konten in der Regel
+    <em>„Entnahme von Gegenständen durch den Unternehmer für Zwecke außerhalb des Unternehmens"</em>
+    mit dem jeweiligen Steuersatz. Deine Kanzlei kennt die Nummern, und in der Buchhaltungssoftware
+    findest du sie über diese Bezeichnung.</p>
+  </div>
+
+  <h3>Womit bewertet wird</h3>
+  <p>Umsatzsteuerlich ist die Bemessungsgrundlage der <strong>Einkaufspreis zuzüglich Nebenkosten
+  im Zeitpunkt der Entnahme</strong> (§ 10 Abs. 4 Nr. 1 UStG) — nicht der Verkaufspreis.
+  Ertragsteuerlich wird die Entnahme mit dem <strong>Teilwert</strong> angesetzt
+  (§ 6 Abs. 1 Nr. 4 EStG). In der Praxis laufen beide bei Waren des Umlaufvermögens auf denselben
+  Wert hinaus.</p>
+  <p>Wer die Pauschbeträge anwendet, muss nicht bewerten — die Beträge sind bereits Nettowerte
+  und nach Steuersätzen aufgeteilt.</p>
+
+  <h2 id="zwei-wege">Pauschbetrag oder Einzelaufzeichnung</h2>
+  <p>Es gibt zwei Wege, und man entscheidet sich für das Jahr.</p>
+
+  <h3>Weg 1 — die Pauschbeträge</h3>
+  <p>Das Bundesfinanzministerium veröffentlicht jedes Jahr Pauschbeträge je Gewerbezweig:
+  Gaststätten, Café, Bäckerei, Fleischerei, Imbiss und weitere. Der Betrag gilt
+  <strong>pro Person im Haushalt und Jahr</strong>, für Kinder bis zum vollendeten zwölften
+  Lebensjahr in der Regel zur Hälfte, unter zwei Jahren gar nicht.</p>
+  <p>Damit entfällt die Einzelaufzeichnung vollständig. Das ist der Grund, warum die allermeisten
+  Betriebe diesen Weg gehen.</p>
+  <p><a href="./pauschbetraege">→ Pauschbeträge 2026 nach Gewerbezweig, mit Rechner</a></p>
+
+  <h3>Weg 2 — einzeln aufzeichnen</h3>
+  <p>Wer die Pauschbeträge nicht anwenden kann oder will, muss jede Entnahme <strong>zeitnah und
+  einzeln</strong> festhalten: Datum, Ware, Menge, Wert. Nötig ist das zum Beispiel, wenn der
+  Betrieb zu keinem der aufgeführten Gewerbezweige gehört, oder wenn Waren entnommen werden, die
+  von den Pauschbeträgen gar nicht erfasst sind.</p>
+
+  <div class="callout warn">
+    <p><strong>Die Pauschbeträge decken nicht alles ab.</strong> Sie umfassen die Waren des
+    jeweiligen Gewerbezweigs, im Wesentlichen Nahrungsmittel und Getränke. <strong>Tabakwaren und
+    andere Non-Food-Artikel sind gesondert mit dem tatsächlichen Wert zu erfassen</strong> — auch
+    dann, wenn im Übrigen pauschaliert wird.</p>
+  </div>
+
+  <h2 id="wann">Wie oft gebucht wird</h2>
+  <p><strong>Monatlich</strong>, passend zur Umsatzsteuer-Voranmeldung. Bei den Pauschbeträgen
+  setzt man ein Zwölftel des Jahreswerts je Person an; wer einzeln aufzeichnet, bucht die
+  tatsächlichen Entnahmen des Monats.</p>
+  <p>Einmal im Jahr alles auf einen Schlag zu buchen ist verbreitet, aber angreifbar: Die
+  Umsatzsteuer wäre unterjährig zu niedrig angemeldet. Wer quartalsweise oder jährlich
+  voranmeldet, bucht entsprechend.</p>
+
+  <h2 id="aufteilung">Die Aufteilung nach 7 und 19 Prozent</h2>
+  <p>Die Pauschbeträge sind bereits getrennt ausgewiesen. Grob gilt:</p>
+  <ul>
+    <li><strong>7 %</strong> — Lebensmittel, also der weitaus größere Teil</li>
+    <li><strong>19 %</strong> — vor allem Getränke</li>
+  </ul>
+  <p>Bei Betrieben ohne nennenswerten Getränkeanteil — einer Bäckerei ohne Ausschank etwa —
+  entfällt der 19-%-Anteil ganz. Deshalb muss <strong>in zwei Buchungen aufgeteilt werden</strong>
+  und nicht in einer Summe gebucht; sonst stimmt die Umsatzsteuer nicht.</p>
+
+  <h2 id="gmbh">Sonderfall GmbH</h2>
+  <p><strong>Bei einer GmbH oder UG gibt es keinen Eigenverbrauch.</strong> Eine Entnahme setzt
+  voraus, dass jemand aus <em>seinem eigenen</em> Betriebsvermögen entnimmt. Das Vermögen einer
+  GmbH gehört aber der Gesellschaft, nicht dem Geschäftsführer.</p>
+  <p>Nimmt der Gesellschafter-Geschäftsführer Waren mit, ist das je nach Veranlassung
+  <strong>Arbeitslohn</strong> (Sachbezug) oder eine <strong>verdeckte Gewinnausschüttung</strong>.
+  Die Pauschbeträge gelten dafür nicht.</p>
+
+  <h2 id="personalessen">Sonderfall Personalessen</h2>
+  <p>Mahlzeiten an Mitarbeiter sind ebenfalls kein Eigenverbrauch, sondern ein
+  <strong>Sachbezug</strong>. Bewertet wird nach den amtlichen Sachbezugswerten der
+  Sozialversicherungsentgeltverordnung — feste Beträge je Frühstück, Mittag- und Abendessen, die
+  jährlich angepasst werden.</p>
+  <p>Das ist eine eigene Rechnung mit eigenen Werten und eigener lohnsteuerlicher Behandlung. Wer
+  beides im selben Betrieb hat — der Inhaber isst mit und die Mitarbeiter auch —, führt zwei
+  getrennte Aufzeichnungen.</p>
+
+  <h2 id="pruefung">Was bei einer Betriebsprüfung verlangt wird</h2>
+  <p>Gefragt wird nach dem Nachweis, dass überhaupt und in welcher Höhe gebucht wurde. Konkret:</p>
+  <ul>
+    <li>eine <strong>nachvollziehbare Aufzeichnung je Monat</strong> — welcher Betrag, für wie
+      viele Personen, nach welchem Gewerbezweig</li>
+    <li>bei Einzelaufzeichnung: die zeitnah geführten Aufzeichnungen selbst</li>
+    <li>die Aufteilung nach Steuersätzen</li>
+  </ul>
+  <p>Die Aufzeichnungen unterliegen den <strong>GoBD</strong> und der Aufbewahrungspflicht nach
+  <strong>§ 147 AO</strong>. Nachträglich zusammengestellte Zahlen ohne laufende Aufzeichnung sind
+  der häufigste Anlass für Hinzuschätzungen.</p>
+
+  <h2 id="faq">Häufige Fragen</h2>
+
+  <div class="faq-q">Wie lautet der Buchungssatz für Eigenverbrauch?</div>
+  <p>Privatentnahmen an unentgeltliche Wertabgaben, getrennt nach 7 und 19 Prozent. Nicht als
+  Minderung des Wareneinsatzes. Die Kontonummern hängen vom Kontenrahmen ab.</p>
+
+  <div class="faq-q">Wie oft muss Eigenverbrauch gebucht werden?</div>
+  <p>Monatlich, passend zur Umsatzsteuer-Voranmeldung — bei den Pauschbeträgen ein Zwölftel des
+  Jahreswerts je Person.</p>
+
+  <div class="faq-q">Heißt es Eigenverbrauch oder unentgeltliche Wertabgabe?</div>
+  <p>Beides meint dasselbe. Das Umsatzsteuergesetz sagt seit 1999 unentgeltliche Wertabgabe,
+  § 3 Abs. 1b UStG.</p>
+
+  <div class="faq-q">Muss ich jede einzelne Entnahme aufschreiben?</div>
+  <p>Nicht, wenn der Betrieb zu einem der Gewerbezweige mit Pauschbeträgen gehört. Dann genügt der
+  Pauschbetrag je Person und Monat.</p>
+
+  <div class="faq-q">Gilt das auch für eine GmbH?</div>
+  <p>Nein. Dort ist es Arbeitslohn oder verdeckte Gewinnausschüttung, und die Pauschbeträge gelten
+  nicht.</p>
+
+  <div class="cta">
+    <h2>Die monatliche Buchung vorbereiten</h2>
+    <p>warenentnahme.de rechnet die Pauschbeträge je Person aus, führt die Aufzeichnungen nach
+    GoBD und liefert den Monatswert getrennt nach 7 und 19 Prozent — als PDF, CSV oder Excel für
+    die Kanzlei.</p>
+    <a href="./app/">30 Tage kostenlos testen</a>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div>© 2026 warenentnahme.de</div>
+    <div>
+      <a href="./">Startseite</a>
+      <a href="./pauschbetraege">Pauschbeträge</a>
+      <a href="./fuer-steuerberater">Für Steuerberater</a>
+      <a href="./impressum">Impressum</a>
+      <a href="./datenschutz">Datenschutz</a>
+      <a href="./agb">AGB</a>
+      <a href="./avv">AVV</a>
+      <a href="./kuendigung">Verträge hier kündigen</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

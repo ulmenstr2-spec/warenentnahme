@@ -31,7 +31,8 @@ entscheidet sich alles daran, ob jemand davon erfährt.
 
 - [ ] Mit drei Steuerberatern in Rostock sprechen. Nicht verkaufen,
       fragen: Wie machen eure Gastro-Mandanten das heute?
-- [ ] SEO (siehe unten) — ein Nachmittag, kein Quartal
+- [x] SEO — am 14.09. umgesetzt, siehe unten. Wirkung frühestens in
+      vier bis sechs Wochen messbar.
 - [x] Yves Lhuissier — **nicht weiter verfolgen.** Zweimal angeschrieben,
       keine Reaktion. Bleibt als Datenpunkt: Der Weg über Google und
       Selbstanmeldung hat in drei Monaten einen einzigen Menschen
@@ -173,15 +174,33 @@ Markenname, sondern das deutsche Wort für die Sache. Wer das googelt,
 will wissen, was es ist oder welche Zahlen gelten. Nicht, welche App es
 dafür gibt.
 
-- [ ] **„unentgeltliche Wertabgaben" in Titel und Überschrift** der
-      Pauschbeträge-Seite. Der amtliche Begriff des BMF steht dort bisher
-      nur in der Beschreibung — daher Platz 34, obwohl der Inhalt passt.
-      Das ist das Wort, das ein Steuerberater tippt.
-- [ ] **Seite zu „Eigenverbrauch buchen"** — Buchungssätze, Konten in
-      SKR03/SKR04, wie oft. Platz 64 heißt: dazu gibt es nichts. Und es
-      ist die natürliche Stelle für „oder du lässt es die App machen".
-- [ ] Titel und Beschreibungen auf Klickrate hin überarbeiten. 6,1 % auf
-      Platz 3 ist etwa die Hälfte des Üblichen.
+### Umgesetzt am 14.09.2026
+
+- [x] **„unentgeltliche Wertabgaben" in Titel und Überschrift** der
+      Pauschbeträge-Seite. Der amtliche BMF-Begriff stand dort nur in der
+      Beschreibung — daher Platz 34, obwohl der Inhalt passt.
+      „Sachentnahmen" bleibt im Titel und im Vorspann, damit die
+      bisherige Sichtbarkeit nicht verlorengeht.
+- [x] **Neue Seite `eigenverbrauch-buchen.html`.** Platz 64 hieß: dazu
+      gibt es nichts. Jetzt rund 1.100 Wörter zum Buchungssatz, zur
+      Bewertung nach § 10 Abs. 4 UStG und § 6 EStG, zur Aufteilung 7/19 %,
+      zum monatlichen Ablauf und zu den beiden Sonderfällen GmbH und
+      Personalessen. Verlinkt aus Startseite, Pauschbeträgen und der
+      Steuerberater-Seite, in `sitemap.xml` und im Deploy aufgenommen.
+- [x] **Titel und Überschrift der Startseite auf „Warenentnahme"**
+      umgestellt. Vorher hieß beides „Sachentnahmen" — wer nach
+      *Warenentnahme* sucht (Platz 2 bis 3, aber nur 0 bis 6 % Klickrate),
+      sah ein Ergebnis, das ein anderes Wort verspricht. Der Fachbegriff
+      steht jetzt im Untertitel.
+
+**Kontonummern stehen bewusst nicht auf der neuen Seite.** Sie hängen vom
+Kontenrahmen ab, und eine falsche Nummer auf einer Seite, die sich an
+Steuerberater richtet, ist schlimmer als gar keine. Stattdessen ist die
+Kontenbezeichnung genannt, über die man sie in jeder Software findet.
+
+- [ ] In vier bis sechs Wochen in der Search Console nachsehen, ob sich
+      Position und Klickrate bewegt haben. Vorher lohnt der Blick nicht —
+      Google braucht die Zeit.
 
 **Ehrliche Erwartung:** Selbst wenn beides gut klappt — fünffache
 Impressionen, Klickrate auf 5 % — sind das etwa fünfzig Anmeldungen im

@@ -6,7 +6,7 @@
 import { chromium } from 'playwright';
 const U = 'https://localhost:8443';
 const seiten = ['/', '/impressum', '/agb', '/avv', '/datenschutz',
-                '/kuendigung', '/pauschbetraege', '/fuer-steuerberater', '/app/'];
+                '/kuendigung', '/pauschbetraege', '/fuer-steuerberater', '/eigenverbrauch-buchen', '/app/'];
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
 const ctx = await b.newContext({ viewport:{width:390,height:844}, ignoreHTTPSErrors:true });

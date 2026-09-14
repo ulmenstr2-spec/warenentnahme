@@ -1,121 +1,124 @@
-# Offene Punkte
+# warenentnahme.de — Stand und Chronik
 
-## Blocker für die Live-Schaltung des Abos
+## Was jetzt offen ist
 
-Diese Punkte blockieren **nicht** die Tests mit Stripe-Testschlüsseln, aber
-sie müssen erledigt sein, bevor echtes Geld fließt.
+Der Rest der Datei ist Chronik — hier steht, woran noch etwas hängt.
 
-- [ ] **AGB** — Vertragsgegenstand, Laufzeit (1 Jahr), Verlängerung,
-      Kündigungsfrist, Leistungsumfang, Haftung, Gerichtsstand
-- [ ] **Widerrufsbelehrung** — für Verbraucher gesetzlich vorgeschrieben.
-      Bei rein gewerblichen Kunden entfällt sie; da sich das bei der
-      Anmeldung nicht sicher unterscheiden lässt, ist die Belehrung der
-      sichere Weg. Dazu die Frage, ob ein vorzeitiger Leistungsbeginn
-      vereinbart wird (sonst läuft die Frist gegen den Start der Nutzung).
-- [x] **Kündigungsbutton nach § 312k BGB** — gebaut: `kuendigung.html`
-      mit Formular und Schaltfläche „Jetzt kündigen", verlinkt als
-      „Verträge hier kündigen" im Fußbereich aller Seiten, ohne
-      Anmeldung erreichbar. `server/kuendigung.php` nimmt die Erklärung
-      entgegen, bestätigt sofort per Mail und zeigt eine speicher- und
-      druckbare Seite mit Datum, Uhrzeit und Vorgangsnummer.
-      **Die Formulierungen gehören trotzdem einmal geprüft.**
-      Das Abo wird bewusst nicht automatisch beendet: Das Formular ist
-      ohne Anmeldung erreichbar, sonst könnte jemand mit einer fremden
-      E-Mail-Adresse das Abo eines Fremden kündigen. Die Erklärung geht
-      an den Betreiber, der sie in Stripe ausführt.
-- [ ] **Preisangaben nach PAngV** prüfen: Gesamtpreis, Hinweis auf
-      § 19 UStG (steht bereits auf der Preisseite), Laufzeit
-- [ ] Rechnungsfußzeile in Stripe: `Gemäß § 19 UStG wird keine
-      Umsatzsteuer berechnet.` + Steuernummer `079/211/00250`
+**Am Produkt**
 
-> Hinweis: Das ist keine Rechtsberatung. Vor der Live-Schaltung von einer
-> Person mit entsprechender Zulassung prüfen lassen.
+- [ ] Aussteller-Name auf der Rechnung (siehe unten, „LIVE seit 14.09.")
+- [ ] Löschung nach zwölf Monaten läuft nicht von allein — bisher Handarbeit,
+      und niemand erinnert daran
+- [ ] `api_php_patch.txt` in `/public/app/` ansehen und vermutlich löschen;
+      `.txt` ist in der `.htaccess` nicht gesperrt
 
-## Technisch offen
+**Papiere (Lücken sind in `recht/` markiert)**
 
-Der Einbau in `api.php` ist erledigt — die ergänzte Datei liegt als
-`server/api.php` im Repository und muss nur noch hochgeladen werden.
+- [ ] Datensicherung beim Hoster: welche, wie oft, wie lange, schon einmal
+      zurückgespielt?
+- [ ] Aufbewahrungsdauer der Server-Protokolle bei IONOS
+- [ ] Zwei-Faktor-Anmeldung bei IONOS und Stripe
+- [ ] **AVV mit IONOS** abschließen — sie stehen in § 4 des eigenen AVV
+- [ ] Kontaktdaten des LfDI Mecklenburg-Vorpommern gegenprüfen, Link zum
+      Meldeformular eintragen
 
-- [ ] **Datenbank**: `server/migration-stripe.sql` in phpMyAdmin ausführen
-      (vorher Sicherung der Tabelle `users` anlegen). Danach nicht vergessen:
-      - Bestandsnutzer freischalten (auskommentierte Zeile am Dateiende)
-      - eigenes Konto dauerhaft freischalten:
-        `UPDATE users SET subscription_status='active' WHERE email='…';`
-- [ ] **Diese vier Dateien** per FTP nach `/public/app/` laden:
-      `api.php`, `api-stripe-actions.php`, `stripe-webhook.php`,
-      `config.stripe.php`
-- [ ] **Stripe-Bibliothek** installieren: `composer require stripe/stripe-php`
-      oder Release herunterladen und nach `/public/app/stripe-php/` legen
-- [ ] **`config.stripe.php`** aus `server/config.stripe.example.php`
-      erstellen. Alle vier Werte eintragen — **auch die Price-ID**, und zwar
-      die aus dem Modus, dessen Schlüssel danebenstehen. Eine Live-ID wirft
-      im Testmodus `No such price`.
-- [ ] **Stripe-Dashboard**: Webhook-Endpunkt auf
-      `https://www.warenentnahme.de/app/stripe-webhook.php` einrichten,
-      die fünf Ereignisse abonnieren, Kundenportal aktivieren (Kündigung
-      und Zahlungsmittel ändern, deutsche Sprache)
-- [x] **Testlauf** mit Karte `4242 4242 4242 4242` — am 02.09.2026
-      vollständig durchgespielt: Bezahlung, Testphase, Kündigung im
-      Kundenportal, Sperre neuer Einträge, Export (PDF und Backup)
-      weiterhin möglich.
+**Vertrieb — das eigentliche Thema**
 
-## Für den Livegang
+- [ ] **Yves Lhuissier antworten.** Der einzige Nutzer von außen, den es
+      je gab. Nach dem fehlgeschlagenen Beleg fragen — und danach, was ihn
+      überhaupt hergeführt hat. Die zweite Frage ist die wertvollere.
+- [ ] Mit drei Steuerberatern in Rostock sprechen. Nicht verkaufen,
+      fragen: Wie machen eure Gastro-Mandanten das heute?
+- [ ] SEO (siehe unten) — ein Nachmittag, kein Quartal
 
-**Merke: Test und Live sind bei Stripe zwei getrennte Welten.** Produkte,
-Preise, Webhooks, Kundenportal und Rechnungsfußzeile gibt es in jedem
-Modus einmal. Was in der Sandbox eingestellt ist, ist live nicht da.
+**Erledigt und abgehakt:** AGB, AVV, Datenschutzerklärung, B2B-Schranke
+mit Nachweis, Kündigungsbutton nach § 312k, lokale Schriftarten und
+Programmbausteine, Anschrift in den Mails, Adressen ohne `.html`,
+TOM-Datenblatt, Verarbeitungsverzeichnis, Löschkonzept,
+Datenpannen-Ablaufplan, Fassungsarchiv — und seit dem 14.09. der
+Livegang.
 
-### Zuerst: zwei Dinge, die noch nie jemand durchgespielt hat
+Widerrufsbelehrung und PAngV sind **entfallen**: Beides gilt nur
+gegenüber Verbrauchern, und die B2B-Schranke schließt sie aus. So die
+Kanzlei am 03.09.
 
-Beides läuft noch im Testmodus, kostet also nichts.
+## LIVE seit 14.09.2026
 
-- [ ] **Probeanmeldung** mit einer fremden E-Mail-Adresse. Feld „Name
-      deines Betriebs" und Haken mit § 14 BGB müssen da sein,
-      Bestätigungsmail muss ankommen, Anmeldung muss klappen. Danach die
-      Zeile in `users` löschen, sonst blockiert die Adresse eine spätere
-      echte Anmeldung. Diese Strecke ist Stripe-unabhängig.
-- [ ] **Ein Rechnungs-PDF aus der Sandbox ansehen.** Steht die
-      Kleinunternehmer-Fußzeile drauf? Und stehen **Name und Anschrift
-      des Ausstellers** darüber? Das Zweite zieht Stripe aus den
-      Geschäftsdaten, nicht aus der Fußzeile — fehlt es, ist die Rechnung
-      unvollständig, und das sieht man erst am fertigen PDF.
+Der Zahlungsdienst läuft im Echtbetrieb. Vollständig durchgespielt mit
+einem frischen Konto und einer echten Karte:
 
-### Schritt 0 — Konto freigeschaltet?
+Bezahlseite (`checkout.stripe.com/…/cs_live_…`) → 3D-Secure-Freigabe über
+die Bank → Rückkehr in die App → **„Testphase läuft — noch 30 Tage"** →
+Kundenportal erreichbar → Testphase vorzeitig beendet → 49 € abgebucht →
+Rechnung erzeugt → gekündigt → erstattet.
 
-- [ ] Auf „wechseln Sie zum Live-Konto" klicken. Fragt Stripe nach
-      Identität, Geschäftsangaben und Bankverbindung, ist das Schritt 0 —
-      ohne das nimmt es kein Geld an. Kann ein bis zwei Tage dauern.
+Die entscheidende Zeile ist die dritte: Dass die App die Testphase
+anzeigt, beweist, dass der Webhook durchkommt, der Server schreibt und
+die Freischaltung greift. Diese Kette war vorher nie unter echten
+Bedingungen gelaufen.
 
-### Schritte 1 bis 5 — im Live-Modus
+### Erledigt
 
-- [ ] **Produkt und Preis** anlegen: `warenentnahme.de Jahresabo`,
-      49,00 EUR, wiederkehrend jährlich, Steuern im Preis enthalten.
-      Price-ID kopieren.
-- [ ] **Kundenportal** einrichten: Kündigung zum Ende des
-      Abrechnungszeitraums, Zahlungsmittel ändern, Rechnungshistorie,
-      deutsche Sprache.
-- [ ] **Rechnungsfußzeile** eintragen (`dashboard.stripe.com/settings/billing/invoice`,
-      im Live-Modus eine andere Seite als im Test):
-      `Gemäß § 19 UStG wird keine Umsatzsteuer berechnet und ausgewiesen
-      (Kleinunternehmerregelung). Steuernummer: 079/211/00250`
-- [ ] **Webhook** auf `https://www.warenentnahme.de/app/stripe-webhook.php`,
-      dieselben fünf Ereignisse, **neues** Signaturgeheimnis kopieren.
-- [ ] **Vier Werte** in `config.stripe.php` (`/public/app/`) tauschen:
-      Price-ID, `sk_live_`, `pk_live_`, `whsec_`. Die drei
-      Rücksprungadressen bleiben.
-      **Kopieren, nicht abtippen** — in diesen IDs stehen großes I und
-      kleines l nebeneinander und sehen gleich aus.
-      **Die Sandbox-Werte nicht überschreiben, sondern als
-      auskommentierte Zeilen darunter stehen lassen.** Sonst gibt es nach
-      dem Umzug keinen Ort mehr zum Ausprobieren.
+- [x] Live-Konto freigeschaltet: Unternehmen verifiziert, Bank, Konto
+      geschützt
+- [x] Zahlungsbeschreibung `WARENENTNAHME.DE` — erscheint im
+      Freigabedialog der Bank, geprüft
+- [x] Stripe Tax **bewusst übersprungen** — als Kleinunternehmer nach
+      § 19 UStG gibt es nichts zu berechnen, und es kostet pro Transaktion
+- [x] Produkt und Preis aus der Sandbox ins Live-Konto kopiert
+- [x] Kundenportal (kam mit der Kopie)
+- [x] Webhook live: fünf Ereignisse, Nutzlast **Momentaufnahme**,
+      API-Version **2026-07-29.dahlia**
+- [x] Vier Werte in `config.stripe.php`
+- [x] Kunden-E-Mails an: erfolgreiche Zahlungen, Rückerstattungen
+- [x] Abo-Mails an: Erinnerung vor Ende der Testphase, bevorstehende
+      Verlängerung, ablaufende Karten, fehlgeschlagene Kartenzahlungen,
+      Bestätigungslink bei starker Kundenauthentifizierung
+- [x] Rechnungsfußzeile mit § 19 UStG und Steuernummer — **im zweiten
+      Anlauf**
+- [x] Probeanmeldung durch die B2B-Schranke
 
-### Schritt 6 — einmal mit echtem Geld
+### Vier Dinge, die dabei fast schiefgegangen wären
 
-- [ ] Neue Adresse, eigene Karte, ganzer Weg: Zahlung → „Abo aktiv" →
-      Kundenportal erreichbar → kündigen → Sperre greift → Export geht
-      weiterhin. Danach im Dashboard erstatten und beenden. Kostet die
-      Kartengebühr von etwa 1,80 € — dafür ist der erste echte Kunde
-      nicht der Testfall.
+**1. Sandbox-Kennungen in der gemeinsamen Datenbank.** Test und Live sind
+bei Stripe zwei Welten — die Datenbank ist aber nur eine. Bei drei Konten
+stand noch eine `cus_…` aus der Sandbox, die es live nicht gibt. Der Code
+hätte sie benutzt und wäre ins Leere gelaufen. Vor dem Umzug geleert
+(ids 6, 7, 8), die vier freigeschalteten Konten blieben unberührt.
+
+**2. `prod_` ist nicht `price_`.** Im Produktkatalog steht rechts groß die
+Produkt-ID. In die `config.stripe.php` gehört die Preis-ID, zu holen über
+die drei Punkte in der Preiszeile. Verwechselt man sie, kommt
+`No such price` — und man sucht den Fehler im falschen Modus.
+
+**3. Der Webhook wird beim Kopieren nicht mitgenommen.** Er gehört zu
+einem Modus. Hätte man ihn vergessen, hätten Kunden bezahlt und wären
+nicht freigeschaltet worden — ohne Fehlermeldung, ohne dass es jemandem
+auffällt außer dem Kunden.
+
+**4. Die Rechnungsfußzeile war zweimal nicht gespeichert.** Am 05.09. im
+Feld eingetragen, aber nicht gespeichert — deshalb fehlte sie auf dem
+Sandbox-Beleg, und deshalb hat das Kopieren ins Live-Konto sie auch nicht
+mitgenommen: Es gab nichts zu kopieren.
+**Regel: Nach jedem Speichern die Seite neu laden und nachsehen.**
+
+### Noch offen an der Rechnung
+
+- [ ] **Als Aussteller steht „warenentnahme.de", nicht „Josef
+      Czerwinski".** Eine Rechnung braucht den vollständigen Namen des
+      leistenden Unternehmers; eine Geschäftsbezeichnung allein ist
+      heikel. Anzeigename unter `dashboard.stripe.com/settings/profile`
+      auf `Josef Czerwinski — warenentnahme.de` ändern, danach eine
+      Testrechnung erzeugen und das PDF prüfen.
+- [x] `@warenentnahme` auf der Rechnung — **bleibt.** Ein einmal
+      vergebener Kurzname lässt sich bei Stripe nicht leeren, nur
+      ersetzen; Löschen geht nur über den Support. Kosmetik, nicht den
+      Aufwand wert.
+- [ ] Produktbeschreibung: „Vollzugriff für 12 Monate" steht auf der
+      Bezahlseite und liest sich, als wäre danach Schluss. Das Abo
+      verlängert sich aber automatisch (§ 5 AGB). Besser:
+      „Jahresabo, verlängert sich automatisch, jederzeit kündbar."
+- [ ] Unternehmensbeschreibung: „in form einer App" → „in Form einer App"
 
 ## Danach: SEO (Befund vom 07.09.2026)
 
@@ -360,12 +363,16 @@ lösen, indem der Empfänger anders heißt; dafür müsste eine Datei auf dem
 Server umbenannt werden, die von Hand dort liegt. Für eine
 Schönheitskorrektur an einer rechtlich wichtigen Strecke zu riskant.
 
-## Offen für den Livegang (Stand 05.09.2026)
+## Offen für den Livegang (Stand 05.09.2026) — überholt
 
-- [ ] Probeanmeldung mit einer fremden Adresse — die B2B-Schranke ist im
-      Echtbetrieb noch von niemandem durchlaufen worden
-- [ ] Ein echtes Rechnungs-PDF ansehen: Kommt die Kleinunternehmer-Fußzeile
-      an, und stehen Name und Anschrift des Ausstellers darauf?
+> Erledigt am 14.09., siehe „LIVE seit 14.09.2026". Bleibt als Chronik
+> stehen, weil die beiden ersten Punkte damals der Grund waren, mit dem
+> Livegang noch zu warten — und beide haben etwas zutage gefördert.
+
+- [x] Probeanmeldung mit einer fremden Adresse
+- [x] Ein echtes Rechnungs-PDF ansehen — **hat die fehlende Anschrift und
+      die nicht gespeicherte Fußzeile aufgedeckt.** Genau deshalb wollte
+      ich das fertige PDF sehen und nicht nur die Einstellung.
 - [ ] `api_php_patch.txt` in `/public/app/` ansehen und vermutlich löschen.
       `.txt` ist in der `.htaccess` nicht gesperrt und wird im Klartext
       ausgeliefert, anders als die `.php`-Dateien daneben.

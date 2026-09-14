@@ -2803,6 +2803,18 @@ function MealsTab({meals,setMeals,cd,cm,curPeriod,pruefeSchreibrecht=()=>true}){
 
   const addOne=type=>{
     if(!pruefeSchreibrecht())return;
+    // Beim Sachbezugswert gibt es pro Tag und Mahlzeit genau einen Wert.
+    // Eine zweite Erfassung ist fast immer ein Versehen — und sie kostet
+    // bares Geld: Jeder doppelte Eintrag versteuert einen geldwerten
+    // Vorteil, den es nie gab.
+    //
+    // Gefunden am 14.09.2026 in echten Daten: An zwei Tagen stand das
+    // Abendessen doppelt. Zuerst am Tag selbst erfasst, spaeter der ganze
+    // Tag nachgetragen — und nichts hat gewarnt.
+    //
+    // Mehrfacherfassung bleibt moeglich, nur nicht mehr unbemerkt.
+    if(count(type)>0 && !window.confirm(
+        `${ML[type]} ist für diesen Tag schon erfasst.\n\nNoch einmal hinzufügen?`))return;
     const monat=selDate.slice(0,7);
     setMeals(p=>[{id:Date.now()+'_'+Math.random().toString(36).slice(2),type,datum:selDate,monat,wert:SB[type],label:ML[type]},...p]);
   };
@@ -5462,6 +5474,18 @@ function GmbhMealsTab({meals,setMeals,persons,cd,cm,curPeriod,pruefeSchreibrecht
 
   const addOne=type=>{
     if(!pruefeSchreibrecht())return;
+    // Beim Sachbezugswert gibt es pro Person, Tag und Mahlzeit genau einen Wert.
+    // Eine zweite Erfassung ist fast immer ein Versehen — und sie kostet
+    // bares Geld: Jeder doppelte Eintrag versteuert einen geldwerten
+    // Vorteil, den es nie gab.
+    //
+    // Gefunden am 14.09.2026 in echten Daten: An zwei Tagen stand das
+    // Abendessen doppelt. Zuerst am Tag selbst erfasst, spaeter der ganze
+    // Tag nachgetragen — und nichts hat gewarnt.
+    //
+    // Mehrfacherfassung bleibt moeglich, nur nicht mehr unbemerkt.
+    if(count(type)>0 && !window.confirm(
+        `${ML[type]} ist für diesen Tag schon erfasst.\n\nNoch einmal hinzufügen?`))return;
     const monat=selDate.slice(0,7);
     setMeals(p=>[{id:'gm_'+Date.now()+'_'+Math.random().toString(36).slice(2),type,datum:selDate,monat,person:selPerson,vorteil:GMBH_SB[type],label:ML[type]},...p]);
   };

@@ -160,6 +160,33 @@ Anschrift ein, und auf der Rechnung stünde sie trotzdem nicht.
       „Jahresabo, verlängert sich automatisch, jederzeit kündbar."
 - [ ] Unternehmensbeschreibung: „in form einer App" → „in Form einer App"
 
+## Mahlzeiten doppelt erfasst (14.09.2026)
+
+Im selben Export aufgefallen: Am 01. und 02. September stand das
+Abendessen **zweimal** — bestätigt vom Betreiber, gegessen wurde einmal.
+
+**Kein Fehler im Abgleich.** Die Zusammenführung beim Sync entfernt
+Doppelte über die Kennung, das war geprüft. Es war die Eingabe: `addOne`
+fügte bei jedem Antippen hinzu, ohne zu fragen. Vermutlicher Hergang —
+am Tag selbst nur das Abendessen erfasst, später den ganzen Tag
+nachgetragen, und nichts hat gewarnt.
+
+**Warum es zählt:** Beim Sachbezugswert gibt es pro Person, Tag und
+Mahlzeit genau einen Wert. Jeder doppelte Eintrag versteuert einen
+geldwerten Vorteil, den es nie gab — ein Fehler zu Lasten des Kunden, in
+einem Dokument fürs Finanzamt.
+
+- [x] Rückfrage vor der zweiten gleichen Mahlzeit, in **beiden** Modi
+      (`MealsTab` und `GmbhMealsTab` — dieselbe Stelle, zweimal vorhanden)
+- [x] Bewusst **nicht gesperrt**, nur gefragt. Es gibt Tage mit zwei
+      Mahlzeiten derselben Art, und die Anzeige kennt `×2` seit jeher.
+- [x] Dauerprüfung `pruefung/mahlzeiten-dubletten.mjs` — 16 Durchläufe im
+      Browser: erstes Antippen fragt nicht, zweites fragt, Abbrechen
+      speichert nicht, Bestätigen speichert, eine andere Mahlzeit am
+      selben Tag fragt nicht.
+- [ ] **Bestandsdaten prüfen:** Im Monatsverlauf steht bei Doppelten
+      „Abendessen ×2". Einmal durch die erfassten Monate gehen.
+
 ## CSV zeigte Datumsangaben statt Beträgen (14.09.2026)
 
 Aufgefallen beim Öffnen eines echten Monatsberichts in Excel — kurz bevor

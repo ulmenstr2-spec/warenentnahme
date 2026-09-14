@@ -6,11 +6,13 @@ Der Rest der Datei ist Chronik — hier steht, woran noch etwas hängt.
 
 **Am Produkt**
 
-- [ ] Aussteller-Name auf der Rechnung (siehe unten, „LIVE seit 14.09.")
+- [ ] `server/api-stripe-actions.php` hochladen (Anschrift des Kunden)
 - [ ] Löschung nach zwölf Monaten läuft nicht von allein — bisher Handarbeit,
       und niemand erinnert daran
 - [ ] `api_php_patch.txt` in `/public/app/` ansehen und vermutlich löschen;
       `.txt` ist in der `.htaccess` nicht gesperrt
+- [ ] Produktbeschreibung auf der Bezahlseite: „Vollzugriff für 12 Monate"
+      klingt nach Ende, das Abo verlängert sich aber automatisch
 
 **Papiere (Lücken sind in `recht/` markiert)**
 
@@ -24,12 +26,17 @@ Der Rest der Datei ist Chronik — hier steht, woran noch etwas hängt.
 
 **Vertrieb — das eigentliche Thema**
 
-- [ ] **Yves Lhuissier antworten.** Der einzige Nutzer von außen, den es
-      je gab. Nach dem fehlgeschlagenen Beleg fragen — und danach, was ihn
-      überhaupt hergeführt hat. Die zweite Frage ist die wertvollere.
+Das Produkt steht, Zahlung und Steuerliches sind geregelt. Ab hier
+entscheidet sich alles daran, ob jemand davon erfährt.
+
 - [ ] Mit drei Steuerberatern in Rostock sprechen. Nicht verkaufen,
       fragen: Wie machen eure Gastro-Mandanten das heute?
 - [ ] SEO (siehe unten) — ein Nachmittag, kein Quartal
+- [x] Yves Lhuissier — **nicht weiter verfolgen.** Zweimal angeschrieben,
+      keine Reaktion. Bleibt als Datenpunkt: Der Weg über Google und
+      Selbstanmeldung hat in drei Monaten einen einzigen Menschen
+      gebracht, und der hat sich nicht zurückgemeldet. Genau deshalb
+      führt der nächste Schritt über Gespräche, nicht über Wartezeit.
 
 **Erledigt und abgehakt:** AGB, AVV, Datenschutzerklärung, B2B-Schranke
 mit Nachweis, Kündigungsbutton nach § 312k, lokale Schriftarten und
@@ -102,18 +109,43 @@ Sandbox-Beleg, und deshalb hat das Kopieren ins Live-Konto sie auch nicht
 mitgenommen: Es gab nichts zu kopieren.
 **Regel: Nach jedem Speichern die Seite neu laden und nachsehen.**
 
-### Noch offen an der Rechnung
+### Die Rechnung stimmt (14.09.2026)
 
-- [ ] **Als Aussteller steht „warenentnahme.de", nicht „Josef
-      Czerwinski".** Eine Rechnung braucht den vollständigen Namen des
-      leistenden Unternehmers; eine Geschäftsbezeichnung allein ist
-      heikel. Anzeigename unter `dashboard.stripe.com/settings/profile`
-      auf `Josef Czerwinski — warenentnahme.de` ändern, danach eine
-      Testrechnung erzeugen und das PDF prüfen.
-- [x] `@warenentnahme` auf der Rechnung — **bleibt.** Ein einmal
-      vergebener Kurzname lässt sich bei Stripe nicht leeren, nur
-      ersetzen; Löschen geht nur über den Support. Kosmetik, nicht den
-      Aufwand wert.
+- [x] Fußzeile mit § 19 UStG und Steuernummer — im zweiten Anlauf, siehe
+      oben
+- [x] Aussteller heißt jetzt **Josef Czerwinski - warenentnahme.de**.
+      Der Name kommt **nicht** aus dem Anzeigenamen im Stripe-Profil,
+      sondern aus den öffentlichen Geschäftsangaben des Kontos.
+- [x] `@warenentnahme` steht als eigene Zeile darunter. Der Kurzname
+      selbst lässt sich nicht leeren, seine Anzeige auf Rechnungen aber
+      über die Profileinstellungen steuern — Stripe weist im Dashboard
+      selbst darauf hin.
+
+### Anschrift des Kunden (14.09.2026)
+
+`billing_address_collection` in `api-stripe-actions.php` eingebaut.
+
+**Rechtlich nicht nötig:** Bei 49 € liegt eine Kleinbetragsrechnung nach
+§ 33 UStDV vor (bis 250 €), da entfällt die Anschrift des Empfängers. Und
+weil nach § 19 UStG keine Umsatzsteuer ausgewiesen wird, hat der Kunde
+ohnehin keinen Vorsteuerabzug.
+
+**Trotzdem erhoben, aus einem anderen Grund:** Ohne sie gibt es von keinem
+Kunden mehr als eine E-Mail-Adresse. Hier werden B2B-Verträge mit
+automatischer Jahresverlängerung geschlossen — wird davon je einer
+streitig, ist eine E-Mail-Adresse kein Vertragspartner, den man
+anschreiben kann.
+
+**Die zweite Zeile ist die wichtige:** `customer_update => ['address' =>
+'auto']`. Ohne sie schreibt die Bezahlseite die erhobene Anschrift nicht
+in den Kundeneintrag zurück (Voreinstellung ist `never`) — und die
+Rechnung zieht ihre Empfängerangaben von dort. Der Kunde tippte seine
+Anschrift ein, und auf der Rechnung stünde sie trotzdem nicht.
+
+- [ ] **`server/api-stripe-actions.php` per FTP nach `/public/app/`**
+- [ ] Prüfen: Bezahlseite öffnen und schauen, ob nach der Anschrift
+      gefragt wird. Dafür muss nichts bezahlt werden — Seite ansehen,
+      Reiter schließen.
 - [ ] Produktbeschreibung: „Vollzugriff für 12 Monate" steht auf der
       Bezahlseite und liest sich, als wäre danach Schluss. Das Abo
       verlängert sich aber automatisch (§ 5 AGB). Besser:

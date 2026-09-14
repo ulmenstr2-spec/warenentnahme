@@ -14,6 +14,20 @@
  *   status     — Sync-Status prüfen (Token-Check)
  */
 
+// Fehler gehoeren ins Protokoll, nicht in die Antwort.
+//
+// Steht display_errors auf An, landet eine PHP-Meldung mitten im JSON.
+// Die App bekommt dann keine Fehlermeldung, sondern Unlesbares — und die
+// Meldung verraet nebenbei Dateipfade des Servers. Genau das waere im
+// September passiert, als rechtsstand.php fehlte.
+//
+// Das Protokoll liegt neben dieser Datei. Die .htaccess sperrt *.log
+// gegen den Abruf ueber das Netz; per FTP ist es lesbar.
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+ini_set('error_log', __DIR__ . '/php-fehler.log');
+error_reporting(E_ALL);
+
 require __DIR__ . '/config.php';
 // Mailversand steckt in einer eigenen Datei, damit auch die Kuendigungsseite
 // (kuendigung.php) dieselben Funktionen nutzen kann.

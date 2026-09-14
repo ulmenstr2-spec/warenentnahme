@@ -15,8 +15,12 @@ Der Rest der Datei ist Chronik — hier steht, woran noch etwas hängt.
       dann kommt die Mail beim Kunden nicht an.
 - [ ] Löschung nach zwölf Monaten läuft nicht von allein — bisher Handarbeit,
       und niemand erinnert daran
-- [ ] `api_php_patch.txt` in `/public/app/` ansehen und vermutlich löschen;
-      `.txt` ist in der `.htaccess` nicht gesperrt
+- [x] `api_php_patch.txt` in `/public/app/` — **kann weg.** Eine Anleitung
+      von Februar, den JSON-Körper über `php://input` statt `$_POST` zu
+      lesen. Genau das tut `api.php` längst, und der `Content-Type`-Header
+      steht vor jeder Ausgabe. Der einzige noch offene Punkt daraus war
+      `display_errors`, jetzt erledigt.
+- [ ] **Datei auf dem Server löschen** (`/public/app/api_php_patch.txt`)
 - [ ] **`app.html` geht mit dem Merge raus** — CSV mit Dezimalkomma
 - [ ] Wenn ein Kunde nach DATEV importiert: prüfen, ob dort Punkt oder
       Komma erwartet wird (Fremdformate blieben bewusst beim Punkt)

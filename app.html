@@ -1337,11 +1337,34 @@ function App(){
         let loadedCount=0;
         if(shouldLoad){
           if(force||localEmpty){
-            // Vollständiger Restore: Gerät hat keine Einträge ODER User hat explizit angefordert
-            if(d.ents?.length){setEnts(d.ents);loadedCount+=d.ents.length;}
-            if(d.meals?.length){setMeals(d.meals);loadedCount+=d.meals.length;}
-            if(d.gmbhMeals?.length){setGmbhMeals(d.gmbhMeals);loadedCount+=d.gmbhMeals.length;}
-            if(d.gmbhWithdrawals?.length){setGmbhWithdrawals(d.gmbhWithdrawals);loadedCount+=d.gmbhWithdrawals.length;}
+            // Vollständiger Restore: Gerät hat keine Einträge ODER User hat explizit angefordert.
+            //
+            // Entscheidend ist der Unterschied zwischen "die Liste gibt es
+            // nicht" und "die Liste ist leer". Geprüft wurde hier früher
+            // d.meals?.length — damit tat eine geleerte Liste gar nichts.
+            // Wer auf dem Handy alle Mahlzeiten löschte, hochlud und am
+            // Rechner „Jetzt herunterladen" drückte, behielt sie dort: der
+            // Serverstand war leer, und leer galt als "nichts zu laden".
+            // Beim nächsten Hochladen vom Rechner war das Gelöschte wieder
+            // auf dem Server und damit auf allen Geräten.
+            //
+            // Ein fehlender Schlüssel heißt dagegen wirklich "der Server
+            // weiß von dieser Liste nichts" — etwa bei einer alten
+            // Nutzlast. Dann bleibt das Gerät unangetastet.
+            const uebernehmen=(setter,liste)=>{
+              if(!Array.isArray(liste))return;
+              setter(liste);
+              loadedCount+=liste.length;
+            };
+            uebernehmen(setEnts,d.ents);
+            uebernehmen(setMeals,d.meals);
+            uebernehmen(setGmbhMeals,d.gmbhMeals);
+            uebernehmen(setGmbhWithdrawals,d.gmbhWithdrawals);
+            // Die Löschmerker des Servers gehören auch hierher. Ohne sie
+            // weiß dieses Gerät nach einem vollständigen Abruf nicht, was
+            // andernorts gelöscht wurde, und bringt es beim nächsten
+            // Abgleich zurück.
+            saveDeleted(pruneDeleted({...loadDeleted(),...(d.deleted||{})}));
           } else {
             // Merge-Modus: nur Einträge hinzufügen die lokal noch nicht vorhanden sind
             // → lokale Einträge die noch nicht gepusht wurden bleiben ERHALTEN
@@ -2168,7 +2191,18 @@ function App(){
                 display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
               <Icon name="upload" size={16} color="#2a6010"/> Jetzt hochladen
             </button>
-            <button onClick={()=>syncPull(authToken,true)}
+            {/* Rueckfrage, weil diese Schaltflaeche den Gerätestand
+                ersetzt — seit dem 15.09.2026 auch dann, wenn der Server
+                eine leere Liste hat. Vorher konnte sie nur hinzufuegen
+                und ueberschreiben, nie leeren; jetzt kann sie Eintraege
+                entfernen, die es nur auf diesem Geraet gibt. */}
+            <button onClick={()=>{
+              if(window.confirm(
+                'Die Daten dieses Geräts werden durch den Stand des Servers ersetzt.\n\n'+
+                'Einträge, die nur auf diesem Gerät stehen und noch nicht hochgeladen '+
+                'wurden, gehen dabei verloren.\n\nFortfahren?'))
+                syncPull(authToken,true);
+            }}
               style={{width:'100%',marginBottom:12,padding:'13px',borderRadius:14,
                 border:'1.5px solid #b8d4e8',background:'#eef6fc',
                 color:'#1a6080',fontSize:14,fontWeight:600,cursor:'pointer',

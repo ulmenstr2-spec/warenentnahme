@@ -117,6 +117,7 @@ React und React-DOM werden gebraucht, weil die App sie im Betrieb aus
 | `node pruefung/jahreswechsel.mjs` | Beide Modi warnen im Folgejahr vor veralteten Werten — und vorher nicht |
 | `node pruefung/perioden.mjs` | Jeder Tag liegt in genau einem Abrechnungszeitraum, Stichtag 1–31 über zwölf Jahre |
 | `node pruefung/perioden-bericht.mjs` | Der Bericht summiert genau die Einträge des gewählten Zeitraums, Grenztage inbegriffen |
+| `node pruefung/sync-loeschen.mjs` | Zwei Geräte gegen einen echten Server: Gelöschtes bleibt gelöscht, „Jetzt herunterladen" holt wirklich den Serverstand |
 
 Für die Apache-Prüfungen: `sudo apt-get install -y apache2`. Der Testbau
 muss unter `/var/www/` liegen — auf ein Verzeichnis, das der Benutzer
@@ -218,6 +219,21 @@ und bei Stichtag 29–31 rollte `new Date(jahr, monat+1, tag-1)` über: der
 Tage, die in zwei Berichten gleichzeitig standen. Über die Oberfläche war
 das nicht erreichbar — sie bietet nur 1., 5., 10., 15., 16., 20. und 25.
 —, über eine wiederhergestellte Sicherung schon.
+
+**Beim Sync ist „leere Liste" etwas anderes als „keine Liste".** Eine
+leere Liste in der Nutzlast heißt: der Server hat davon nichts, und das
+ist eine Aussage. Ein fehlender Schlüssel heißt: der Server weiß von
+dieser Liste nichts — alte Fassung, nichts anzufangen. Geprüft wurde
+früher `d.meals?.length`, was beides gleich behandelte. Wer auf dem Handy
+alle Mahlzeiten löschte und am Rechner „Jetzt herunterladen" drückte,
+behielt sie dort und lud sie danach wieder hoch.
+
+**Beim Prüfen der Synchronisation die Selbstläufer im Blick behalten.**
+Die App lädt zwei Sekunden nach jeder Änderung von selbst hoch und ruft
+beim Start ab. Ein Test, der erst den Serverstand setzt und dann klickt,
+misst nichts — das Gerät hat den Server längst überschrieben.
+`sync-loeschen.mjs` sperrt den Push dafür und protokolliert, was der
+Server wirklich ausgeliefert hat.
 
 **CSV braucht ein Dezimalkomma.** Bei Semikolon als Trennzeichen liest
 deutsches Excel einen Punkt als Datum: aus `4.57` wird „Apr 57". Es trifft

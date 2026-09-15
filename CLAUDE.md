@@ -115,6 +115,8 @@ React und React-DOM werden gebraucht, weil die App sie im Betrieb aus
 | `node pruefung/ust-satz-exporte.mjs` | Alle vier Exportwege nennen denselben USt-Satz fürs Personalessen |
 | `node pruefung/pauschbetraege.mjs` | Die BMF-Werte in App **und** auf `pauschbetraege.html` gegen die amtliche Tabelle |
 | `node pruefung/jahreswechsel.mjs` | Beide Modi warnen im Folgejahr vor veralteten Werten — und vorher nicht |
+| `node pruefung/perioden.mjs` | Jeder Tag liegt in genau einem Abrechnungszeitraum, Stichtag 1–31 über zwölf Jahre |
+| `node pruefung/perioden-bericht.mjs` | Der Bericht summiert genau die Einträge des gewählten Zeitraums, Grenztage inbegriffen |
 
 Für die Apache-Prüfungen: `sudo apt-get install -y apache2`. Der Testbau
 muss unter `/var/www/` liegen — auf ein Verzeichnis, das der Benutzer
@@ -205,6 +207,17 @@ BMF-Schreiben: `WERTE_JAHR` hochzählen, die drei Wertetabellen ersetzen,
 `pruefung/pauschbetraege.mjs` aus dem neuen Schreiben nachziehen — nicht
 aus `app.html`, sonst bestätigt die Prüfung jeden Tippfehler. Bis das
 geschieht, warnt `JahrHinweis` den Nutzer in beiden Modi.
+
+**Der Abrechnungszeitraum wird nirgends mehr von Hand gerechnet.** Er
+läuft vom Stichtag bis zum Tag *vor* dem nächsten Stichtag; dadurch kann
+weder eine Lücke noch eine Überschneidung entstehen. Die Funktionen dafür
+(`periodUm`, `periodStart`, `periodEnde`, `periodNaechsterStart`) stehen
+oben bei `mealUstSatz`. Vorher stand dieselbe Rechnung viermal im Code,
+und bei Stichtag 29–31 rollte `new Date(jahr, monat+1, tag-1)` über: der
+31. Februar ist der 3. März. Ergebnis waren Zeiträume bis 61 Tage und
+Tage, die in zwei Berichten gleichzeitig standen. Über die Oberfläche war
+das nicht erreichbar — sie bietet nur 1., 5., 10., 15., 16., 20. und 25.
+—, über eine wiederhergestellte Sicherung schon.
 
 **CSV braucht ein Dezimalkomma.** Bei Semikolon als Trennzeichen liest
 deutsches Excel einen Punkt als Datum: aus `4.57` wird „Apr 57". Es trifft

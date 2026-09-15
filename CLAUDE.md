@@ -111,6 +111,8 @@ React und React-DOM werden gebraucht, weil die App sie im Betrieb aus
 | `pruefung/adressen-aufbau.sh && pruefung/adressen-pruefe.sh` | Adressregeln gegen echten Apache mit der echten `.htaccess` |
 | `node pruefung/adressen-links.mjs` | Jeder interne Link antwortet direkt mit 200 — ein 301 gilt als Fehler |
 | `node pruefung/mahlzeiten-dubletten.mjs` | Rückfrage bei doppelter Mahlzeit, beide Modi |
+| `node pruefung/rechnen.mjs` | Die Geldfunktionen gegen exakte Bruchrechnung, 90.000 Werte je Rechenweg |
+| `node pruefung/ust-satz-exporte.mjs` | Alle vier Exportwege nennen denselben USt-Satz fürs Personalessen |
 
 Für die Apache-Prüfungen: `sudo apt-get install -y apache2`. Der Testbau
 muss unter `/var/www/` liegen — auf ein Verzeichnis, das der Benutzer
@@ -150,6 +152,30 @@ nicht umschifft.
 (Einzelunternehmen) und `function GmbhMealsTab` (GmbH) haben dieselben
 Funktionen `addOne`/`removeOne`/`count`. Eine Änderung an einer Stelle ist
 fast immer an beiden nötig — danach suchen, nicht nach Zeilennummern.
+
+**Es gibt sieben Ausgabewege, und sie müssen dieselbe Zahl nennen.**
+Neutrales CSV, DATEV, Lexware, sevDesk, Excel, PDF und die
+Bildschirmansicht — je Modus. Am 15.09.2026 wiesen sie für dieselbe
+Mahlzeit desselben Tages zwei verschiedene Umsatzsteuersätze aus: Excel
+7 %, die drei Buchhaltungsformate 19 %. Ursache war ein fest
+hingeschriebener Satz statt `mealUstSatz`. Wer einen Steuersatz, ein
+Konto oder eine Bewertung ändert, ändert sie an allen sieben Stellen —
+`pruefung/ust-satz-exporte.mjs` liest sie im echten Browser nach.
+
+**Der Umsatzsteuersatz fürs Personalessen hängt am Datum.** Bis
+31.12.2025 19 %, ab 01.01.2026 wieder 7 %. Die eine gültige Fassung ist
+`mealUstSatz` ganz oben. Die Regel stand schon zweimal als lokale Kopie
+und einmal als hingeschriebenes Datum im Code — jede Kopie läuft
+irgendwann auseinander.
+
+**`Math.round(betrag * 100)` rundet halbe Cent falsch ab.** 2,675 × 100
+ist im Rechner 267.49999999999997. Deshalb geht jede Währungsrundung
+durch `roundCurrency`, das den Wert vorher über `toFixed(4)` einfängt.
+Erreichbar war das über Einkaufspreis plus Handlingaufschlag: bei den
+15 % der Vorgabe traf es 116 von 5.000 Einkaufspreisen.
+`pruefung/rechnen.mjs` prüft das gegen exakte Bruchrechnung mit BigInt —
+ein Maßstab, der selbst mit Gleitkommazahlen rechnet, bestätigt den
+Fehler nur.
 
 **CSV braucht ein Dezimalkomma.** Bei Semikolon als Trennzeichen liest
 deutsches Excel einen Punkt als Datum: aus `4.57` wird „Apr 57". Es trifft

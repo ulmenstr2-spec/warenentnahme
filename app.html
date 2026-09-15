@@ -457,8 +457,14 @@ const Icon = ({name, size=18, color='currentColor', strokeWidth=1.5, style={}}) 
 };
 
 // ── CONSTANTS
+// Das Jahr, fuer das alle amtlichen Werte in dieser Datei gelten:
+// Sachbezugswerte, BMF-Pauschbetraege und der Freibetrag nach § 8 Abs. 3
+// EStG. Das BMF setzt sie jaehrlich neu fest. Beim naechsten Update wird
+// diese Zahl hochgezaehlt und die Werte darunter ersetzt — die Jahreszahl
+// steht sonst nirgends mehr fest im Text, sondern kommt von hier.
+// Solange sie nicht stimmt, warnt JahrHinweis den Nutzer.
+const WERTE_JAHR = 2026;
 const SB = { frueh:2.37, mittag:4.57, abend:4.57 }; // Sachbezugswerte 2026
-const PM = { gesamt:(3173+828)/12, ust7:3173/12, ust19:828/12 };
 // USt-Satz für Mahlzeiten: ab 01.01.2026 gilt 7% (Steueränderungsgesetz 2025)
 const mealUstSatz=datum=>(datum||'')>='2026-01-01'?7:19;
 
@@ -2761,7 +2767,7 @@ function HomeTab({me,periodEnts,today,todayM,tw,tm,tm7,tm19,t7,t19,now,curPeriod
         <div className="ch"><span className="ch-t">Personalessen heute</span><span className="pill pl">{fmt(todayM.reduce((s,m)=>s+m.wert,0))}</span></div>
         {todayM.map(m=><div key={m.id} className="row">
           <div className="ri" style={{background:'var(--ld)'}}>{MI[m.type]}</div>
-          <div className="rb"><div className="rn">{m.label}</div><div className="rm">Sachbezugswert 2026</div></div>
+          <div className="rb"><div className="rn">{m.label}</div><div className="rm">Sachbezugswert {WERTE_JAHR}</div></div>
           <div className="rr"><div className="rv">{fmt(m.wert)}</div></div>
         </div>)}
       </div>}
@@ -2852,10 +2858,11 @@ function MealsTab({meals,setMeals,cd,cm,curPeriod,pruefeSchreibrecht=()=>true}){
 
   return(<div>
     <div className="hdr">
-      <div className="hdr-eye">Sachbezugswert 2026</div>
+      <div className="hdr-eye">Sachbezugswert {WERTE_JAHR}</div>
       <div className="hdr-title">Personal<em>essen</em></div>
     </div>
     <div className="cnt">
+      <JahrHinweis jahr={parseInt(cm.slice(0,4))}/>
       <div className="hero">
         <div className="hero-lbl">Monat gesamt</div>
         <div className="hero-amt">{fN(total)}<sup> €</sup></div>
@@ -3536,16 +3543,33 @@ function QtyModal({art,onOk,onClose,initialMenge}){
 }
 
 // ── HAUSHALT + REPORT
-// BMF Pauschbeträge 2026 für Gaststätten (Jahreswerte netto pro Person)
-// BMF Sachbezugspauschalen 2026 nach Betriebsart (Jahreswerte netto)
+// BMF-Pauschbetraege fuer unentgeltliche Wertabgaben, Jahreswerte netto
+// je Person. Quelle: BMF-Schreiben vom 23.12.2025,
+// GZ IV D 3 - S 1547/00006/007/021, gueltig 01.01. bis 31.12.2026.
+//
+// Bis zum 15.09.2026 stimmte hier genau eine Zeile: die Gaststaette, der
+// eigene Betrieb. Bei Baeckerei, Fleischerei und Sonstigen stand der
+// Anteil zum vollen Steuersatz auf 0 — eine Baeckerei verkauft aber
+// Kaffee, eine Fleischerei Getraenke. Das Ergebnis war eine zu niedrige
+// Umsatzsteuer: bei der Fleischerei rund 94 Euro je Person und Jahr.
+//
+// Die Schluessel bleiben unveraendert, damit gespeicherte Einstellungen
+// weiter greifen.
+//
+// Das BMF kennt weder "Imbiss" noch "Hotel" als eigene Zeile. Beide sind
+// Gaststaetten im Sinne der Tabelle und bekommen deren Werte. Neu ist die
+// Gaststaette, die nur kalte Speisen abgibt — die hat einen eigenen,
+// deutlich niedrigeren Wert, und wer sie vorher als "Gaststaette"
+// gefuehrt hat, hat zu viel angesetzt.
 const BETRIEBE = {
-  gaststaetten: {label:'Gaststätten / Restaurant',  ust7:3173, ust19:828},
-  cafe:         {label:'Café / Eisdiele',            ust7:2041, ust19:515},
-  imbiss:       {label:'Imbiss / Schnellgastro',     ust7:2041, ust19:515},
-  baeckerei:    {label:'Bäckerei / Konditorei',      ust7:1871, ust19:0},
-  fleischerei:  {label:'Fleischerei / Metzgerei',    ust7:1685, ust19:0},
-  hotel:        {label:'Hotel / Beherbergung',        ust7:3173, ust19:828},
-  sonstige:     {label:'Sonstige Lebensmittelbetriebe', ust7:1476, ust19:0},
+  gaststaetten:  {label:'Gaststätte / Restaurant (kalte und warme Speisen)', ust7:3173, ust19:828},
+  gaststaetten_kalt:{label:'Gaststätte (nur kalte Speisen)',                 ust7:1824, ust19:629},
+  imbiss:        {label:'Imbiss / Schnellgastronomie (warme Speisen)',       ust7:3173, ust19:828},
+  hotel:         {label:'Hotel / Beherbergung mit Speisen',                  ust7:3173, ust19:828},
+  cafe:          {label:'Café / Konditorei / Eisdiele',                      ust7:1610, ust19:598},
+  baeckerei:     {label:'Bäckerei',                                          ust7:1671, ust19:214},
+  fleischerei:   {label:'Fleischerei / Metzgerei',                           ust7:1487, ust19:567},
+  sonstige:      {label:'Nahrungs- und Genussmittel (Einzelhandel)',         ust7:1395, ust19:368},
 };
 const PM_FAKTOR = { inhaber:1, partner:1, kind_gross:0.5, kind_klein:0.5, kind_teen:1, kind:0.5 };
 
@@ -3928,11 +3952,11 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
     y+=4;
 
     // ── PERSONALESSEN
-    section('Personalessen (amtliche Tagespreise 2026)');
+    section(`Personalessen (amtliche Tagespreise ${WERTE_JAHR})`);
     if(mm.length){
       const cw=[22,60,44,20];
       tableHead(['Datum','Mahlzeit','Grundlage','Wert'],cw);
-      mm.forEach((m,i)=>tableRow([m.datum,m.label,'Sachbezugswert 2026',`${fN(m.wert)} €`],cw,i%2===0));
+      mm.forEach((m,i)=>tableRow([m.datum,m.label,`Sachbezugswert ${WERTE_JAHR}`,`${fN(m.wert)} €`],cw,i%2===0));
       y+=2;
       totalRow('Gesamt Personalessen',`${fN(tm)} €`);
     } else {
@@ -4041,6 +4065,7 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
   return(<div>
     <div className="hdr"><div className="hdr-eye">Steuerliche Auswertung</div><div className="hdr-title">Monats<em>bericht</em></div></div>
     <div className="cnt">
+      <JahrHinweis jahr={new Date().getFullYear()}/>
 
       <div className="sec" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <span>Betriebsart</span>
@@ -5094,11 +5119,11 @@ Alle Lebensmittel=7%, Spirituosen/Getränke=19%.`;
       </div>
       </>}
 
-      {rechtsform!=='gmbh'&&<><div className="sec" style={{marginTop:20,display:'flex',alignItems:'center'}}>Steuerlicher Jahresbetrag 2025/26 – {BETRIEBE[hh.betrieb||'gaststaetten'].label}<Tooltip text="Fester Jahresbetrag pro Person für private Warenentnahmen – kein Einzelnachweis nötig. Wert gilt je nach Betriebsart und wird jährlich vom BMF festgelegt."/></div>
+      {rechtsform!=='gmbh'&&<><div className="sec" style={{marginTop:20,display:'flex',alignItems:'center'}}>Steuerlicher Jahresbetrag {WERTE_JAHR} – {BETRIEBE[hh.betrieb||'gaststaetten'].label}<Tooltip text="Fester Jahresbetrag pro Person für private Warenentnahmen – kein Einzelnachweis nötig. Wert gilt je nach Betriebsart und wird jährlich vom BMF festgelegt."/></div>
       <div className="card">
         {(()=>{const b=BETRIEBE[hh.betrieb||'gaststaetten'];return[['Jahreswert gesamt',fmt(b.ust7+b.ust19)],['davon 7% MwSt',fmt(b.ust7)],['davon 19% MwSt',fmt(b.ust19)],['Monatswert (1 Person)',fmt((b.ust7+b.ust19)/12)]].map(([l,v])=><div key={l} className="rl"><span style={{color:'var(--t2)',fontSize:12}}>{l}</span><span>{v}</span></div>);})()}
       </div>
-      <div className="sec">Amtliche Tagespreise Personalessen 2026</div>
+      <div className="sec">Amtliche Tagespreise Personalessen {WERTE_JAHR}</div>
       <div className="card">
         {Object.entries(SB).map(([t,v])=><div key={t} className="rl"><span style={{color:'var(--t2)'}}>{MI[t]} {ML[t]}</span><span>{fmt(v)} / Tag</span></div>)}
       </div></>}
@@ -5147,7 +5172,7 @@ if('serviceWorker' in navigator){
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Gesetzliche Konstanten — jährlich prüfen (BMF-Schreiben Anfang Januar)
-const GMBH_SACHBEZUG_JAHR = 2026;
+const GMBH_SACHBEZUG_JAHR = WERTE_JAHR;
 const GMBH_SB = { frueh:2.37, mittag:4.57, abend:4.57 }; // Sachbezugswerte 2026 (BMF)
 const GMBH_RABATT_FREIBETRAG = 1080; // §8 Abs.3 EStG Jahres-Freibetrag — Stand 2026
 const GMBH_DEFAULT_MV = [
@@ -5163,16 +5188,27 @@ const GMBH_DEFAULT_MV = [
 ];
 
 // ── JAHRESWECHSEL-CHECK: Warnung wenn hinterlegte BMF-Werte veraltet sind
-function GmbhJahrHinweis({jahr}){
-  if(!(jahr>GMBH_SACHBEZUG_JAHR))return null;
+//
+// Gilt fuer beide Rechtsformen. Das Einzelunternehmen rechnet mit
+// Pauschbetraegen und Sachbezugswerten, die GmbH zusaetzlich mit dem
+// Freibetrag — alle drei setzt das BMF jaehrlich neu fest. Am 1. Januar
+// rechnet die App sonst stillschweigend mit den Werten des Vorjahres
+// weiter und schreibt die alte Jahreszahl auch noch auf den Beleg.
+//
+// Die Warnung stand frueher nur in der GmbH-Ansicht und dort nicht im
+// Bericht — also gerade nicht auf der Seite, die die Dokumente erzeugt.
+function JahrHinweis({jahr}){
+  if(!(jahr>WERTE_JAHR))return null;
   return(
     <div style={{background:'rgba(240,180,58,.12)',border:'1px solid rgba(240,180,58,.4)',
       borderRadius:10,padding:'10px 12px',marginBottom:12,fontSize:12,lineHeight:1.5}}>
-      ⚠ <strong>Werte prüfen:</strong> Sachbezugswerte und Freibetrag sind für {GMBH_SACHBEZUG_JAHR} hinterlegt,
+      ⚠ <strong>Werte prüfen:</strong> Pauschbeträge, Sachbezugswerte und Freibetrag sind für {WERTE_JAHR} hinterlegt,
       aktuell ist {jahr}. Die BMF-Werte ändern sich jährlich — bitte App-Update einspielen, sonst wird mit veralteten Beträgen gerechnet.
     </div>
   );
 }
+// Alter Name, damit die GmbH-Ansichten unveraendert bleiben.
+const GmbhJahrHinweis=JahrHinweis;
 
 // ── GEBINDE-EINHEIT → Entnahme-Einheit
 // BNN-Preislisten liefern Gebinde wie "12 FL 0,7" (Kiste mit 12 Flaschen).
@@ -7520,6 +7556,10 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
         <div className="hdr-title">Monats<em>bericht</em></div>
       </div>
       <div className="cnt">
+        {/* Der Hinweis gehoert gerade hierhin: dies ist die Seite, die die
+            Belege erzeugt. Vorher stand er auf Start, Essen und Waren —
+            ueberall ausser dort, wo das Dokument entsteht. */}
+        <JahrHinweis jahr={new Date().getFullYear()}/>
         {/* ── ABRECHNUNGSPERIODE EINSTELLUNG */}
         <div className="sec" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
           <span>Abrechnungsperiode</span>

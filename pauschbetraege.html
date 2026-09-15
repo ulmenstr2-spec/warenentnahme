@@ -222,13 +222,14 @@ footer{border-top:1px solid var(--border);background:var(--cream-dark)}
         </tr>
       </thead>
       <tbody>
-        <tr><th scope="row">Gaststätten / Restaurant</th><td class="num">3.173</td><td class="num">828</td><td class="num total">4.001</td><td class="num">333</td></tr>
-        <tr><th scope="row">Hotel / Beherbergung mit Gastronomie</th><td class="num">3.173</td><td class="num">828</td><td class="num total">4.001</td><td class="num">333</td></tr>
-        <tr><th scope="row">Café / Eisdiele</th><td class="num">2.041</td><td class="num">515</td><td class="num total">2.556</td><td class="num">213</td></tr>
-        <tr><th scope="row">Imbiss / Schnellgastronomie</th><td class="num">2.041</td><td class="num">515</td><td class="num total">2.556</td><td class="num">213</td></tr>
-        <tr><th scope="row">Bäckerei / Konditorei</th><td class="num">1.871</td><td class="num">—</td><td class="num total">1.871</td><td class="num">156</td></tr>
-        <tr><th scope="row">Fleischerei / Metzgerei</th><td class="num">1.685</td><td class="num">—</td><td class="num total">1.685</td><td class="num">140</td></tr>
-        <tr><th scope="row">Sonstige Lebensmittelbetriebe</th><td class="num">1.476</td><td class="num">—</td><td class="num total">1.476</td><td class="num">123</td></tr>
+        <tr><th scope="row">Gaststätte / Restaurant (kalte und warme Speisen)</th><td class="num">3.173</td><td class="num">828</td><td class="num total">4.001</td><td class="num">333</td></tr>
+        <tr><th scope="row">Gaststätte (nur kalte Speisen)</th><td class="num">1.824</td><td class="num">629</td><td class="num total">2.453</td><td class="num">204</td></tr>
+        <tr><th scope="row">Imbiss / Schnellgastronomie (warme Speisen)</th><td class="num">3.173</td><td class="num">828</td><td class="num total">4.001</td><td class="num">333</td></tr>
+        <tr><th scope="row">Hotel / Beherbergung mit Speisen</th><td class="num">3.173</td><td class="num">828</td><td class="num total">4.001</td><td class="num">333</td></tr>
+        <tr><th scope="row">Café / Konditorei / Eisdiele</th><td class="num">1.610</td><td class="num">598</td><td class="num total">2.208</td><td class="num">184</td></tr>
+        <tr><th scope="row">Bäckerei</th><td class="num">1.671</td><td class="num">214</td><td class="num total">1.885</td><td class="num">157</td></tr>
+        <tr><th scope="row">Fleischerei / Metzgerei</th><td class="num">1.487</td><td class="num">567</td><td class="num total">2.054</td><td class="num">171</td></tr>
+        <tr><th scope="row">Nahrungs- und Genussmittel (Einzelhandel)</th><td class="num">1.395</td><td class="num">368</td><td class="num total">1.763</td><td class="num">147</td></tr>
       </tbody>
     </table>
   </div>
@@ -246,13 +247,14 @@ footer{border-top:1px solid var(--border);background:var(--cream-dark)}
       <label class="calc-field">
         <span class="calc-label">Gewerbezweig</span>
         <select id="c-betrieb">
-          <option value="gaststaetten" selected>Gaststätten / Restaurant</option>
-          <option value="hotel">Hotel / Beherbergung mit Gastronomie</option>
-          <option value="cafe">Café / Eisdiele</option>
-          <option value="imbiss">Imbiss / Schnellgastronomie</option>
-          <option value="baeckerei">Bäckerei / Konditorei</option>
+          <option value="gaststaetten" selected>Gaststätte / Restaurant (kalte und warme Speisen)</option>
+          <option value="gaststaetten_kalt">Gaststätte (nur kalte Speisen)</option>
+          <option value="imbiss">Imbiss / Schnellgastronomie (warme Speisen)</option>
+          <option value="hotel">Hotel / Beherbergung mit Speisen</option>
+          <option value="cafe">Café / Konditorei / Eisdiele</option>
+          <option value="baeckerei">Bäckerei</option>
           <option value="fleischerei">Fleischerei / Metzgerei</option>
-          <option value="sonstige">Sonstige Lebensmittelbetriebe</option>
+          <option value="sonstige">Nahrungs- und Genussmittel (Einzelhandel)</option>
         </select>
       </label>
       <label class="calc-field">
@@ -347,13 +349,14 @@ footer{border-top:1px solid var(--border);background:var(--cream-dark)}
    werden keine Eingaben übertragen oder gespeichert. */
 (function () {
   var SAETZE = {
-    gaststaetten: [3173, 828],
-    hotel:        [3173, 828],
-    cafe:         [2041, 515],
-    imbiss:       [2041, 515],
-    baeckerei:    [1871, 0],
-    fleischerei:  [1685, 0],
-    sonstige:     [1476, 0]
+    gaststaetten:      [3173, 828],
+    gaststaetten_kalt: [1824, 629],
+    imbiss:            [3173, 828],
+    hotel:             [3173, 828],
+    cafe:              [1610, 598],
+    baeckerei:         [1671, 214],
+    fleischerei:       [1487, 567],
+    sonstige:          [1395, 368]
   };
   var el = function (id) { return document.getElementById(id); };
   var betrieb = el('c-betrieb'), erw = el('c-erw'), kind = el('c-kind');

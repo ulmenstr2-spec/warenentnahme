@@ -1632,6 +1632,11 @@ function App(){
   const t7=useMemo(()=>roundCurrency(me.filter(e=>e.mwst===7).reduce((s,e)=>s+e.wert,0)),[me]);
   const t19=useMemo(()=>roundCurrency(me.filter(e=>e.mwst===19).reduce((s,e)=>s+e.wert,0)),[me]);
   const tm=useMemo(()=>roundCurrency(mm.reduce((s,m)=>s+m.wert,0)),[mm]);
+  // Mahlzeiten nach ihrem eigenen Satz trennen. Ein Zeitraum kann den
+  // Stichtag 01.01.2026 ueberspannen, wenn der Abrechnungstag nicht der
+  // Monatserste ist — dann liegen 19er und 7er Mahlzeiten nebeneinander.
+  const tm7=useMemo(()=>roundCurrency(mm.filter(m=>mealUstSatz(m.datum)===7).reduce((s,m)=>s+m.wert,0)),[mm]);
+  const tm19=useMemo(()=>roundCurrency(mm.filter(m=>mealUstSatz(m.datum)===19).reduce((s,m)=>s+m.wert,0)),[mm]);
   const periodEnts=me; // alias
   const today=useMemo(()=>ents.filter(e=>e.datum?.startsWith(cd)),[ents,cd]);
   const todayM=useMemo(()=>meals.filter(m=>m.datum===cd),[meals,cd]);
@@ -1910,7 +1915,7 @@ function App(){
         {tab==='import'&&<ImportTab arts={arts} setArts={setArts} showT={showT} ents={ents} hh={hh} setHH={setHH} setEnts={setEnts} setMeals={setMeals} setFavs={setFavs} syncPin={syncPin} setShowSyncModal={setShowSyncModal} backupData={backupData} restoreData={restoreData} gmbhMeals={gmbhMeals} setGmbhMeals={setGmbhMeals} gmbhWithdrawals={gmbhWithdrawals} setGmbhWithdrawals={setGmbhWithdrawals} gmbhPersons={gmbhPersons} setGmbhPersons={setGmbhPersons} rechtsform={rechtsform} setRechtsform={setRechtsform}/>}
         </>
         : <>
-        {tab==='home'&&<HomeTab me={me} periodEnts={periodEnts} today={today} todayM={todayM} tw={tw} tm={tm} t7={t7} t19={t19} now={now} curPeriod={curPeriod} hh={hh} onDel={delEnt} onEdit={editEnt}/>}
+        {tab==='home'&&<HomeTab me={me} periodEnts={periodEnts} today={today} todayM={todayM} tw={tw} tm={tm} tm7={tm7} tm19={tm19} t7={t7} t19={t19} now={now} curPeriod={curPeriod} hh={hh} onDel={delEnt} onEdit={editEnt}/>}
         {tab==='meals'&&<MealsTab meals={meals} setMeals={setMeals} cd={cd} cm={cm} curPeriod={curPeriod} pruefeSchreibrecht={pruefeSchreibrecht}/>}
         {tab==='scan'&&<ScanTab arts={arts} eanIndex={eanIndex} onSel={a=>setModal(a)} showT={showT}/>}
         {/* onFav/onManual müssen mit übergeben werden — sonst brechen der
@@ -2697,7 +2702,7 @@ function App(){
 }
 
 // ── HOME
-function HomeTab({me,periodEnts,today,todayM,tw,tm,t7,t19,now,curPeriod,hh,onDel,onEdit}){
+function HomeTab({me,periodEnts,today,todayM,tw,tm,tm7,tm19,t7,t19,now,curPeriod,hh,onDel,onEdit}){
   const p=calcPausch(hh&&hh.persons||[{typ:"inhaber",aktiv:true}],hh&&hh.betrieb).mGes,tges=tw+tm;
   // p kann 0 sein, wenn keine Person aktiv ist — sonst NaN in Balken und Text
   const pct=p>0?Math.min((tges/p)*100,100):0,spart=p-tges;
@@ -2724,14 +2729,18 @@ function HomeTab({me,periodEnts,today,todayM,tw,tm,t7,t19,now,curPeriod,hh,onDel
       </div>
 
       <div className="g2">
-        <div className="mc"><div className="mc-lbl">7% MwSt</div><div className="mc-val">{fN(t7+tm)}</div><div className="mc-unit">Waren+Essen €</div></div>
-        <div className="mc"><div className="mc-lbl">19% MwSt</div><div className="mc-val">{fN(t19)}</div><div className="mc-unit">Getränke etc. €</div></div>
+        <div className="mc"><div className="mc-lbl">7% MwSt</div><div className="mc-val">{fN(roundCurrency(t7+tm7))}</div><div className="mc-unit">Waren+Essen €</div></div>
+        <div className="mc"><div className="mc-lbl">19% MwSt</div><div className="mc-val">{fN(roundCurrency(t19+tm19))}</div><div className="mc-unit">Getränke etc. €</div></div>
       </div>
 
       {/* ── HEUTE-WIDGET EU */}
       {today.length>0&&(()=>{
         const tBrutto=roundCurrency(today.reduce((s,e)=>s+(e.wert||0),0));
-        const tNetto=calcNetFromGross(tBrutto,7); // Näherung 7% für Mischberechnung
+        // Je Satz herausrechnen statt pauschal mit 7 %. Bei Getraenken war
+        // das Netto sonst deutlich zu hoch.
+        const tNetto=roundCurrency([7,19].reduce((s,satz)=>s+calcNetFromGross(
+          roundCurrency(today.filter(e=>((e.mwst||7)===19?19:7)===satz)
+            .reduce((a,e)=>a+(e.wert||0),0)), satz), 0));
         const tUst=roundCurrency(tBrutto-tNetto);
         return(
           <div style={{
@@ -3460,7 +3469,9 @@ function QtyModal({art,onOk,onClose,initialMenge}){
   const preisProStueck=istGebinde?Math.round((art.preis/stueckImGebinde)*1000)/1000:art.preis;
   const aktivPreis=modus==='stueck'?preisProStueck:art.preis;
   const aktivEinheit=modus==='stueck'?'Stk':art.einheit;
-  const w=Math.round(aktivPreis*m*100)/100;
+  // Ueber roundCurrency, damit die Vorschau im Dialog denselben Cent
+  // zeigt, den der Eintrag danach speichert.
+  const w=roundCurrency(aktivPreis*m);
   const adj=d=>{
     const next=Math.max(step,Math.round((m+d)*10)/10);
     setM(next);
@@ -3621,29 +3632,33 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
       // DATEV: Umsatz als reine Zahl, kein €, kein Komma
       rows=['Umsatz (ohne Soll/Haben-Kz);Soll/Haben;Konto;BU-Schlüssel;Belegdatum;Belegfeld 1;Buchungstext',
         ...me.map(e=>`${cn(e.wert)};S;${e.mwst===7?'8915':'8910'};${e.mwst===7?'9':''};${(e.datum||'').slice(8,10)}${(e.datum||'').slice(5,7)};EV-${(e.datum||'').slice(0,10)};Eigenverbrauch ${e.name}`),
-        ...mm.map(m=>`${cn(m.wert)};S;8910;;${(m.datum||'').slice(8,10)}${(m.datum||'').slice(5,7)};SB-${m.datum};Sachbezug ${m.label}`),
+        ...mm.map(m=>{const u=mealUstSatz(m.datum);
+          return `${cn(m.wert)};S;${u===7?'8915':'8910'};${u===7?'9':''};${(m.datum||'').slice(8,10)}${(m.datum||'').slice(5,7)};SB-${m.datum};Sachbezug ${m.label}`;}),
       ];fname=`datev_eigenverbrauch_${sel.sk}.csv`;
     } else if(exportFmt==='lexware'){
       // Lexware: Umsatz als reine Zahl, Steuersatz ohne %
       rows=['Datum;Umsatz;Buchungstext;Konto;Gegenkonto;Steuersatz',
         ...me.map(e=>`${dateDE(e.datum)};${cn(e.wert)};Eigenverbrauch ${e.name};1880;${e.mwst===7?'8915':'8910'};${e.mwst}`),
-        ...mm.map(m=>`${m.datum};${cn(m.wert)};Sachbezug ${m.label};1880;8910;19`),
+        ...mm.map(m=>{const u=mealUstSatz(m.datum);
+          return `${m.datum};${cn(m.wert)};Sachbezug ${m.label};1880;${u===7?'8915':'8910'};${u}`;}),
       ];fname=`lexware_eigenverbrauch_${sel.sk}.csv`;
     } else if(exportFmt==='sevdesk'){
       // sevdesk: Betrag als reine Zahl, Steuersatz als Zahl OHNE %
       rows=['Datum;Kategorie;Beschreibung;Nettobetrag;Steuersatz;Bemerkung',
         ...me.map(e=>`${dateDE(e.datum)};Eigenverbrauch;${e.name};${cn(e.wert)};${e.mwst};Warenentnahme`),
-        ...mm.map(m=>`${m.datum};Sachbezug;${m.label};${cn(m.wert)};19;Personalessen`),
+        ...mm.map(m=>`${m.datum};Sachbezug;${m.label};${cn(m.wert)};${mealUstSatz(m.datum)};Personalessen`),
       ];fname=`sevdesk_eigenverbrauch_${sel.sk}.csv`;
     } else {
       // Standard (neutral) — erweitert mit Brutto/Netto/USt + Archiv-Spalten
       // betragBrutto = wert (EK-Preis netto * Menge); betragNetto = brutto / (1 + ust/100)
-      // ustBetrag = brutto - netto; Personalessen USt = 7% (Sachbezugswert)
+      // ustBetrag = brutto - netto. Der Satz fuer das Personalessen haengt
+      // am Datum und kommt deshalb aus mealUstSatz — fest verdrahtet stuende
+      // hier ab 2026 dieselbe Mahlzeit anders in der Datei als im Excel.
       const cnBrutto=e=>cnDE(e.wert);
       const cnNetto=e=>cnDE(calcNetFromGross(e.wert,e.mwst||7));
       const cnUst=e=>cnDE(roundCurrency(roundCurrency(e.wert)-calcNetFromGross(e.wert,e.mwst||7)));
-      const mNetto=m=>cnDE(calcNetFromGross(m.wert,7));
-      const mUst=m=>cnDE(roundCurrency(roundCurrency(m.wert)-calcNetFromGross(m.wert,7)));
+      const mNetto=m=>cnDE(calcNetFromGross(m.wert,mealUstSatz(m.datum)));
+      const mUst=m=>cnDE(roundCurrency(roundCurrency(m.wert)-calcNetFromGross(m.wert,mealUstSatz(m.datum))));
       rows=[
         'typ;datum;beschreibung;menge;einheit;ekPreisNetto;ustSatz;betragBrutto;betragNetto;ustBetrag;exportTimestamp;reportVersion;zeitraumVon;zeitraumBis;betrieb;personenAktiv',
         ...me.map(e=>[
@@ -3671,7 +3686,7 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
           '1',
           'Tag',
           '',
-          '7',
+          String(mealUstSatz(m.datum)),
           cnDE(m.wert),
           mNetto(m),
           mUst(m),
@@ -3703,6 +3718,16 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
     wsData.push(['','','','','','Summe 7%',wb7,wn7,roundCurrency(wb7-wn7)]);
     wsData.push(['','','','','','Summe 19%',wb19,wn19,roundCurrency(wb19-wn19)]);
     wsData.push(['','','','','','GESAMT',roundCurrency(wb7+wb19),roundCurrency(wn7+wn19),roundCurrency((wb7-wn7)+(wb19-wn19))]);
+    // Die Summenzeilen rechnen das Netto aus der Bruttosumme heraus, nicht
+    // aus der Spalte darueber. Das ist die Zahl, die gebucht wird (§ 16
+    // UStG: Bemessungsgrundlage des Zeitraums). Weil jede Einzelzeile fuer
+    // sich gerundet ist, weicht die Spaltensumme um wenige Cent ab —
+    // gemessen bis 0,19 EUR im Monat. Ohne diesen Hinweis sieht die Mappe
+    // aus, als haette sie sich verrechnet.
+    wsData.push([]);
+    wsData.push(['Hinweis: Netto und USt der Summenzeilen sind aus der Bruttosumme des Zeitraums '+
+      'herausgerechnet. Die Einzelzeilen sind je Position gerundet; ihre Spaltensumme kann '+
+      'deshalb um wenige Cent abweichen. Maßgeblich ist die Summenzeile.']);
     const ws=window.XLSX.utils.aoa_to_sheet(wsData);
     ws['!cols']=[{wch:12},{wch:38},{wch:8},{wch:6},{wch:12},{wch:7},{wch:10},{wch:10},{wch:12}];
     window.XLSX.utils.book_append_sheet(WB,ws,'Warenentnahmen');
@@ -5202,15 +5227,35 @@ const formatCurrencyPDF = (value) => {
 // das Feldtrennzeichen ist, entsteht dabei kein Mehrdeutigkeitsproblem.
 const formatNumberCSV = (value) => {
   const n = parseFloat(value);
-  return isNaN(n) ? '' : String(Math.round(n * 100) / 100).replace('.', ',');
+  // Leerer Wert bleibt leer — eine 0 in der Tabelle waere eine Aussage,
+  // die wir nicht treffen. Gerundet wird ueber roundCurrency, damit in
+  // der Datei derselbe Cent steht wie auf dem Bildschirm.
+  return isNaN(n) ? '' : String(roundCurrency(n)).replace('.', ',');
 };
 
 // ── ZENTRALE FINANZ-HELPERS ────────────────────────────────
 // Alle Währungsberechnungen laufen ausschließlich hier durch.
 // Keine Inline-Rundung im JSX.
 
-// Einheitliche Rundung auf 2 Dezimalstellen (Bankersrundung vermeiden)
-const roundCurrency = (value) => Math.round((parseFloat(value) || 0) * 100) / 100;
+// Einheitliche Rundung auf 2 Dezimalstellen (Bankersrundung vermeiden).
+//
+// Math.round(value * 100) allein reicht nicht: ein halber Cent kommt als
+// Gleitkommazahl oft knapp zu klein an. 2,675 × 100 ist im Rechner
+// 267.49999999999997, und Math.round macht daraus 267 statt 268 — der
+// Betrag wird einen Cent zu niedrig. Über den Einkaufspreis mit
+// Handlingaufschlag ist das erreichbar: bei den 15 % der Vorgabe trifft
+// es 116 von 5.000 Einkaufspreisen, etwa 5,75 € + 15 % = 6,6125 €.
+// toFixed(4) holt den Wert zurück auf die gemeinte Dezimalzahl, erst
+// danach wird gerundet. Der Betrag wird vorher positiv gemacht, weil
+// Math.round bei -0,5 zur Null hin rundet — kaufmännisch wird vom
+// Nullpunkt weg gerundet, sonst wäre eine Gutschrift anders gerundet
+// als die gleiche Belastung.
+const roundCurrency = (value) => {
+  const n = parseFloat(value) || 0;
+  if (!isFinite(n)) return 0;
+  const cent = Number((Math.abs(n) * 100).toFixed(4));
+  return Math.sign(n) * Math.round(cent) / 100;
+};
 
 // Netto aus Brutto berechnen
 const calcNetFromGross = (gross, vatRate) => {
@@ -6830,8 +6875,8 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
         artikel:cv(m.label),ean:'',menge:1,einheit:'Tag',
         methode:'sachbezug',
         bewertungBrutto:parseFloat(m.vorteil)||0,
-        bewertungNetto:calcNetFromGross(m.vorteil||0,7),
-        ustSatz:7,
+        bewertungNetto:calcNetFromGross(m.vorteil||0,mealUstSatz(m.datum)),
+        ustSatz:mealUstSatz(m.datum),
         rabattfreibetragRelevant:false,
         basis:{},
         plausibilitaetsWarnung:false,plausibilitaetsHinweis:'',
@@ -6998,8 +7043,11 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
   const exportXLSX=()=>{
     if(!sel||!window.XLSX)return;
     const WB=window.XLSX.utils.book_new();
-    // Mahlzeiten-USt: ab 01.01.2026 → 7 % (Steueränderungsgesetz 2025), davor 19 %
-    const mealUst=d=>d>='2026-01-01'?7:19;
+    // Mahlzeiten-USt: ab 01.01.2026 → 7 % (Steueränderungsgesetz 2025), davor 19 %.
+    // Die Regel stand hier frueher ein zweites Mal als eigene Funktion. Zwei
+    // Kopien derselben Regel laufen frueher oder spaeter auseinander, deshalb
+    // gilt ueberall die eine oben definierte mealUstSatz.
+    const mealUst=mealUstSatz;
     const methLbl={rabatt:'Warenrabatt',gast:'Gäste-VK',marktwert:'Marktwert',ek:'EK+Handling'};
 
     // ── Sheet 1: Warenmitnahmen
@@ -7142,11 +7190,20 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
     y+=metaH+4;
 
     // ── 3. SUMMEN-BLOCK ──────────────────────────────────────────
-    const totalNetto=calcNetFromGross(totalMeals+totalWith, 7); // Näherung; exakt unten
-    const totalMealsNetto=calcNetFromGross(totalMeals,7);
-    const totalDiscountNetto=calcNetFromGross(totalDiscount,7);
-    const totalMarketNetto=calcNetFromGross(totalMarket,7);
-    const totalEkNetto=calcNetFromGross(totalEk,7);
+    // Jede Zeile wird nach dem Satz der Position herausgerechnet, nicht
+    // pauschal mit 7 %. Vorher stand in der Netto-Spalte fuer eine
+    // 19-%-Position ein zu hoher Betrag: aus 100 EUR brutto wurden 93,46
+    // statt 84,03 — kein Rundungscent, sondern ein sichtbarer Fehlbetrag
+    // in einem Beleg, der beim Steuerberater landet.
+    const nettoNachSatz=(liste,satzVon)=>roundCurrency(
+      [7,19].reduce((s,satz)=>s+calcNetFromGross(
+        roundCurrency(liste.filter(x=>satzVon(x)===satz)
+          .reduce((a,x)=>a+(x.vorteil||0),0)), satz), 0));
+    const withSatz=w=>(w.mwst||7)===19?19:7;
+    const totalMealsNetto=nettoNachSatz(mMeals,m=>mealUstSatz(m.datum));
+    const totalDiscountNetto=nettoNachSatz(mWith.filter(w=>isDiscountRelevant(w.methode)),withSatz);
+    const totalMarketNetto=nettoNachSatz(mWith.filter(w=>w.methode==='marktwert'),withSatz);
+    const totalEkNetto=nettoNachSatz(mWith.filter(w=>w.methode==='ek'),withSatz);
 
     doc.setFontSize(8.5);doc.setFont('helvetica','bold');
     txt('Zusammenfassung — Bewertungsbetraege',ML,y);y+=5;
@@ -7176,11 +7233,13 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
     y+=8;
 
     // ── 3b. UST-AUFSCHLÜSSELUNG ──────────────────────────────────
+    // Auch hier ueber mealUstSatz, nicht ueber ein weiteres Mal
+    // hingeschriebenes Stichdatum.
     const gUstB7=roundCurrency(
-      mMeals.filter(m=>m.datum>='2026-01-01').reduce((s,m)=>s+(m.vorteil||0),0)+
+      mMeals.filter(m=>mealUstSatz(m.datum)===7).reduce((s,m)=>s+(m.vorteil||0),0)+
       mWith.filter(w=>(w.mwst||7)===7).reduce((s,w)=>s+(w.vorteil||0),0));
     const gUstB19=roundCurrency(
-      mMeals.filter(m=>m.datum<'2026-01-01').reduce((s,m)=>s+(m.vorteil||0),0)+
+      mMeals.filter(m=>mealUstSatz(m.datum)===19).reduce((s,m)=>s+(m.vorteil||0),0)+
       mWith.filter(w=>(w.mwst||7)===19).reduce((s,w)=>s+(w.vorteil||0),0));
     const gUstN7=calcNetFromGross(gUstB7,7),gUstN19=calcNetFromGross(gUstB19,19);
     const gUstU7=roundCurrency(gUstB7-gUstN7),gUstU19=roundCurrency(gUstB19-gUstN19);
@@ -7251,7 +7310,7 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
         doc.setFont('helvetica','normal');doc.setTextColor(...BLACK);
         p.mList.forEach(m=>{
           safeY();
-          const netto=calcNetFromGross(m.vorteil||0,7);
+          const netto=calcNetFromGross(m.vorteil||0,mealUstSatz(m.datum));
           txt(m.datum,ML+2,y);
           txt(m.label,ML+22,y);
           txt(`${fc(m.vorteil||0)} EUR brutto`,ML+80,y);

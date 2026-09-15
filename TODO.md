@@ -21,9 +21,26 @@ Der Rest der Datei ist Chronik — hier steht, woran noch etwas hängt.
       steht vor jeder Ausgabe. Der einzige noch offene Punkt daraus war
       `display_errors`, jetzt erledigt.
 - [ ] **Datei auf dem Server löschen** (`/public/app/api_php_patch.txt`)
-- [ ] **`app.html` geht mit dem Merge raus** — CSV mit Dezimalkomma
+- [ ] **`app.html` geht mit dem Merge raus** — Rundung, Umsatzsteuersätze
+      in allen Exporten, Netto-Spalte im GmbH-Bericht
 - [ ] Wenn ein Kunde nach DATEV importiert: prüfen, ob dort Punkt oder
       Komma erwartet wird (Fremdformate blieben bewusst beim Punkt)
+- [ ] **Frage an die Kanzlei:** Im Excel rechnen die Summenzeilen das
+      Netto aus der Bruttosumme des Zeitraums heraus, die Einzelzeilen
+      je Position. Beide sind für sich richtig gerundet, aber die
+      Spaltensumme weicht von der Summenzeile ab — gemessen bis 0,19 €
+      in einem Monat mit 62 Positionen. Maßgeblich gebucht wird die
+      Summenzeile (§ 16 UStG, Bemessungsgrundlage des Zeitraums); seit
+      dem 15.09.2026 steht das als Hinweis unter der Tabelle. Offen
+      bleibt, ob die Kanzlei es lieber andersherum hätte, also die
+      Einzelzeilen so verteilt, dass die Spalte aufgeht. Solange das
+      nicht beantwortet ist, wird nichts umgestellt.
+- [ ] **Alte Einträge nachrechnen?** Die Rundung halber Cent war bis zum
+      15.09.2026 falsch — betroffen sind nur Entnahmen über
+      „EK + Handling", und dort ein Cent nach unten. Bei den bisherigen
+      Datenmengen ist das ohne praktische Bedeutung; wer ganz sauber
+      sein will, öffnet die betroffenen Einträge einmal und speichert
+      sie neu.
 
 **Papiere (Lücken sind in `recht/` markiert)**
 

@@ -189,8 +189,15 @@ und Tabelle plus Rechner in `pauschbetraege.html`. Am 15.09.2026 stand in
 beiden dasselbe falsch: von sieben Betriebsarten stimmte genau eine — die
 Gaststätte, also der eigene Betrieb. Bei Bäckerei, Fleischerei und
 Sonstigen stand der 19-%-Anteil auf 0, obwohl eine Bäckerei Kaffee
-verkauft. `pruefung/pauschbetraege.mjs` hält beide Orte gegen eine dritte,
-von Hand aus dem BMF-Schreiben abgeschriebene Tabelle.
+verkauft, und drei Gewerbezweige des Schreibens fehlten ganz.
+`pruefung/pauschbetraege.mjs` hält beide Orte gegen eine dritte, von Hand
+aus dem BMF-Schreiben abgeschriebene Tabelle.
+
+**Eine Null kann richtig sein.** „Milch, Milcherzeugnisse, Fettwaren und
+Eier (Eh.)" hat im Schreiben wirklich 0 € beim vollen Steuersatz — das
+Sortiment läuft vollständig zum ermäßigten. Eine pauschale Regel „nie 0"
+wäre daran zu Unrecht angesprungen; die Prüfung vergleicht deshalb Zeile
+für Zeile gegen das Schreiben statt gegen eine Faustregel.
 
 **Das Jahr steht in `WERTE_JAHR`, sonst nirgends.** Pauschbeträge,
 Sachbezugswerte und der Freibetrag gelten je Kalenderjahr. Beim nächsten

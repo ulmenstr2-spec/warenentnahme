@@ -8,8 +8,9 @@
 // Geprueften bezieht, bestaetigt jeden Tippfehler.
 //
 // Quelle: BMF-Schreiben vom 23.12.2025,
-// GZ IV D 3 - S 1547/00006/007/021, Jahreswerte netto je Person,
-// gueltig 01.01.2026 bis 31.12.2026.
+// GZ IV D 3 - S 1547/00006/007/021, DOK COO.7005.100.2.13818400,
+// Jahreswerte netto je Person, gueltig 01.01.2026 bis 31.12.2026.
+// Am 15.09.2026 aus dem Schreiben selbst abgeschrieben, Zeile fuer Zeile.
 //
 // Beim naechsten BMF-Schreiben: WERTE_JAHR in app.html hochzaehlen, die
 // Tabelle dort ersetzen und diese Tabelle hier gegen das neue Schreiben
@@ -21,27 +22,36 @@ const W = path.dirname(path.dirname(fileURLToPath(import.meta.url))) + '/';
 const src = fs.readFileSync(W + 'app.html', 'utf8');
 
 const JAHR = 2026;
+// Die vollstaendige Tabelle des Schreibens, alle neun Zeilen.
 const AMTLICH = {
-  // Gewerbezweig                                 7 %    19 %
-  'Gaststätten aller Art, kalte Speisen':       [1824,  629],
-  'Gaststätten aller Art, kalte und warme':     [3173,  828],
-  'Café und Konditorei':                        [1610,  598],
-  'Bäckerei':                                   [1671,  214],
-  'Fleischerei / Metzgerei':                    [1487,  567],
-  'Nahrungs- und Genussmittel (Einzelhandel)':  [1395,  368],
+  // Gewerbezweig                                       7 %    19 %
+  'Bäckerei':                                        [1671,  214],
+  'Fleischerei/Metzgerei':                           [1487,  567],
+  'Gaststätten aller Art, a) kalte Speisen':         [1824,  629],
+  'Gaststätten aller Art, b) kalte und warme':       [3173,  828],
+  'Getränkeeinzelhandel':                            [ 123,  276],
+  'Café und Konditorei':                             [1610,  598],
+  // Diese Null steht so im Schreiben: das Sortiment laeuft vollstaendig
+  // zum ermaessigten Satz. Kein Uebertragungsfehler.
+  'Milch, Milcherzeugnisse, Fettwaren und Eier (Eh.)':[721,    0],
+  'Nahrungs- und Genussmittel (Eh.)':                [1395,  368],
+  'Obst, Gemüse, Südfrüchte und Kartoffeln (Eh.)':   [ 384,  169],
 };
 // Welcher Schluessel in BETRIEBE welche Zeile der amtlichen Tabelle meint.
 // Imbiss und Hotel sind keine eigenen Zeilen — beide sind Gaststaetten mit
 // warmen Speisen.
 const ZUORDNUNG = {
-  gaststaetten:      'Gaststätten aller Art, kalte und warme',
-  gaststaetten_kalt: 'Gaststätten aller Art, kalte Speisen',
-  imbiss:            'Gaststätten aller Art, kalte und warme',
-  hotel:             'Gaststätten aller Art, kalte und warme',
+  gaststaetten:      'Gaststätten aller Art, b) kalte und warme',
+  gaststaetten_kalt: 'Gaststätten aller Art, a) kalte Speisen',
+  imbiss:            'Gaststätten aller Art, b) kalte und warme',
+  hotel:             'Gaststätten aller Art, b) kalte und warme',
   cafe:              'Café und Konditorei',
   baeckerei:         'Bäckerei',
-  fleischerei:       'Fleischerei / Metzgerei',
-  sonstige:          'Nahrungs- und Genussmittel (Einzelhandel)',
+  fleischerei:       'Fleischerei/Metzgerei',
+  sonstige:          'Nahrungs- und Genussmittel (Eh.)',
+  getraenke:         'Getränkeeinzelhandel',
+  milch:             'Milch, Milcherzeugnisse, Fettwaren und Eier (Eh.)',
+  obstgemuese:       'Obst, Gemüse, Südfrüchte und Kartoffeln (Eh.)',
 };
 
 const erg = [];
@@ -71,11 +81,22 @@ for (const [schluessel, zeile] of Object.entries(ZUORDNUNG)) {
     `app.html hat ${b.ust7} € / ${b.ust19} €`);
 }
 
-// Kein Gewerbezweig ohne Anteil zum vollen Steuersatz. Jede Zeile der
-// amtlichen Tabelle hat einen — wo 0 steht, fehlt Umsatzsteuer.
-const ohne19 = Object.entries(BETRIEBE).filter(([, b]) => !b.ust19);
-p('Keine Betriebsart ohne 19-%-Anteil', ohne19.length === 0,
-  ohne19.map(([k]) => k).join(', ') + ' — dort wird keine Umsatzsteuer zum vollen Satz angesetzt');
+// Eine 0 beim vollen Steuersatz nur dort, wo das Schreiben sie auch hat.
+// Frueher standen drei Nullen im Code, die im Schreiben keine sind —
+// eine Baeckerei verkauft Kaffee. Genau eine Zeile hat wirklich eine
+// Null, und eine pauschale Regel "nie 0" waere an ihr zu Unrecht
+// angesprungen.
+const falscheNull = Object.entries(BETRIEBE)
+  .filter(([k, b]) => !b.ust19 && AMTLICH[ZUORDNUNG[k]] && AMTLICH[ZUORDNUNG[k]][1] !== 0)
+  .map(([k]) => k);
+p('Eine 0 beim vollen Steuersatz nur, wo das Schreiben sie hat', falscheNull.length === 0,
+  falscheNull.join(', ') + ' — dort wird keine Umsatzsteuer zum vollen Satz angesetzt, obwohl das Schreiben eine vorsieht');
+
+// Keine Zeile des Schreibens fehlt. Sonst waehlt ein Getraenkehaendler
+// notgedrungen etwas Falsches.
+const fehlend = Object.keys(AMTLICH).filter(z => !Object.values(ZUORDNUNG).includes(z));
+p('Jede Zeile des BMF-Schreibens ist in der App wählbar', fehlend.length === 0,
+  'nicht abgebildet: ' + fehlend.join('; '));
 
 // Jeder Schluessel in BETRIEBE ist zugeordnet: eine neue Betriebsart soll
 // nicht ungeprueft durchrutschen.

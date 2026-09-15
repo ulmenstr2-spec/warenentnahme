@@ -3545,7 +3545,9 @@ function QtyModal({art,onOk,onClose,initialMenge}){
 // ── HAUSHALT + REPORT
 // BMF-Pauschbetraege fuer unentgeltliche Wertabgaben, Jahreswerte netto
 // je Person. Quelle: BMF-Schreiben vom 23.12.2025,
-// GZ IV D 3 - S 1547/00006/007/021, gueltig 01.01. bis 31.12.2026.
+// GZ IV D 3 - S 1547/00006/007/021, DOK COO.7005.100.2.13818400,
+// gueltig 01.01. bis 31.12.2026. Am 15.09.2026 Zeile fuer Zeile gegen
+// das Schreiben selbst gehalten, nicht gegen eine Zweitquelle.
 //
 // Bis zum 15.09.2026 stimmte hier genau eine Zeile: die Gaststaette, der
 // eigene Betrieb. Bei Baeckerei, Fleischerei und Sonstigen stand der
@@ -3570,6 +3572,12 @@ const BETRIEBE = {
   baeckerei:     {label:'Bäckerei',                                          ust7:1671, ust19:214},
   fleischerei:   {label:'Fleischerei / Metzgerei',                           ust7:1487, ust19:567},
   sonstige:      {label:'Nahrungs- und Genussmittel (Einzelhandel)',         ust7:1395, ust19:368},
+  getraenke:     {label:'Getränkeeinzelhandel',                              ust7: 123, ust19:276},
+  // Diese Zeile hat im Schreiben wirklich eine 0 beim vollen Steuersatz.
+  // Das ist keine Luecke, sondern das Warensortiment: Milch, Kaese, Butter
+  // und Eier laufen samt und sonders zum ermaessigten Satz.
+  milch:         {label:'Milch, Milcherzeugnisse, Fettwaren und Eier (Einzelhandel)', ust7:721, ust19:0},
+  obstgemuese:   {label:'Obst, Gemüse, Südfrüchte und Kartoffeln (Einzelhandel)',     ust7:384, ust19:169},
 };
 const PM_FAKTOR = { inhaber:1, partner:1, kind_gross:0.5, kind_klein:0.5, kind_teen:1, kind:0.5 };
 
@@ -4087,6 +4095,19 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
             ))}
           </div>
         );})()}
+        {/* Vorbemerkung 6 des BMF-Schreibens. Sie entscheidet, welche
+            Betriebsart oben zu waehlen ist, und steht deshalb hier und
+            nicht im Kleingedruckten: Wer eine Baeckerei mit Cafébetrieb
+            fuehrt, setzt nicht beide Pauschbetraege an und auch nicht den
+            niedrigeren, sondern nur den hoeheren. */}
+        <div style={{fontSize:10,color:'var(--t2)',marginTop:10,lineHeight:1.5,
+          borderTop:'1px solid var(--border)',paddingTop:8}}>
+          Bei gemischten Betrieben — Fleischerei oder Bäckerei mit Lebensmittelangebot
+          oder Gaststätte — ist nur der <strong>höhere</strong> Pauschbetrag der
+          entsprechenden Gewerbeklasse anzusetzen, nicht beide.
+          Tabakwaren und andere Waren, die weder Nahrungsmittel noch Getränke
+          sind, deckt der Pauschbetrag nicht ab; die gehören einzeln erfasst.
+        </div>
       </div>
       <div className="sec" style={{marginTop:4,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <span>Haushalt</span>

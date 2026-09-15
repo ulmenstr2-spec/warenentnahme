@@ -230,6 +230,9 @@ footer{border-top:1px solid var(--border);background:var(--cream-dark)}
         <tr><th scope="row">Bäckerei</th><td class="num">1.671</td><td class="num">214</td><td class="num total">1.885</td><td class="num">157</td></tr>
         <tr><th scope="row">Fleischerei / Metzgerei</th><td class="num">1.487</td><td class="num">567</td><td class="num total">2.054</td><td class="num">171</td></tr>
         <tr><th scope="row">Nahrungs- und Genussmittel (Einzelhandel)</th><td class="num">1.395</td><td class="num">368</td><td class="num total">1.763</td><td class="num">147</td></tr>
+        <tr><th scope="row">Getränkeeinzelhandel</th><td class="num">123</td><td class="num">276</td><td class="num total">399</td><td class="num">33</td></tr>
+        <tr><th scope="row">Milch, Milcherzeugnisse, Fettwaren und Eier (Einzelhandel)</th><td class="num">721</td><td class="num">—</td><td class="num total">721</td><td class="num">60</td></tr>
+        <tr><th scope="row">Obst, Gemüse, Südfrüchte und Kartoffeln (Einzelhandel)</th><td class="num">384</td><td class="num">169</td><td class="num total">553</td><td class="num">46</td></tr>
       </tbody>
     </table>
   </div>
@@ -255,6 +258,9 @@ footer{border-top:1px solid var(--border);background:var(--cream-dark)}
           <option value="baeckerei">Bäckerei</option>
           <option value="fleischerei">Fleischerei / Metzgerei</option>
           <option value="sonstige">Nahrungs- und Genussmittel (Einzelhandel)</option>
+          <option value="getraenke">Getränkeeinzelhandel</option>
+          <option value="milch">Milch, Milcherzeugnisse, Fettwaren und Eier (Einzelhandel)</option>
+          <option value="obstgemuese">Obst, Gemüse, Südfrüchte und Kartoffeln (Einzelhandel)</option>
         </select>
       </label>
       <label class="calc-field">
@@ -287,19 +293,21 @@ footer{border-top:1px solid var(--border);background:var(--cream-dark)}
 
   <h3>Wann die Pauschale nicht passt</h3>
   <ul>
-    <li><strong>Längere Abwesenheit:</strong> Bei Urlaub, Krankheit oder Betriebsschließung über einen längeren Zeitraum kann der Pauschbetrag zeitanteilig gekürzt werden.</li>
+    <li><strong>Urlaub und Krankheit kürzen den Pauschbetrag nicht.</strong> Das BMF-Schreiben lässt ausdrücklich keine Zu- und Abschläge zur Anpassung an die individuellen Verhältnisse zu und nennt persönliche Ess- und Trinkgewohnheiten, Krankheit und Urlaub beim Namen. Der Pauschbetrag ist eine Vereinfachung – er wird nicht nachgerechnet.</li>
+    <li><strong>Behördlich angeordnete Schließung:</strong> Wird der Betrieb nachweislich auf Grund einer landesrechtlichen Verordnung, einer kommunalen Allgemeinverfügung oder einer behördlichen Anweisung <em>vollständig</em> geschlossen, darf der Pauschbetrag zeitanteilig angesetzt werden. Das ist der einzige im Schreiben genannte Fall einer Kürzung.</li>
+    <li><strong>Gemischte Betriebe:</strong> Fleischerei oder Bäckerei mit Lebensmittelangebot oder Gaststätte – hier ist nur der <strong>höhere</strong> Pauschbetrag der entsprechenden Gewerbeklasse anzusetzen, nicht die Summe beider.</li>
     <li><strong>Non-Food und Tabakwaren:</strong> nicht abgedeckt – solche Entnahmen sind gesondert mit dem tatsächlichen Wert zu erfassen.</li>
     <li><strong>Untypisches Sortiment:</strong> Wer nachweislich deutlich weniger entnimmt, kann einzeln aufzeichnen. Das erfordert dann aber lückenlose Aufzeichnungen über das ganze Jahr.</li>
   </ul>
 
   <h2 id="kinder">Kinder und weitere Haushaltsangehörige</h2>
-  <p>Der Pauschbetrag gilt pro Person im Haushalt des Betriebsinhabers – nicht pro Betrieb. Üblich ist folgende Staffelung:</p>
+  <p>Der Pauschbetrag gilt pro Person im Haushalt des Betriebsinhabers – nicht pro Betrieb. Die Staffelung steht im BMF-Schreiben selbst:</p>
   <ul>
     <li><strong>Kinder unter 2 Jahren:</strong> bleiben unberücksichtigt</li>
     <li><strong>Kinder von 2 bis 12 Jahren:</strong> halber Pauschbetrag</li>
     <li><strong>Ab dem 13. Lebensjahr sowie Erwachsene:</strong> voller Pauschbetrag</li>
   </ul>
-  <p>Maßgeblich ist das Alter zu Beginn des Kalenderjahres. Angestellte zählen nicht dazu – Mahlzeiten an Mitarbeiter sind ein eigenes Thema (Sachbezugswerte).</p>
+  <p>Einen Stichtag für das Alter nennt das Schreiben nicht – wer im Laufe des Jahres zwölf wird, sollte das mit der Kanzlei klären. Angestellte zählen nicht dazu – Mahlzeiten an Mitarbeiter sind ein eigenes Thema (Sachbezugswerte).</p>
 
   <h2 id="buchen">Wie die Entnahmen gebucht werden</h2>
   <p>Der Jahreswert wird in zwölf Monatsbeträge geteilt und laufend gebucht – getrennt nach den beiden Umsatzsteuersätzen, damit die Voranmeldung stimmt. Ertragsteuerlich erhöht die Entnahme den Gewinn, umsatzsteuerlich handelt es sich um eine unentgeltliche Wertabgabe nach § 3 Abs. 1b UStG.</p>
@@ -356,7 +364,10 @@ footer{border-top:1px solid var(--border);background:var(--cream-dark)}
     cafe:              [1610, 598],
     baeckerei:         [1671, 214],
     fleischerei:       [1487, 567],
-    sonstige:          [1395, 368]
+    sonstige:          [1395, 368],
+    getraenke:         [123, 276],
+    milch:             [721, 0],
+    obstgemuese:       [384, 169]
   };
   var el = function (id) { return document.getElementById(id); };
   var betrieb = el('c-betrieb'), erw = el('c-erw'), kind = el('c-kind');

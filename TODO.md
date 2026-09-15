@@ -4,42 +4,27 @@
 
 Der Rest der Datei ist Chronik — hier steht, woran noch etwas hängt.
 
-**Zuerst: die Pauschbeträge gegenlesen**
+**Pauschbeträge**
 
-- [ ] **Das BMF-Schreiben vom 23.12.2025 öffnen und die Tabelle Zeile für
-      Zeile vergleichen.** Am 15.09.2026 stimmte von sieben Betriebsarten
-      genau eine — die Gaststätte, also der eigene Betrieb. Die anderen
-      sechs wurden auf die 2026er Werte gesetzt; bei Bäckerei, Fleischerei
-      und Sonstigen stand der Anteil zum vollen Steuersatz vorher auf 0,
-      was zu wenig Umsatzsteuer ergab (Fleischerei: rund 94 € je Person
-      und Jahr).
-
-      **Die neuen Zahlen stammen aus Steuerberater-Seiten, nicht aus dem
-      BMF-Schreiben selbst** — die Seite des Ministeriums war von hier aus
-      nicht erreichbar. Drei unabhängige Quellen nannten dieselben Werte,
-      und die eine Zeile, die die App vorher schon richtig hatte
-      (Gaststätten 3.173/828), stimmte mit ihnen überein. Das ist ein
-      gutes Zeichen, aber kein Beleg. **Vor dem Merge einmal gegenlesen:**
-
-      https://www.bundesfinanzministerium.de/Content/DE/Downloads/BMF_Schreiben/Weitere_Steuerthemen/Betriebspruefung/Richtsatzsammlung/2025-12-23-pauschbetraege-2026.pdf
-
-      | Betriebsart | 7 % | 19 % | gesamt |
-      |---|---|---|---|
-      | Gaststätte, kalte und warme Speisen | 3.173 | 828 | 4.001 |
-      | Gaststätte, nur kalte Speisen | 1.824 | 629 | 2.453 |
-      | Café und Konditorei | 1.610 | 598 | 2.208 |
-      | Bäckerei | 1.671 | 214 | 1.885 |
-      | Fleischerei / Metzgerei | 1.487 | 567 | 2.054 |
-      | Nahrungs- und Genussmittel (Einzelhandel) | 1.395 | 368 | 1.763 |
-
-      Stimmt eine Zahl nicht, gehört sie an drei Stellen berichtigt:
-      `BETRIEBE` in `app.html`, Tabelle und Rechner in
-      `pauschbetraege.html`, und die Solltabelle in
-      `pruefung/pauschbetraege.mjs`.
+- [x] **Gegen das BMF-Schreiben selbst geprüft** (23.12.2025, GZ IV D 3 -
+      S 1547/00006/007/021), alle neun Zeilen. Vorher stimmte von sieben
+      Betriebsarten genau eine — die Gaststätte, also der eigene Betrieb.
+      Bei Bäckerei, Fleischerei und Sonstigen stand der Anteil zum vollen
+      Steuersatz auf 0; das ergab zu wenig Umsatzsteuer, bei der
+      Fleischerei rund 94 € je Person und Jahr. Alle Werte berichtigt,
+      drei fehlende Gewerbezweige ergänzt (Getränkeeinzelhandel; Milch,
+      Milcherzeugnisse, Fettwaren und Eier; Obst, Gemüse, Südfrüchte und
+      Kartoffeln) sowie die Gaststätte, die nur kalte Speisen abgibt.
+      `pruefung/pauschbetraege.mjs` hält App und öffentliche Seite
+      dagegen.
 - [ ] **Beim BMF-Schreiben für 2027** (erscheint um den Jahreswechsel):
       `WERTE_JAHR` hochzählen, alle drei Wertetabellen ersetzen,
       `pruefung/pauschbetraege.mjs` aus dem neuen Schreiben nachziehen.
       Bis dahin warnt die App ab dem 01.01.2027 selbst.
+- [ ] Die Kacheln im Rechner auf `pauschbetraege.html` heißen „7 % USt
+      (überwiegend Lebensmittel)" und „19 % USt (überwiegend Getränke)".
+      Beim Getränkeeinzelhandel steht damit über den 123 € „überwiegend
+      Lebensmittel". Stört niemanden beim Rechnen, liest sich aber schief.
 
 **Am Produkt**
 

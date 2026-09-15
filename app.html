@@ -468,6 +468,59 @@ const SB = { frueh:2.37, mittag:4.57, abend:4.57 }; // Sachbezugswerte 2026
 // USt-Satz für Mahlzeiten: ab 01.01.2026 gilt 7% (Steueränderungsgesetz 2025)
 const mealUstSatz=datum=>(datum||'')>='2026-01-01'?7:19;
 
+// ── ABRECHNUNGSZEITRAUM ───────────────────────────────────
+// Ein Zeitraum laeuft vom Stichtag bis zum Tag VOR dem naechsten
+// Stichtag. So kann zwischen zwei Zeitraeumen weder eine Luecke noch
+// eine Ueberschneidung entstehen, gleich wie lang die Monate sind.
+//
+// Gerechnet wurde das Ende frueher als new Date(jahr, monat+1, tag-1),
+// an vier Stellen gleichlautend. Bei Stichtag 29, 30 oder 31 rollt
+// new Date() aber ueber: der 31. Februar ist der 3. Maerz. Weil dann
+// schon der Start im Folgemonat lag, zaehlte die Endrechnung von dort
+// aus noch einen Monat weiter. Ergebnis bei Stichtag 31: Zeitraeume bis
+// zu 61 Tagen, und ueber zwoelf Jahre lagen 1.550 Tage in zwei
+// Zeitraeumen gleichzeitig. Der Bericht haette dann zwei Monate
+// Entnahmen gegen einen Monatspauschbetrag gestellt.
+//
+// Ueber die Oberflaeche war das nicht erreichbar — sie bietet nur den
+// 1., 5., 10., 15., 16., 20. und 25. Ueber eine wiederhergestellte
+// Sicherung schon: dort wurde periodDay bisher ungeprueft uebernommen.
+// Fuer alle waehlbaren Stichtage liefern die Funktionen hier exakt
+// dieselben Zeitraeume wie vorher; das prueft pruefung/perioden.mjs.
+
+// Stichtag auf eine sinnvolle Zahl bringen. Eine kaputte Sicherung soll
+// den Bericht nicht in die Zukunft schieben.
+const periodTagGueltig=t=>{const n=parseInt(t,10);return(!n||n<1)?1:Math.min(n,31);};
+// Den Stichtag auf die Laenge des Monats begrenzen: im Februar ist der
+// 31. der 28. beziehungsweise 29.
+const periodTagImMonat=(jahr,monat,tag)=>Math.min(tag,new Date(jahr,monat+1,0).getDate());
+const periodStart=(jahr,monat,tag)=>new Date(jahr,monat,periodTagImMonat(jahr,monat,tag));
+// Der naechste Stichtag nach diesem Start.
+const periodNaechsterStart=(start,tag)=>{
+  let j=start.getFullYear(),m=start.getMonth()+1;
+  if(m>11){m=0;j+=1;}
+  return periodStart(j,m,tag);
+};
+// Ende = Tag vor dem naechsten Start. Bei Stichtag 1 ergibt
+// new Date(jahr,monat,0) den letzten Tag des Vormonats — genau richtig.
+const periodEnde=(start,tag)=>{
+  let j=start.getFullYear(),m=start.getMonth()+1;
+  if(m>11){m=0;j+=1;}
+  return new Date(j,m,periodTagImMonat(j,m,tag)-1);
+};
+const periodStr=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+// Der Zeitraum, in dem ein Zeitpunkt liegt.
+const periodUm=(tag,zeitpunkt)=>{
+  const d=periodTagGueltig(tag);
+  let start=periodStart(zeitpunkt.getFullYear(),zeitpunkt.getMonth(),d);
+  if(start>zeitpunkt){
+    let j=zeitpunkt.getFullYear(),m=zeitpunkt.getMonth()-1;
+    if(m<0){m=11;j-=1;}
+    start=periodStart(j,m,d);
+  }
+  return{sk:periodStr(start),ek:periodStr(periodEnde(start,d))};
+};
+
 // Umlaute normalisieren (restliche kaputte Zeichen entfernen)
 // CP850-Dekodierung passiert bereits vor parseBNN im Import-Handler
 const normUml=s=>(s||'')
@@ -1171,8 +1224,12 @@ function App(){
         if(d.gmbhWithdrawals)setGmbhWithdrawals(d.gmbhWithdrawals);
         if(d.gmbhPersons)setGmbhPersons(d.gmbhPersons);
         if(d.rechtsform)setRechtsform(d.rechtsform);
-        if(d.periodDay)setPeriodDay(d.periodDay);
-        if(d.gmbhPeriodDay)setGmbhPeriodDay(d.gmbhPeriodDay);
+        // Ueber periodTagGueltig, weil eine fremde oder beschaedigte
+        // Sicherung hier jede Zahl mitbringen kann. Ein Stichtag 99
+        // schoebe den Bericht in die Zukunft, ein Stichtag 31 ergaebe
+        // ueberlappende Zeitraeume.
+        if(d.periodDay)setPeriodDay(periodTagGueltig(d.periodDay));
+        if(d.gmbhPeriodDay)setGmbhPeriodDay(periodTagGueltig(d.gmbhPeriodDay));
         applyGmbhExtras(d); // Gäste-Flags, Kategorie-Overrides, Favoriten, Marktwerte
         showT('✓ Backup wiederhergestellt');
       }catch(ex){showT('❌ '+ex.message);}
@@ -1312,8 +1369,8 @@ function App(){
           // Einstellungen: immer vom Server übernehmen (kein Datenverlust-Risiko)
           if(d.hh)setHH(d.hh);
           if(d.favs?.length)setFavs(d.favs);
-          if(d.periodDay&&d.periodDay!==1)setPeriodDay(d.periodDay);
-          if(d.gmbhPeriodDay)setGmbhPeriodDay(d.gmbhPeriodDay);
+          if(d.periodDay&&d.periodDay!==1)setPeriodDay(periodTagGueltig(d.periodDay));
+          if(d.gmbhPeriodDay)setGmbhPeriodDay(periodTagGueltig(d.gmbhPeriodDay));
           if(d.gmbhPersons?.length)setGmbhPersons(d.gmbhPersons);
           if(d.rechtsform)setRechtsform(d.rechtsform);
           applyGmbhExtras(d); // Gäste-Flags, Kategorie-Overrides, Favoriten, Marktwerte
@@ -1549,16 +1606,7 @@ function App(){
 
   const now=new Date(),cm=mKey(now),cd=dKey(now);
   // Aktuelle Abrechnungsperiode (gleiche Logik wie im Bericht)
-  const curPeriod=useMemo(()=>{
-    const d=periodDay||1;
-    const today=now;
-    // Periodestart dieses Monats
-    let start=new Date(today.getFullYear(),today.getMonth(),d);
-    if(start>today) start=new Date(start.getFullYear(),start.getMonth()-1,d);
-    const end=new Date(start.getFullYear(),start.getMonth()+1,d-1);
-    const dStr=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    return{sk:dStr(start),ek:dStr(end)};
-  },[periodDay,now.toDateString()]);
+  const curPeriod=useMemo(()=>periodUm(periodDay,now),[periodDay,now.toDateString()]);
   const showT=msg=>{setToast(msg);setTimeout(()=>setToast(null),3000);};
 
   // Gesperrt wird nur, wenn der Server auch wirklich gesagt hat, dass kein
@@ -1674,14 +1722,7 @@ function App(){
   // GmbH-Abrechnungsperiode — MUSS gmbhPeriodDay nutzen (gleiche Einstellung
   // wie der GmbH-Bericht), nicht das periodDay des EU-Modus. Sonst zeigen
   // Übersicht/Mahlzeiten/Mitnahmen einen anderen Zeitraum als der Bericht.
-  const gmbhCurPeriod=useMemo(()=>{
-    const d=gmbhPeriodDay||1;
-    let start=new Date(now.getFullYear(),now.getMonth(),d);
-    if(start>now) start=new Date(start.getFullYear(),start.getMonth()-1,d);
-    const end=new Date(start.getFullYear(),start.getMonth()+1,d-1);
-    const dStr=x=>`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;
-    return{sk:dStr(start),ek:dStr(end)};
-  },[gmbhPeriodDay,now.toDateString()]);
+  const gmbhCurPeriod=useMemo(()=>periodUm(gmbhPeriodDay,now),[gmbhPeriodDay,now.toDateString()]);
 
   // ── HINWEIS AUF NEUE ABRECHNUNGSPERIODE ──────────────────
   // Muss die Periode des aktiven Modus verwenden. Vorher hing der Hinweis
@@ -3613,18 +3654,20 @@ function ReportTab({ents,meals,hh,setHH,periodDay,setPeriodDay}){
     const minD=new Date(all.reduce((a,b)=>a<b?a:b));
     const maxD=new Date(all.reduce((a,b)=>a>b?a:b));
     const result=[];
-    let cur=new Date(minD.getFullYear(),minD.getMonth(),periodDay);
-    if(cur>minD)cur=new Date(cur.getFullYear(),cur.getMonth()-1,periodDay);
+    const pTag=periodTagGueltig(periodDay);
+    let cur=periodStart(minD.getFullYear(),minD.getMonth(),pTag);
+    if(cur>minD)cur=periodStart(minD.getMonth()?minD.getFullYear():minD.getFullYear()-1,
+                                minD.getMonth()?minD.getMonth()-1:11,pTag);
     while(cur<=maxD){
       const start=new Date(cur);
-      const end=new Date(cur.getFullYear(),cur.getMonth()+1,periodDay-1);
+      const end=periodEnde(start,pTag);
       const dStr=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;const sk=dStr(start);
       const ek=dStr(end);
       const lbl=periodDay===1
         ?start.toLocaleDateString('de-DE',{month:'long',year:'numeric'})
         :`${start.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}–${end.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})}`;
       result.push({sk,ek,lbl,key:`${sk}_${ek}`});
-      cur=new Date(cur.getFullYear(),cur.getMonth()+1,periodDay);
+      cur=periodNaechsterStart(cur,pTag);
     }
     return result.reverse();
   },[ents,meals,periodDay]);
@@ -6842,17 +6885,19 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
     const maxD=new Date(all.reduce((a,b)=>a>b?a:b));
     const result=[];
     const dStr=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    let cur=new Date(minD.getFullYear(),minD.getMonth(),pd);
-    if(cur>minD)cur=new Date(cur.getFullYear(),cur.getMonth()-1,pd);
+    const pTag=periodTagGueltig(pd);
+    let cur=periodStart(minD.getFullYear(),minD.getMonth(),pTag);
+    if(cur>minD)cur=periodStart(minD.getMonth()?minD.getFullYear():minD.getFullYear()-1,
+                                minD.getMonth()?minD.getMonth()-1:11,pTag);
     while(cur<=maxD){
       const start=new Date(cur);
-      const end=new Date(cur.getFullYear(),cur.getMonth()+1,pd-1);
+      const end=periodEnde(start,pTag);
       const sk=dStr(start),ek=dStr(end);
       const lbl=pd===1
         ?start.toLocaleDateString('de-DE',{month:'long',year:'numeric'})
         :`${start.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}–${end.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})}`;
       result.push({sk,ek,lbl,key:`${sk}_${ek}`,monat:start.getFullYear()+'-'+String(start.getMonth()+1).padStart(2,'0')});
-      cur=new Date(cur.getFullYear(),cur.getMonth()+1,pd);
+      cur=periodNaechsterStart(cur,pTag);
     }
     return result.reverse();
   },[meals,withdrawals,pd]);

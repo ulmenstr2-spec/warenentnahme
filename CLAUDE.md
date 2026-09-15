@@ -113,6 +113,8 @@ React und React-DOM werden gebraucht, weil die App sie im Betrieb aus
 | `node pruefung/mahlzeiten-dubletten.mjs` | Rückfrage bei doppelter Mahlzeit, beide Modi |
 | `node pruefung/rechnen.mjs` | Die Geldfunktionen gegen exakte Bruchrechnung, 90.000 Werte je Rechenweg |
 | `node pruefung/ust-satz-exporte.mjs` | Alle vier Exportwege nennen denselben USt-Satz fürs Personalessen |
+| `node pruefung/pauschbetraege.mjs` | Die BMF-Werte in App **und** auf `pauschbetraege.html` gegen die amtliche Tabelle |
+| `node pruefung/jahreswechsel.mjs` | Beide Modi warnen im Folgejahr vor veralteten Werten — und vorher nicht |
 
 Für die Apache-Prüfungen: `sudo apt-get install -y apache2`. Der Testbau
 muss unter `/var/www/` liegen — auf ein Verzeichnis, das der Benutzer
@@ -140,6 +142,11 @@ Konkret heißt das:
   formal makellos und kam trotzdem falsch an.
 - Wo eine Behauptung nicht belegbar ist, gehört sie als offene Lücke
   markiert — siehe `recht/TOM.md`, Abschnitt 7.
+- **Eine Prüfung, die nicht fehlschlagen kann, prüft nichts.** Nach jeder
+  neuen Prüfung einmal den Fehler wieder einbauen und zusehen, dass sie
+  anspringt. `adressen-links.mjs` hat monatelang „alles gut" gemeldet:
+  ohne laufenden Apache fand sie null Links, verschluckte den Abbruch und
+  kam nie bis zu ihrer eigenen Schleife.
 
 Wenn eine Annahme sich als falsch erweist, gehört das klar gesagt und
 nicht umschifft.
@@ -176,6 +183,28 @@ Erreichbar war das über Einkaufspreis plus Handlingaufschlag: bei den
 `pruefung/rechnen.mjs` prüft das gegen exakte Bruchrechnung mit BigInt —
 ein Maßstab, der selbst mit Gleitkommazahlen rechnet, bestätigt den
 Fehler nur.
+
+**Die amtlichen Werte stehen an zwei Orten.** `BETRIEBE` in `app.html`
+und Tabelle plus Rechner in `pauschbetraege.html`. Am 15.09.2026 stand in
+beiden dasselbe falsch: von sieben Betriebsarten stimmte genau eine — die
+Gaststätte, also der eigene Betrieb. Bei Bäckerei, Fleischerei und
+Sonstigen stand der 19-%-Anteil auf 0, obwohl eine Bäckerei Kaffee
+verkauft, und drei Gewerbezweige des Schreibens fehlten ganz.
+`pruefung/pauschbetraege.mjs` hält beide Orte gegen eine dritte, von Hand
+aus dem BMF-Schreiben abgeschriebene Tabelle.
+
+**Eine Null kann richtig sein.** „Milch, Milcherzeugnisse, Fettwaren und
+Eier (Eh.)" hat im Schreiben wirklich 0 € beim vollen Steuersatz — das
+Sortiment läuft vollständig zum ermäßigten. Eine pauschale Regel „nie 0"
+wäre daran zu Unrecht angesprungen; die Prüfung vergleicht deshalb Zeile
+für Zeile gegen das Schreiben statt gegen eine Faustregel.
+
+**Das Jahr steht in `WERTE_JAHR`, sonst nirgends.** Pauschbeträge,
+Sachbezugswerte und der Freibetrag gelten je Kalenderjahr. Beim nächsten
+BMF-Schreiben: `WERTE_JAHR` hochzählen, die drei Wertetabellen ersetzen,
+`pruefung/pauschbetraege.mjs` aus dem neuen Schreiben nachziehen — nicht
+aus `app.html`, sonst bestätigt die Prüfung jeden Tippfehler. Bis das
+geschieht, warnt `JahrHinweis` den Nutzer in beiden Modi.
 
 **CSV braucht ein Dezimalkomma.** Bei Semikolon als Trennzeichen liest
 deutsches Excel einen Punkt als Datum: aus `4.57` wird „Apr 57". Es trifft

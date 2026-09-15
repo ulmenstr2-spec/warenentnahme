@@ -4,6 +4,28 @@
 
 Der Rest der Datei ist Chronik — hier steht, woran noch etwas hängt.
 
+**Pauschbeträge**
+
+- [x] **Gegen das BMF-Schreiben selbst geprüft** (23.12.2025, GZ IV D 3 -
+      S 1547/00006/007/021), alle neun Zeilen. Vorher stimmte von sieben
+      Betriebsarten genau eine — die Gaststätte, also der eigene Betrieb.
+      Bei Bäckerei, Fleischerei und Sonstigen stand der Anteil zum vollen
+      Steuersatz auf 0; das ergab zu wenig Umsatzsteuer, bei der
+      Fleischerei rund 94 € je Person und Jahr. Alle Werte berichtigt,
+      drei fehlende Gewerbezweige ergänzt (Getränkeeinzelhandel; Milch,
+      Milcherzeugnisse, Fettwaren und Eier; Obst, Gemüse, Südfrüchte und
+      Kartoffeln) sowie die Gaststätte, die nur kalte Speisen abgibt.
+      `pruefung/pauschbetraege.mjs` hält App und öffentliche Seite
+      dagegen.
+- [ ] **Beim BMF-Schreiben für 2027** (erscheint um den Jahreswechsel):
+      `WERTE_JAHR` hochzählen, alle drei Wertetabellen ersetzen,
+      `pruefung/pauschbetraege.mjs` aus dem neuen Schreiben nachziehen.
+      Bis dahin warnt die App ab dem 01.01.2027 selbst.
+- [ ] Die Kacheln im Rechner auf `pauschbetraege.html` heißen „7 % USt
+      (überwiegend Lebensmittel)" und „19 % USt (überwiegend Getränke)".
+      Beim Getränkeeinzelhandel steht damit über den 123 € „überwiegend
+      Lebensmittel". Stört niemanden beim Rechnen, liest sich aber schief.
+
 **Am Produkt**
 
 - [ ] **`server/api.php` hochladen** — Kopie jeder Anmeldung an den
@@ -21,8 +43,9 @@ Der Rest der Datei ist Chronik — hier steht, woran noch etwas hängt.
       steht vor jeder Ausgabe. Der einzige noch offene Punkt daraus war
       `display_errors`, jetzt erledigt.
 - [ ] **Datei auf dem Server löschen** (`/public/app/api_php_patch.txt`)
-- [ ] **`app.html` geht mit dem Merge raus** — Rundung, Umsatzsteuersätze
-      in allen Exporten, Netto-Spalte im GmbH-Bericht
+- [ ] **`app.html` und `pauschbetraege.html` gehen mit dem Merge raus** —
+      Rundung, Umsatzsteuersätze in allen Exporten, Netto-Spalte im
+      GmbH-Bericht, Pauschbeträge, Jahreswechsel-Hinweis
 - [ ] Wenn ein Kunde nach DATEV importiert: prüfen, ob dort Punkt oder
       Komma erwartet wird (Fremdformate blieben bewusst beim Punkt)
 - [ ] **Frage an die Kanzlei:** Im Excel rechnen die Summenzeilen das

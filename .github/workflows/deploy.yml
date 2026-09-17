@@ -52,6 +52,12 @@ jobs:
 
           cp manifest.json   dist/app/manifest.json
           cp splash-logo.png dist/app/splash-logo.png
+          # Das Symbol der installierten App. manifest.json verwies auf
+          # icon-192.png und icon-512.png — beide gab es nirgends, weder im
+          # Repo noch auf dem Server. Die installierte App hatte deshalb
+          # kein Symbol. favicon.png ist genau 192x192 und wird dafuer
+          # unter dem im Manifest genannten Namen mitgenommen.
+          cp favicon.png     dist/app/icon-192.png
 
           # Programmbausteine (React, xlsx, jsPDF, pdf.js) liegen lokal.
           # Vorher kamen sie von cdnjs.cloudflare.com — das uebermittelte die

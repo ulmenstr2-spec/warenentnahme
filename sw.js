@@ -26,8 +26,17 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
-  // API-Anfragen nicht cachen
-  if (url.pathname.startsWith('/app/api/') || url.pathname.startsWith('/api/')) return;
+  // API-Anfragen nicht cachen.
+  //
+  // Geprueft wurde hier bis zum 17.09.2026 auf "/app/api/" mit Schraegstrich
+  // am Ende — die Schnittstelle heisst aber "/app/api.php" und fiel damit
+  // durch. Gecacht wurden so auch die Aufrufe mit Bestaetigungs- und
+  // Reset-Code in der Adresse; die blieben danach im Cache des Geraets
+  // stehen. Der Punkt statt des Schraegstrichs hat gereicht.
+  if (url.pathname.startsWith('/app/api') || url.pathname.startsWith('/api')) return;
+  // Adressen mit Einmalcodes gehoeren ebenfalls nie in den Cache.
+  if (url.searchParams.has('reset') || url.searchParams.has('verify')
+      || url.searchParams.has('token')) return;
   e.respondWith(
     caches.match(e.request).then(cached => {
       const fresh = fetch(e.request).then(resp => {

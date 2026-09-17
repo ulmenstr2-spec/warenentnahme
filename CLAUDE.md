@@ -118,6 +118,8 @@ React und React-DOM werden gebraucht, weil die App sie im Betrieb aus
 | `node pruefung/perioden.mjs` | Jeder Tag liegt in genau einem Abrechnungszeitraum, Stichtag 1–31 über zwölf Jahre |
 | `node pruefung/perioden-bericht.mjs` | Der Bericht summiert genau die Einträge des gewählten Zeitraums, Grenztage inbegriffen |
 | `node pruefung/sync-loeschen.mjs` | Zwei Geräte gegen einen echten Server: Gelöschtes bleibt gelöscht, „Jetzt herunterladen" holt wirklich den Serverstand |
+| `node pruefung/konto.mjs` | PIN-Reset über den Link aus der Mail; beim Kontowechsel wandern keine fremden Einträge mit |
+| `node pruefung/oberflaeche.mjs` | Aufräumen verschont benutzte Artikel, Manifest zeigt auf `/app/`, alle Reiter passen in eine Zeile |
 
 Für die Apache-Prüfungen: `sudo apt-get install -y apache2`. Der Testbau
 muss unter `/var/www/` liegen — auf ein Verzeichnis, das der Benutzer
@@ -234,6 +236,27 @@ beim Start ab. Ein Test, der erst den Serverstand setzt und dann klickt,
 misst nichts — das Gerät hat den Server längst überschrieben.
 `sync-loeschen.mjs` sperrt den Push dafür und protokolliert, was der
 Server wirklich ausgeliefert hat.
+
+**Die beiden Modi benennen den Artikelbezug verschieden.** Einträge des
+Einzelunternehmens speichern `articleId`, GmbH-Mitnahmen `artId`. Das
+Aufräumen suchte nur nach `artId` — damit galt jeder benutzte Artikel des
+Einzelunternehmens als unbenutzt und wurde entfernt. Wer nach einem Feld
+über beide Modi sucht, muss beide Namen lesen.
+
+**Das Gerät merkt sich, zu welchem Konto seine Daten gehören**
+(`gt_daten_konto`). Beim Abmelden bleiben die Daten absichtlich liegen,
+damit ein Versehen nichts kostet. Ohne den Merker lief die nächste
+Anmeldung eines *anderen* Kontos aber im Zusammenführ-Modus, und der
+automatische Push lud die Entnahmen des einen Betriebs in das Konto des
+anderen. `gt_sync_pushed_at` wird beim Abmelden gelöscht, `gt_daten_konto`
+ausdrücklich nicht — daran erkennt die nächste Anmeldung den Wechsel.
+
+**Nicht jeder gemeldete Fehler ist einer.** Im CSS stand
+`grid-template-columns:repeat(6,1fr)`, obwohl der GmbH-Modus sieben
+Reiter hat. Sieht nach einem Fehler aus, ist keiner: das `<nav>`-Element
+setzt die Spalten inline aus `TABS.length`. Gemessen, bevor etwas
+geändert wurde. Die tote 6 ist trotzdem weg, damit sie nicht beim
+nächsten Blick wieder als Fehler gemeldet wird.
 
 **CSV braucht ein Dezimalkomma.** Bei Semikolon als Trennzeichen liest
 deutsches Excel einen Punkt als Datum: aus `4.57` wird „Apr 57". Es trifft

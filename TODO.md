@@ -26,6 +26,39 @@ Der Rest der Datei ist Chronik — hier steht, woran noch etwas hängt.
       Beim Getränkeeinzelhandel steht damit über den 123 € „überwiegend
       Lebensmittel". Stört niemanden beim Rechnen, liest sich aber schief.
 
+**Zuerst: die Preislisten**
+
+- [ ] **`*.bnn` liegen im öffentlichen Repo** — fünf Dateien, 3,8 MB,
+      Terra Naturkost mit Namen im Kopf, Einkaufs- und Staffelpreise im
+      Klartext. Seit dem 10.04.2026 offen einsehbar. Sie gehen **nicht**
+      auf die Website, nur nach GitHub.
+
+      Löschen und Historie umschreiben macht das nicht ungeschehen — sie
+      standen fünf Monate offen. Die ehrliche Reihenfolge ist: **erst bei
+      Terra fragen**, ob das in Ordnung geht, dann aufräumen. Für die
+      Prüfungen werden sie nicht gebraucht; wenn sie als Testdaten
+      bleiben sollen, gehören sie in ein privates Repo oder hinter
+      `.gitignore`.
+
+**Aus der Durchsicht vom 17.09.2026, noch offen**
+
+- [ ] **Rate-Limit in `api.php`** — Anmeldung, Registrierung und
+      Reset-Anforderung sind unbegrenzt oft aufrufbar. Bei einer PIN von
+      vier Zeichen sind das 10.000 Möglichkeiten. Braucht einen Upload.
+- [ ] **Sitzungstoken** steht im `localStorage`, in der Adresszeile nach
+      der Bestätigung und über `console.debug` in der Browserkonsole.
+      Sauber wäre ein `HttpOnly`-Cookie; das ist ein größerer Umbau.
+- [ ] **Sync ohne Versionierung.** Der Server hält eine Momentaufnahme je
+      Konto, die letzte gewinnt. Ein Eintrag, der auf einem Gerät
+      *geändert* wird, erreicht das andere nie — der Abgleich fügt nur
+      hinzu, was fehlt. Bei einem Gerät je Kunde ist das folgenlos;
+      sobald jemand Handy und Rechner parallel nutzt, nicht mehr.
+- [ ] **Prüfskripte in GitHub Actions.** Es gibt elf; der Workflow führt
+      keins davon aus, er baut und deployt nur.
+- [ ] Ein 512er App-Symbol fehlt. `favicon.png` ist 192×192 und wird
+      jetzt als `icon-192.png` mitgeliefert; für den Startbildschirm auf
+      Android wäre ein 512er besser.
+
 **Am Produkt**
 
 - [ ] **`server/api.php` hochladen** — Kopie jeder Anmeldung an den

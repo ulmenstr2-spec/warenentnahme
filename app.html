@@ -110,7 +110,15 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:1px;}
 
 /* NAV */
-.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:var(--nh);background:rgba(247,249,244,0.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(6,1fr);z-index:100;padding-bottom:env(safe-area-inset-bottom,0);}
+/* Die Spaltenzahl kommt aus der Zahl der Reiter. Hier stand vorher
+   repeat(6,1fr), obwohl der GmbH-Modus sieben Reiter hat — das sah nach
+   einem Fehler aus, war aber keiner: das <nav>-Element setzt
+   gridTemplateColumns inline aus TABS.length und ueberschreibt die Regel.
+   Gemessen am 17.09.2026, beide Modi, eine Zeile, nichts ragt heraus.
+   Die 6 ist trotzdem weg: sie war eine tote Zahl, die beim naechsten
+   Blick wieder wie ein Fehler ausgesehen haette. grid-auto-flow traegt
+   jede Reiterzahl, auch ohne die Angabe am Element. */
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:var(--nh);background:rgba(247,249,244,0.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:grid;grid-auto-flow:column;grid-auto-columns:1fr;z-index:100;padding-bottom:env(safe-area-inset-bottom,0);}
 .nb{border:none;background:none;color:var(--t3);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-family:'Plus Jakarta Sans',sans-serif;font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;transition:color .2s;padding:8px 2px;position:relative;min-width:0;}
 .nb span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .nb.on{color:var(--green);}
@@ -326,30 +334,16 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 .auth-inp::placeholder{color:#8a9e7a;opacity:1;}
 .auth-inp:focus{border-color:#5a9040;background:#fff;}
 </style>
-<script>
-// ── PWA Manifest inline (Android Homescreen-Icon + iOS)
-(function(){
-  const manifest = {
-  "name": "warenentnahme",
-  "short_name": "Warenentnahme",
-  "description": "Steuer-Dokumentation für Warenentnahmen",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#4a7c2f",
-  "orientation": "portrait",
-  "icons": [
-    {"src": "./icon-192.png", "sizes": "180x180", "type": "image/png", "purpose": "any maskable"}
-  ]
-};
-  const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('link');
-  link.rel = 'manifest';
-  link.href = url;
-  document.head.appendChild(link);
-})();
-</script>
+<!-- ── PWA-Manifest
+     Hier wurde bis zum 17.09.2026 ein Manifest aus einem Blob gebaut und
+     als <link rel="manifest"> eingehaengt. Das verdraengte die echte
+     manifest.json, die der Deploy daneben nach /app/ legt — und das
+     eingebaute hatte "start_url": "/". Eine installierte App oeffnete
+     damit die Werbeseite statt der Anwendung. Ausserdem fehlte "scope",
+     und das eine Symbol war als 180x180 deklariert, obwohl die Datei
+     192x192 hat.
+     Jetzt gilt die Datei, die neben der App liegt. -->
+<link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="/schriften.css">
 </head>
 <body>
@@ -1138,7 +1132,9 @@ function App(){
   const[showSyncModal,setShowSyncModal]=useState(false);
   const[syncMsg,setSyncMsg]=useState(null); // {type:'ok'|'err', text:string}
   // Auth-Modal States
-  const[authView,setAuthView]=useState('login');   // login|register|reset|reset_done
+  // login | register | register_done | reset (Link anfordern) |
+  // reset_done (Link gesendet) | reset_do (neue PIN setzen)
+  const[authView,setAuthView]=useState('login');
   const[authInputEmail,setAuthInputEmail]=useState('');
   const[authInputPin,setAuthInputPin]=useState('');
   const[authInputPin2,setAuthInputPin2]=useState('');
@@ -1192,13 +1188,17 @@ function App(){
     ents,meals,hh,favs,
     periodDay,gmbhPeriodDay,
     gmbhMeals,gmbhWithdrawals,gmbhPersons,
+    // Der Firmenname steht auf jedem GmbH-Beleg. Er fehlte bis zum
+    // 17.09.2026 in Nutzlast und Sicherung — auf einem zweiten Geraet
+    // und nach einer Wiederherstellung war der Bericht namenlos.
+    gmbhFirma,
     deleted:loadDeleted(),
     ...gmbhExtras()
   });
 
   // ── BACKUP & RESTORE (App-Ebene, werden als Props an ImportTab übergeben)
   const backupData=()=>{
-    const data={version:2,date:new Date().toISOString(),rechtsform,arts,ents,meals,hh,favs,periodDay,gmbhPeriodDay,gmbhMeals,gmbhWithdrawals,gmbhPersons,...gmbhExtras()};
+    const data={version:2,date:new Date().toISOString(),rechtsform,arts,ents,meals,hh,favs,periodDay,gmbhPeriodDay,gmbhMeals,gmbhWithdrawals,gmbhPersons,gmbhFirma,...gmbhExtras()};
     const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
@@ -1223,6 +1223,7 @@ function App(){
         if(d.gmbhMeals)setGmbhMeals(d.gmbhMeals);
         if(d.gmbhWithdrawals)setGmbhWithdrawals(d.gmbhWithdrawals);
         if(d.gmbhPersons)setGmbhPersons(d.gmbhPersons);
+        if(typeof d.gmbhFirma==='string')setGmbhFirma(d.gmbhFirma);
         if(d.rechtsform)setRechtsform(d.rechtsform);
         // Ueber periodTagGueltig, weil eine fremde oder beschaedigte
         // Sicherung hier jede Zahl mitbringen kann. Ein Stichtag 99
@@ -1395,6 +1396,9 @@ function App(){
           if(d.periodDay&&d.periodDay!==1)setPeriodDay(periodTagGueltig(d.periodDay));
           if(d.gmbhPeriodDay)setGmbhPeriodDay(periodTagGueltig(d.gmbhPeriodDay));
           if(d.gmbhPersons?.length)setGmbhPersons(d.gmbhPersons);
+          // Auf typeof pruefen, nicht auf Wahrheit: ein geleerter
+          // Firmenname ist eine Angabe und kein fehlender Wert.
+          if(typeof d.gmbhFirma==='string')setGmbhFirma(d.gmbhFirma);
           if(d.rechtsform)setRechtsform(d.rechtsform);
           applyGmbhExtras(d); // Gäste-Flags, Kategorie-Overrides, Favoriten, Marktwerte
         }
@@ -1432,6 +1436,10 @@ function App(){
         localStorage.setItem('gt_auth_email',email);
         localStorage.setItem('gt_auth_token',j.token);
         setAuthInputPin('');setAuthMsg('');
+        // Vor dem Abgleich klaeren, ob die Daten auf diesem Geraet zu
+        // diesem Konto gehoeren. Danach erst pullen — sonst fuehrt der
+        // Abgleich fremde Eintraege zusammen und der Push schickt sie hoch.
+        kontoWechselPruefen(email);
         // Pull nach Login
         const had=await syncPull(j.token);
         if(!had)await syncPush(j.token);
@@ -1514,12 +1522,100 @@ function App(){
     setAuthLoading(false);
   };
 
+  // ── KONTOTRENNUNG ─────────────────────────────────────────
+  // Zu welchem Konto die Daten auf diesem Geraet gehoeren.
+  //
+  // Beim Abmelden bleiben die Daten absichtlich liegen — wer sich
+  // versehentlich abmeldet, soll nichts verlieren. Bis zum 17.09.2026
+  // fehlte aber der Merker, zu wem sie gehoeren. Meldete sich danach ein
+  // zweites Konto an, lief die Synchronisation im Zusammenfuehr-Modus,
+  // und der automatische Push nach zwei Sekunden lud die Entnahmen des
+  // ersten Betriebs in das Konto des zweiten. Auf einem Geraet, das sich
+  // zwei Betriebe teilen — oder beim Steuerberater — landen so die Zahlen
+  // des einen in der Dokumentation des anderen.
+  const DATEN_KONTO='gt_daten_konto';
+  const datenKonto=()=>{try{return localStorage.getItem(DATEN_KONTO)||'';}catch{return'';}};
+  const kontoUebernehmen=(email)=>{try{localStorage.setItem(DATEN_KONTO,email||'');}catch{}};
+
+  // Vor dem ersten Abgleich eines neu angemeldeten Kontos pruefen, ob die
+  // Daten auf dem Geraet ueberhaupt zu ihm gehoeren. Wenn nicht, wird
+  // gefragt — und zwar so, dass die sichere Antwort die bestaetigende ist.
+  const kontoWechselPruefen=(email)=>{
+    const alt=datenKonto();
+    const hatDaten=ents.length||meals.length||gmbhMeals.length||gmbhWithdrawals.length;
+    if(!alt||alt===email||!hatDaten){kontoUebernehmen(email);return;}
+    const loeschen=window.confirm(
+      `Auf diesem Gerät liegen noch Einträge von ${alt}.\n\n`+
+      `Sollen sie entfernt werden, bevor die Daten von ${email} geladen werden?\n\n`+
+      `OK = entfernen (empfohlen; auf dem Server von ${alt} bleiben sie erhalten, `+
+      `sofern sie dort hochgeladen wurden).\n`+
+      `Abbrechen = behalten und ${email} zuordnen.`);
+    if(loeschen){
+      setEnts([]);setMeals([]);setGmbhMeals([]);setGmbhWithdrawals([]);
+      // Auch die Loeschmerker gehoeren zum alten Konto.
+      try{localStorage.removeItem(DEL_KEY);}catch{}
+    }
+    kontoUebernehmen(email);
+  };
+
+  // ── AUTH: Neue PIN setzen (Abschluss des Reset-Links aus der Mail)
+  //
+  // Diese Funktion hat bis zum 17.09.2026 gefehlt. Der Link aus der Mail
+  // fuehrte ueber api.php auf /app/?reset=CODE&email=…, die App setzte
+  // authView auf 'reset_do' — und fuer diesen Zustand gab es keine
+  // Ansicht. Der Nutzer sah ein leeres Fenster und konnte seine PIN nicht
+  // aendern. Serverseitig war doResetDo die ganze Zeit fertig.
+  //
+  // Der Code steht bewusst nicht im Formular, sondern kommt aus dem
+  // Zwischenspeicher: er stammt aus der Adresszeile, und die wird gleich
+  // nach dem Laden bereinigt, damit er nicht im Verlauf stehen bleibt.
+  const doResetDo=async()=>{
+    const email=authInputEmail.trim().toLowerCase();
+    const pin=authInputPin.trim();
+    const pin2=authInputPin2.trim();
+    let code=''; try{code=localStorage.getItem('gt_pending_reset_code')||'';}catch{}
+    if(!code){setAuthMsg('Der Reset-Link fehlt oder ist nicht mehr gültig. Bitte neu anfordern.');return;}
+    if(!email){setAuthMsg('E-Mail eingeben');return;}
+    if(pin.length<4){setAuthMsg('Neue PIN: mindestens 4 Zeichen');return;}
+    if(pin!==pin2){setAuthMsg('Die beiden PINs stimmen nicht überein');return;}
+    setAuthLoading(true);setAuthMsg('');
+    try{
+      const j=await apiCall('reset_do',{email,code,pin});
+      if(j.ok&&j.token){
+        // Der Server meldet den Nutzer gleich an. Der verbrauchte Code
+        // darf danach nicht liegen bleiben.
+        try{localStorage.removeItem('gt_pending_reset_code');}catch{}
+        setAuthEmail(email);setAuthToken(j.token);
+        localStorage.setItem('gt_auth_email',email);
+        localStorage.setItem('gt_auth_token',j.token);
+        setAuthInputPin('');setAuthInputPin2('');
+        kontoUebernehmen(email);
+        const had=await syncPull(j.token);
+        if(!had)await syncPush(j.token);
+        setAuthView('login');
+        setShowSyncModal(false);
+        showT('✓ Neue PIN gespeichert – eingeloggt als '+email);
+      } else {
+        setAuthMsg(friendlyError(j));
+      }
+    }catch(e){
+      setAuthMsg(e?.error||e?.message||'Verbindungsfehler');
+      console.error('[doResetDo]',e);
+    }
+    setAuthLoading(false);
+  };
+
   // ── AUTH: Logout
   const doLogout=(confirm=true)=>{
     if(confirm&&!window.confirm('Abmelden? Lokale Daten bleiben erhalten.'))return;
     setAuthEmail('');setAuthToken('');
     localStorage.removeItem('gt_auth_email');
     localStorage.removeItem('gt_auth_token');
+    // Der Zeitpunkt des letzten Hochladens gehoert zum abgemeldeten Konto
+    // und darf die Abgleich-Entscheidung des naechsten nicht steuern.
+    // Der Merker, zu wem die Daten gehoeren, bleibt dagegen ausdruecklich
+    // stehen: an ihm erkennt die naechste Anmeldung den Kontowechsel.
+    try{localStorage.removeItem('gt_sync_pushed_at');}catch{}
     // Abo-Stand mitnehmen: Er gehoert zum abgemeldeten Konto. Bliebe er
     // liegen, wuerde sich das naechste Konto bis zur ersten Serverantwort
     // mit dem Abo des vorigen schmuecken.
@@ -1568,8 +1664,12 @@ function App(){
       setAuthEmail(em);setAuthToken(tok);
       localStorage.setItem('gt_auth_email',em);
       localStorage.setItem('gt_auth_token',tok);
+      kontoWechselPruefen(em);
       syncPull(tok).then(had=>{if(!had)syncPush(tok);});
-      window.history.replaceState({},'','/');
+      // Nur die Parameter entfernen, nicht den Pfad. Mit '/' landete die
+      // Adresszeile auf der Werbeseite, obwohl die App unter /app/ laeuft —
+      // ein Neuladen fuehrte den Nutzer aus der App heraus.
+      window.history.replaceState({},'',window.location.pathname);
       showT('✓ E-Mail bestätigt – willkommen!');
     }
     // PIN-Reset-Link aus URL
@@ -1578,7 +1678,7 @@ function App(){
       setAuthInputEmail(params.get('email'));
       localStorage.setItem('gt_pending_reset_code',params.get('reset'));
       setShowSyncModal(true);
-      window.history.replaceState({},'','/');
+      window.history.replaceState({},'',window.location.pathname);
     }
   },[]);
 
@@ -2474,6 +2574,49 @@ function App(){
                     fontSize:15,fontWeight:700,cursor:authLoading?'default':'pointer',
                     display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
                   {authLoading?'Sende…':'Reset-Link anfordern'}
+                </button>
+              </>
+            )}
+
+            {/* ── NEUE PIN SETZEN (Abschluss des Links aus der Mail) ── */}
+            {authView==='reset_do'&&(
+              <>
+                <div style={{fontSize:17,fontWeight:700,color:'#1a2612',marginBottom:8}}>Neue PIN vergeben</div>
+                <div style={{fontSize:13,color:'#5a6a4a',marginBottom:20,lineHeight:1.5}}>
+                  Für <strong>{authInputEmail||'dein Konto'}</strong>. Nach dem Speichern bist du gleich angemeldet.
+                </div>
+                <div style={{marginBottom:16}}>
+                  <label style={{display:'block',fontSize:12,fontWeight:600,color:'#4a5c3a',marginBottom:8,letterSpacing:.2}}>
+                    Neue PIN (mindestens 4 Zeichen)
+                  </label>
+                  <input type="password" inputMode="numeric" autoComplete="new-password"
+                    placeholder="••••" className="auth-inp"
+                    value={authInputPin} onChange={e=>setAuthInputPin(e.target.value)}/>
+                </div>
+                <div style={{marginBottom:16}}>
+                  <label style={{display:'block',fontSize:12,fontWeight:600,color:'#4a5c3a',marginBottom:8,letterSpacing:.2}}>
+                    Neue PIN wiederholen
+                  </label>
+                  <input type="password" inputMode="numeric" autoComplete="new-password"
+                    placeholder="••••" className="auth-inp"
+                    value={authInputPin2} onChange={e=>setAuthInputPin2(e.target.value)}
+                    onKeyDown={e=>e.key==='Enter'&&doResetDo()}/>
+                </div>
+                {authMsg&&(
+                  <div style={{fontSize:12,color:'#5a6a4a',marginBottom:12,padding:'8px 12px',
+                    background:'var(--bg)',borderRadius:8}}>{authMsg}</div>
+                )}
+                <button onClick={doResetDo} disabled={authLoading}
+                  style={{width:'100%',padding:'14px',borderRadius:14,border:'none',
+                    background:authLoading?'#a0b890':'#3a7020',color:'#fff',
+                    fontSize:15,fontWeight:700,cursor:authLoading?'default':'pointer',
+                    display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+                  {authLoading?'Speichere…':'PIN speichern und anmelden'}
+                </button>
+                <button onClick={()=>{setAuthView('login');setAuthMsg('');setAuthInputPin('');setAuthInputPin2('');}}
+                  style={{width:'100%',marginTop:10,background:'none',border:'none',color:'#7a8f6a',
+                    fontSize:12,cursor:'pointer',padding:'8px 0'}}>
+                  Abbrechen und zum Login
                 </button>
               </>
             )}
@@ -4823,9 +4966,17 @@ Alle Lebensmittel=7%, Spirituosen/Getränke=19%.`;
 
   // Artikel ohne aktive Verwendung archivieren (verringert localStorage-Last)
   const archiveUnusedArts=()=>{
+    // Die beiden Modi benennen den Artikelbezug verschieden: Eintraege des
+    // Einzelunternehmens speichern articleId, GmbH-Mitnahmen artId. Gesucht
+    // wurde hier bis zum 17.09.2026 nur nach artId — die Eintraege des
+    // Einzelunternehmens galten damit ausnahmslos als unbenutzt, und das
+    // Archivieren entfernte genau die Artikel, die in Gebrauch waren.
+    // Beide Felder werden gelesen, damit ein umbenanntes Feld nicht wieder
+    // still durchfaellt.
+    const artikelBezug=x=>x.articleId||x.artId;
     const usedIds=new Set([
-      ...ents.map(e=>e.artId).filter(Boolean),
-      ...gmbhWithdrawals.map(w=>w.artId).filter(Boolean),
+      ...ents.map(artikelBezug).filter(Boolean),
+      ...gmbhWithdrawals.map(artikelBezug).filter(Boolean),
     ]);
     const keep=arts.filter(a=>
       usedIds.has(a.id) ||          // in Einträgen verwendet

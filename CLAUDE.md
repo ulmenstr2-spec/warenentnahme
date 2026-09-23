@@ -120,6 +120,8 @@ React und React-DOM werden gebraucht, weil die App sie im Betrieb aus
 | `node pruefung/sync-loeschen.mjs` | Zwei Geräte gegen einen echten Server: Gelöschtes bleibt gelöscht, „Jetzt herunterladen" holt wirklich den Serverstand |
 | `node pruefung/konto.mjs` | PIN-Reset über den Link aus der Mail; beim Kontowechsel wandern keine fremden Einträge mit |
 | `node pruefung/oberflaeche.mjs` | Aufräumen verschont benutzte Artikel, Manifest zeigt auf `/app/`, alle Reiter passen in eine Zeile |
+| `node pruefung/freibetrag.mjs` | Die lohnsteuerliche Aufteilung des Warenrabatts, sieben Fälle inkl. Jahreswechsel und Vorverbrauch |
+| `node pruefung/freibetrag-ausgaben.mjs` | Bildschirm, PDF und Excel nennen denselben lohnsteuerpflichtigen Betrag |
 
 Für die Apache-Prüfungen: `sudo apt-get install -y apache2`. Der Testbau
 muss unter `/var/www/` liegen — auf ein Verzeichnis, das der Benutzer
@@ -257,6 +259,20 @@ Reiter hat. Sieht nach einem Fehler aus, ist keiner: das `<nav>`-Element
 setzt die Spalten inline aus `TABS.length`. Gemessen, bevor etwas
 geändert wurde. Die tote 6 ist trotzdem weg, damit sie nicht beim
 nächsten Blick wieder als Fehler gemeldet wird.
+
+**Der Rabattfreibetrag ist lohnsteuerlich, nicht umsatzsteuerlich.**
+§ 8 Abs. 3 EStG stellt bis 1.080 € im Jahr je Person von der *Lohnsteuer*
+frei. Die Umsatzsteuer bleibt davon unberührt — sie läuft auf den vollen
+Vorteil mit dem Satz der jeweiligen Ware, auch bei Positionen im
+Freibetrag. Genau das hat am 23.09.2026 die Buchhalterin eines Kunden
+gefragt, weil es im Bericht nirgends stand.
+
+**Verbraucht wird der Freibetrag der Zeit nach.** Der steuerpflichtige
+Anteil *eines Zeitraums* ist nicht „Jahressumme minus 1.080", sondern die
+Differenz der Überschreitungen vor und nach ihm. Wer im August schon
+1.200 € hatte, versteuert im September die vollen 100 € des Monats —
+nicht 220 €, die wären doppelt. `gmbhFreibetragAufteilung` rechnet das,
+`pruefung/freibetrag.mjs` prüft beide Fälle.
 
 **CSV braucht ein Dezimalkomma.** Bei Semikolon als Trennzeichen liest
 deutsches Excel einen Punkt als Datum: aus `4.57` wird „Apr 57". Es trifft

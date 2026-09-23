@@ -5692,6 +5692,57 @@ function gmbhRabattByPerson(withdrawals, persons, yr){
   });
 }
 
+// ── LOHNSTEUERLICHE AUFTEILUNG DES WARENRABATTS ───────────────
+//
+// Der Rabattfreibetrag nach § 8 Abs. 3 EStG ist eine LOHNSTEUERLICHE
+// Vorschrift: bis 1.080 Euro im Kalenderjahr je Person ist der
+// Belegschaftsrabatt kein steuerpflichtiger Arbeitslohn. Auf den
+// Lohnzettel gehoert nur, was darueber hinausgeht.
+//
+// Die Umsatzsteuer beruehrt das nicht. Sie bemisst sich nach dem vollen
+// Vorteil und dem Steuersatz der jeweiligen Ware — 7 % beim Kaese,
+// 19 % beim Wein, ganz gleich ob die Position noch in den Freibetrag
+// faellt oder nicht.
+//
+// Genau diese beiden Punkte fehlten im Bericht und wurden am 23.09.2026
+// von der Buchhalterin eines Kunden erfragt: Der Bericht nannte den
+// Warenrabatt als eine Zahl ohne Aufteilung nach Steuersatz, und den
+// lohnsteuerpflichtigen Anteil musste man aus Jahressumme und
+// Freibetrag selbst ausrechnen.
+//
+// Der Freibetrag wird der Zeit nach verbraucht: was vor dem Zeitraum
+// schon angefallen ist, ist aufgebraucht. Steuerpflichtig im Zeitraum
+// ist deshalb die Differenz der Ueberschreitungen vor und nach ihm —
+// nicht einfach "Jahressumme minus 1.080".
+function gmbhFreibetragAufteilung(withdrawals, persons, jahr, sk, ek){
+  const rabatt=(p,pruefer)=>withdrawals
+    .filter(w=>w.person===p.id&&isDiscountRelevant(w.methode)
+      &&w.datum?.startsWith(jahr)&&pruefer(w.datum))
+    .reduce((s,w)=>s+(w.vorteil||0),0);
+  return persons.filter(p=>p.aktiv).map(p=>{
+    const vorher    = roundCurrency(rabatt(p,d=>d<sk));
+    const imZeitraum= roundCurrency(rabatt(p,d=>d>=sk&&d<=ek));
+    const gesamt    = roundCurrency(vorher+imZeitraum);
+    const ueberVorher =Math.max(0,roundCurrency(vorher-GMBH_RABATT_FREIBETRAG));
+    const ueberGesamt =Math.max(0,roundCurrency(gesamt-GMBH_RABATT_FREIBETRAG));
+    const steuerpflichtig=roundCurrency(ueberGesamt-ueberVorher);
+    // Die Aufteilung des Zeitraums nach Steuersatz. Der Freibetrag
+    // aendert den Satz nicht, aber die Kanzlei braucht die Zahl je Satz,
+    // um die Umsatzsteuer richtig zu buchen.
+    const jeSatz=satz=>roundCurrency(withdrawals
+      .filter(w=>w.person===p.id&&isDiscountRelevant(w.methode)
+        &&w.datum>=sk&&w.datum<=ek&&((w.mwst||7)===19?19:7)===satz)
+      .reduce((s,w)=>s+(w.vorteil||0),0));
+    return {
+      ...p, jahr, vorher, imZeitraum, gesamt,
+      imFreibetrag: roundCurrency(imZeitraum-steuerpflichtig),
+      steuerpflichtig,
+      restNachher: Math.max(0,roundCurrency(GMBH_RABATT_FREIBETRAG-gesamt)),
+      brutto7: jeSatz(7), brutto19: jeSatz(19),
+    };
+  });
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // GmbH HOME TAB
 // ─────────────────────────────────────────────────────────────────────────────
@@ -7405,9 +7456,25 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
       [`Warenrabatt-Freibetrag ${yr} je Person (${fN(GMBH_RABATT_FREIBETRAG)} €/Jahr)`],
       ['Person','Verbraucht €','Verbleibend €','Überschritten €'],
       ...personRabatt.map(p=>[p.name,p.yearRabatt,p.remaining,p.exceeded||0]),
+      [],
+      // Dieselbe Aufstellung wie im PDF. Die Lohnabrechnung braucht sie
+      // aus der Tabelle, nicht aus einem Beleg zum Abtippen.
+      [`Warenrabatt ${yr} — lohnsteuerliche Behandlung im Zeitraum ${sel.sk} bis ${sel.ek}`],
+      ['Person','vor Zeitraum €','im Zeitraum €','davon im Freibetrag €',
+       'davon LOHNSTEUERPFLICHTIG €','Freibetrag Rest €','brutto 7 % €','brutto 19 % €'],
+      ...gmbhFreibetragAufteilung(withdrawals,persons,yr,sel.sk,sel.ek)
+        .filter(z=>z.imZeitraum>0||z.vorher>0)
+        .map(z=>[z.name,z.vorher,z.imZeitraum,z.imFreibetrag,z.steuerpflichtig,
+                 z.restNachher,z.brutto7,z.brutto19]),
+      [],
+      ['Hinweis: Auf den Lohnzettel gehört nur die Spalte LOHNSTEUERPFLICHTIG. Der Freibetrag nach '+
+       '§ 8 Abs. 3 EStG mindert den steuerpflichtigen Arbeitslohn, nicht die umsatzsteuerliche '+
+       'Bemessungsgrundlage — die Umsatzsteuer läuft auf den vollen Vorteil mit dem Satz der '+
+       'jeweiligen Ware, auch bei Positionen im Freibetrag. Verbraucht wird der Freibetrag der '+
+       'Zeit nach. Die Beurteilung im Einzelfall gehört in die Kanzlei.'],
     ];
     const ws4=window.XLSX.utils.aoa_to_sheet(sumData);
-    ws4['!cols']=[{wch:28},{wch:14},{wch:14},{wch:16}];
+    ws4['!cols']=[{wch:28},{wch:14},{wch:14},{wch:20},{wch:26},{wch:16},{wch:12},{wch:12}];
     window.XLSX.utils.book_append_sheet(WB,ws4,'Zusammenfassung');
 
     window.XLSX.writeFile(WB,`gmbh-bericht-${sel.sk}-${sel.ek}.xlsx`);
@@ -7503,14 +7570,32 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
     y+=4;hline(y,LGRAY);y+=3;
     doc.setTextColor(...BLACK);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
 
+    // Brutto je Steuersatz fuer eine Positionsgruppe. Die
+    // USt-Aufschluesselung weiter unten fasst alle Gruppen zusammen —
+    // damit war nicht mehr erkennbar, wie sich eine einzelne Zeile
+    // aufteilt. Genau daran ist eine Buchhalterin haengengeblieben.
+    const bruttoJeSatz=(liste,satzVon,satz)=>roundCurrency(
+      liste.filter(x=>satzVon(x)===satz).reduce((s,x)=>s+(x.vorteil||0),0));
+    const wSatz=w=>(w.mwst||7)===19?19:7;
+    const rabattPos=mWith.filter(w=>isDiscountRelevant(w.methode));
+    const marktPos =mWith.filter(w=>w.methode==='marktwert');
+    const ekPos    =mWith.filter(w=>w.methode==='ek');
     const sumRows=[
-      ['Mahlzeiten (Sachbezug)',totalMeals,totalMealsNetto,'Nein'],
-      totalDiscount>0?['Warenrabatt',totalDiscount,totalDiscountNetto,'Ja — bis 1.080 EUR/Jahr']:null,
-      totalMarket>0?['Marktwert-Bewertung',totalMarket,totalMarketNetto,'Nein']:null,
-      totalEk>0?['EK+Handling (Ausnahme)',totalEk,totalEkNetto,'Nein']:null,
+      ['Mahlzeiten (Sachbezug)',totalMeals,totalMealsNetto,'Nein',
+       bruttoJeSatz(mMeals,m=>mealUstSatz(m.datum),7),bruttoJeSatz(mMeals,m=>mealUstSatz(m.datum),19)],
+      totalDiscount>0?['Warenrabatt',totalDiscount,totalDiscountNetto,'Ja — bis 1.080 EUR/Jahr',
+       bruttoJeSatz(rabattPos,wSatz,7),bruttoJeSatz(rabattPos,wSatz,19)]:null,
+      totalMarket>0?['Marktwert-Bewertung',totalMarket,totalMarketNetto,'Nein',
+       bruttoJeSatz(marktPos,wSatz,7),bruttoJeSatz(marktPos,wSatz,19)]:null,
+      totalEk>0?['EK+Handling (Ausnahme)',totalEk,totalEkNetto,'Nein',
+       bruttoJeSatz(ekPos,wSatz,7),bruttoJeSatz(ekPos,wSatz,19)]:null,
     ].filter(Boolean);
-    sumRows.forEach(([lbl,br,ne,fb])=>{
-      txt(lbl,SC[0],y);txt(fc(br),SC[1],y);txt(fc(ne),SC[2],y);txt(fb,SC[3],y);y+=5;
+    sumRows.forEach(([lbl,br,ne,fb,b7,b19])=>{
+      txt(lbl,SC[0],y);txt(fc(br),SC[1],y);txt(fc(ne),SC[2],y);txt(fb,SC[3],y);y+=3.6;
+      doc.setFontSize(6);doc.setTextColor(...GRAY);
+      txt(`davon brutto  7 %: ${fc(b7)}  ·  19 %: ${fc(b19)}`,SC[0]+3,y);
+      doc.setFontSize(7.5);doc.setTextColor(...BLACK);
+      y+=4.6;
     });
     hline(y,DKGREEN);y+=3;
     doc.setFont('helvetica','bold');
@@ -7546,6 +7631,65 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
     doc.setFont('helvetica','bold');
     txt('Gesamt',ML+2,y);txt(fc(gUstBGes),ML+65,y);txt(fc(gUstNGes),ML+125,y);txt(fc(gUstUGes),W-MR,y,{align:'right'});
     y+=8;
+
+    // ── 3c. LOHNSTEUERLICHE BEHANDLUNG DES WARENRABATTS ─────────
+    // Die beiden Fragen, die eine Buchhalterin an diesem Bericht hat:
+    // welcher Steuersatz gilt fuer die Positionen im Freibetrag, und
+    // welcher Betrag gehoert auf den Lohnzettel. Beides stand hier bis
+    // zum 23.09.2026 nicht und musste von Hand ermittelt werden.
+    const fbJahre=isCrossYear?[yr,yr2]:[yr];
+    for(const fbJahr of fbJahre){
+      const zeilen=gmbhFreibetragAufteilung(withdrawals,persons,fbJahr,sel.sk,sel.ek)
+        .filter(z=>z.imZeitraum>0||z.vorher>0);
+      if(!zeilen.length)continue;
+      safeY(240);
+      doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(...BLACK);
+      txt(`Warenrabatt ${fbJahr} — lohnsteuerliche Behandlung (§ 8 Abs. 3 EStG)`,ML,y);y+=5;
+      hline(y,GREEN);y+=3;
+      const FC2=[ML+2,ML+46,ML+72,ML+98,ML+126,ML+152];
+      doc.setFontSize(6.5);doc.setTextColor(...GRAY);
+      ['Person','vor Zeitraum','im Zeitraum','davon frei','LOHNSTEUER-','Freibetrag']
+        .forEach((h,i)=>txt(h,FC2[i],y));
+      txt('PFLICHTIG',FC2[4],y+3);txt('Rest',FC2[5],y+3);
+      y+=7;hline(y,LGRAY);y+=3;
+      doc.setTextColor(...BLACK);doc.setFont('helvetica','normal');doc.setFontSize(7);
+      zeilen.forEach(z=>{
+        safeY();
+        txt(kuerze(z.name,FC2[1]-FC2[0]-3),FC2[0],y);
+        txt(fc(z.vorher),FC2[1],y);
+        txt(fc(z.imZeitraum),FC2[2],y);
+        txt(fc(z.imFreibetrag),FC2[3],y);
+        doc.setFont('helvetica','bold');
+        doc.setTextColor(...(z.steuerpflichtig>0?AMBER:GREEN));
+        txt(fc(z.steuerpflichtig),FC2[4],y);
+        doc.setTextColor(...BLACK);doc.setFont('helvetica','normal');
+        txt(fc(z.restNachher),FC2[5],y);
+        y+=5;
+      });
+      y+=2;
+      // Die Aufteilung nach Steuersatz — der eigentliche Anlass der Rueckfrage.
+      doc.setFontSize(6.5);doc.setTextColor(...GRAY);
+      txt('Warenrabatt im Zeitraum nach Steuersatz:',ML+2,y);y+=4;
+      doc.setTextColor(...BLACK);doc.setFontSize(7);
+      zeilen.forEach(z=>{
+        if(z.imZeitraum<=0)return;
+        safeY();
+        txt(`${kuerze(z.name,40)}:  7 % ${fc(z.brutto7)} EUR   ·   19 % ${fc(z.brutto19)} EUR  (brutto)`,ML+4,y);
+        y+=4;
+      });
+      y+=3;
+      doc.setFontSize(6.5);doc.setTextColor(...GRAY);
+      [
+        'Der Rabattfreibetrag ist eine lohnsteuerliche Vorschrift. Auf den Lohnzettel gehoert nur die Spalte',
+        'LOHNSTEUERPFLICHTIG. Der Freibetrag mindert NICHT die umsatzsteuerliche Bemessungsgrundlage: die',
+        'Umsatzsteuer wird auf den vollen Vorteil mit dem Satz der jeweiligen Ware berechnet — auch fuer',
+        'Positionen, die noch in den Freibetrag fallen. Der Freibetrag wird der Zeit nach verbraucht; die Spalte',
+        '"vor Zeitraum" zeigt, wie viel davon vor diesem Zeitraum bereits angefallen ist.',
+        'Die Beurteilung im Einzelfall gehoert in die Kanzlei.',
+      ].forEach(z=>{safeY();txt(z,ML+2,y);y+=3.2;});
+      doc.setTextColor(...BLACK);
+      y+=6;
+    }
 
     // ── 4. JAHRESÜBERSICHT JE PERSON (YTD) ──────────────────────
     // Attribution: per datum.slice(0,4), strikt Kalenderjahr, kein Carry-over
@@ -7991,6 +8135,51 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
             </div>
           </>);
         })()}
+
+        {/* Lohnsteuerliche Behandlung — was auf den Lohnzettel gehoert.
+            Der Jahresstand darunter zeigt, wie voll der Freibetrag ist.
+            Diese Karte beantwortet die andere Frage: welcher Betrag DIESES
+            Zeitraums steuerpflichtiger Arbeitslohn ist, und mit welchem
+            Steuersatz die Positionen umsatzsteuerlich laufen. Beides
+            musste bis zum 23.09.2026 von Hand ermittelt werden. */}
+        {sel&&(isCrossYear?[yr,yr2]:[yr]).map(fbJahr=>{
+          const zeilen=gmbhFreibetragAufteilung(withdrawals,persons,fbJahr,sel.sk,sel.ek)
+            .filter(z=>z.imZeitraum>0||z.vorher>0);
+          if(!zeilen.length)return null;
+          return(<div key={'fb'+fbJahr}>
+            <div className="sec">Warenrabatt {fbJahr} — lohnsteuerliche Behandlung</div>
+            {zeilen.map(z=>(
+              <div key={z.id} className="card" style={{padding:'12px 14px',marginBottom:8}}>
+                <div style={{fontWeight:500,fontSize:13,marginBottom:8}}>{z.name}</div>
+                <div className="rl"><span style={{color:'var(--t2)'}}>Vor diesem Zeitraum</span><span>{fN(z.vorher)} €</span></div>
+                <div className="rl"><span style={{color:'var(--t2)'}}>In diesem Zeitraum</span><span>{fN(z.imZeitraum)} €</span></div>
+                <div className="rl" style={{paddingLeft:20}}>
+                  <span style={{color:'var(--t3)',fontSize:11}}>davon im Freibetrag</span>
+                  <span style={{color:'var(--t2)',fontSize:11}}>{fN(z.imFreibetrag)} €</span></div>
+                <div className="rl" style={{paddingLeft:20}}>
+                  <span style={{color:z.steuerpflichtig>0?'var(--red)':'var(--t3)',fontSize:11,fontWeight:z.steuerpflichtig>0?700:400}}>
+                    davon lohnsteuerpflichtig</span>
+                  <span style={{color:z.steuerpflichtig>0?'var(--red)':'var(--t2)',fontSize:11,fontWeight:z.steuerpflichtig>0?700:400}}>
+                    {fN(z.steuerpflichtig)} €</span></div>
+                {(z.brutto7>0||z.brutto19>0)&&(
+                  <div className="rl"><span style={{color:'var(--t2)'}}>Umsatzsteuerlich</span>
+                    <span style={{fontSize:11,color:'var(--t2)'}}>
+                      {z.brutto7>0&&<>7 %: {fN(z.brutto7)} € </>}
+                      {z.brutto19>0&&<>· 19 %: {fN(z.brutto19)} €</>}
+                    </span></div>
+                )}
+              </div>
+            ))}
+            <div style={{fontSize:10.5,color:'var(--t2)',lineHeight:1.55,margin:'0 2px 16px'}}>
+              Auf den Lohnzettel gehört nur der <strong>lohnsteuerpflichtige</strong> Teil.
+              Der Freibetrag nach § 8 Abs. 3 EStG mindert den steuerpflichtigen Arbeitslohn,
+              nicht die umsatzsteuerliche Bemessungsgrundlage — die Umsatzsteuer läuft auf den
+              vollen Vorteil mit dem Satz der jeweiligen Ware, auch bei Positionen im Freibetrag.
+              Verbraucht wird der Freibetrag der Zeit nach. Die Beurteilung im Einzelfall
+              gehört in die Kanzlei.
+            </div>
+          </div>);
+        })}
 
         {/* Freibetrag-Jahresstand: Attribution per Entnahme-Datum, strikt Kalenderjahr */}
         {[{label:`Warenrabatt ${yr} — Jahresstand je Person`,data:personRabatt},...(isCrossYear&&personRabatt2?[{label:`Warenrabatt ${yr2} — Jahresstand je Person`,data:personRabatt2}]:[])].map(({label,data})=>(

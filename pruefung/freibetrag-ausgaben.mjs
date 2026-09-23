@@ -154,7 +154,78 @@ if(excel&&!excel.keinBlatt){
     excel.some(r=>Array.isArray(r)&&/nicht die umsatzsteuerliche Bemessungsgrundlage/i.test(String(r[0]||''))));
 }
 
-await ctx.close(); await b.close(); server.close();
+// ── Ein Zeitraum ganz ohne Warenrabatt
+// Genau der Fall aus dem Bericht eines Kunden vom 23.09.2026: die
+// laufende Periode enthielt nur Mahlzeiten. Der Block muss trotzdem
+// erscheinen, weil der Jahresstand dazugehoert — aber die Ueberschrift
+// "nach Steuersatz" darf nicht ohne Zeilen darunter dastehen.
+//
+// Eigener Kontext statt Neuladen: addInitScript laeuft bei jeder
+// Navigation erneut und wuerde die Daten wieder ueberschreiben.
+await ctx.close();
+{
+  const ctx2=await b.newContext({viewport:{width:390,height:844}});
+  const page2=await ctx2.newPage();
+  await page2.clock.install({time:new Date('2026-09-23T10:00:00')});
+  await page2.route('**cdnjs.cloudflare.com/**',r=>{
+    const u=r.request().url();
+    if(u.includes('/react/'))     return r.fulfill({contentType:'application/javascript',body:REACT});
+    if(u.includes('/react-dom/')) return r.fulfill({contentType:'application/javascript',body:REACTDOM});
+    return r.fulfill({contentType:'application/javascript',body:''});
+  });
+  await page2.addInitScript(()=>{
+    localStorage.setItem('gt_onb_done','1');
+    localStorage.setItem('gt_rechtsform','"gmbh"');
+    localStorage.setItem('gmbh_persons',JSON.stringify([{id:'gf1',name:'Josef Czerwinski',aktiv:true}]));
+    localStorage.setItem('gmbh_firma','"Grüne Kombüse GmbH"');
+    localStorage.setItem('gmbh_periodDay','1');
+    // Vorverbrauch aus Januar bis August, im September kein Warenrabatt.
+    const w=[]; for(let i=1;i<=8;i++) w.push({id:'wv'+i,datum:`2026-0${i}-15`,person:'gf1',
+      artikel:'Bio-Käse',methode:'rabatt',vorteil:125,mwst:7,menge:1,einheit:'kg',vk:20,mp:5});
+    localStorage.setItem('gmbh_withdrawals',JSON.stringify(w));
+    localStorage.setItem('gmbh_meals',JSON.stringify([
+      {id:'m1',type:'mittag',datum:'2026-09-22',monat:'2026-09',person:'gf1',vorteil:4.57,label:'Mittagessen'},
+      {id:'m2',type:'mittag',datum:'2026-09-22',monat:'2026-09',person:'gf1',vorteil:4.57,label:'Mittagessen'},
+    ]));
+  });
+  await page2.goto('http://localhost:8122/app/',{waitUntil:'networkidle'});
+  await page2.waitForFunction(()=>{const s=document.getElementById('splash');
+    return !s||getComputedStyle(s).opacity==='0';},{timeout:15000}).catch(()=>{});
+  await page2.waitForTimeout(900);
+  const g2=page2.getByRole('button',{name:/^GmbH/}).first();
+  if(await g2.count()&&await g2.isVisible().catch(()=>false)){await g2.click();await page2.waitForTimeout(700);}
+  const ue2=page2.getByRole('button',{name:/^Überspringen$/}).first();
+  if(await ue2.count()&&await ue2.isVisible().catch(()=>false)){await ue2.click();await page2.waitForTimeout(600);}
+  await page2.evaluate(()=>{window.__pdf=null;
+    window.triggerDownload=async(blob)=>{window.__pdf=new Uint8Array(await blob.arrayBuffer());};});
+  await page2.getByRole('button',{name:'Bericht'}).first().click();
+  await page2.waitForTimeout(1200);
+  await page2.getByRole('button',{name:/PDF/}).first().click();
+  await page2.waitForTimeout(2500);
+  const leerText=await page2.evaluate(async()=>{
+    if(!window.__pdf) return '';
+    const lib=window.pdfjsLib||window['pdfjs-dist/build/pdf'];
+    if(!lib) return '';
+    lib.GlobalWorkerOptions.workerSrc='/app/lib/pdf.worker-3.11.174.min.js';
+    const doc=await lib.getDocument({data:window.__pdf}).promise;
+    let out='';
+    for(let i=1;i<=doc.numPages;i++){
+      const pg=await doc.getPage(i); const c=await pg.getTextContent(); let last=null;
+      for(const it of c.items){const y=Math.round(it.transform[5]);
+        if(last!==null&&Math.abs(y-last)>2) out+='\n'; out+=it.str+' '; last=y;}
+    }
+    return out;
+  });
+  p('Ohne Warenrabatt · Der Jahresstand steht trotzdem im Bericht',
+    /lohnsteuerliche Behandlung/i.test(leerText)&&/1000,00/.test(leerText),
+    'der Block fehlt — der Vorverbrauch gehört auch in einen Zeitraum ohne neue Positionen');
+  p('Ohne Warenrabatt · Die Überschrift „nach Steuersatz" steht nicht ohne Zeilen da',
+    !/nach Steuersatz/.test(leerText),
+    'die Überschrift ist da, aber es folgt keine Zeile — sie gehört weggelassen');
+  await ctx2.close();
+}
+
+await b.close(); server.close();
 const fehl=erg.filter(e=>!e.ok);
 console.log(erg.map(e=>(e.ok?'  ok   ':'FEHLER')+' │ '+e.n+(e.d&&!e.ok?'\n         ← '+e.d:'')).join('\n'));
 console.log(`\n${erg.length} Prüfungen, ${fehl.length} fehlgeschlagen`);

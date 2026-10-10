@@ -1,12 +1,74 @@
 name: Deploy to Ionos
 
+# Bei jedem Pull Request laufen die Pruefungen, bei einem Push auf main
+# laufen sie und danach wird deployt. Schlaegt eine fehl, bleibt der alte
+# Stand auf dem Server stehen.
+#
+# Bis zum 10.10.2026 gab es diesen Workflow nur zum Bauen und Deployen.
+# Dreizehn Pruefungen lagen im Repository und liefen nirgends — jeder in
+# diesem Jahr gefundene Fehler haette still zurueckkommen koennen.
 on:
   push:
     branches: [main]
+  pull_request:
 
 jobs:
+  pruefung:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # esbuild baut, react und react-dom werden den Browserpruefungen
+      # eingespeist: im Betrieb laedt die App sie aus lib/, in der Pruefung
+      # kommen sie aus node_modules.
+      - name: Werkzeuge installieren
+        run: |
+          npm install --no-package-lock --no-save \
+            esbuild react@18.2.0 react-dom@18.2.0 playwright
+          npx playwright install --with-deps chromium
+
+      - name: Rechnen, Werte, Fristen (ohne Browser)
+        run: |
+          node pruefung/rechnen.mjs
+          node pruefung/perioden.mjs
+          node pruefung/pauschbetraege.mjs
+          node pruefung/freibetrag.mjs
+
+      - name: Keine Verbindung nach draussen
+        run: node pruefung-extern.mjs
+
+      - name: Die App im echten Browser
+        run: |
+          node pruefung/mahlzeiten-dubletten.mjs
+          node pruefung/ust-satz-exporte.mjs
+          node pruefung/jahreswechsel.mjs
+          node pruefung/perioden-bericht.mjs
+          node pruefung/freibetrag-ausgaben.mjs
+          node pruefung/sync-loeschen.mjs
+          node pruefung/konto.mjs
+          node pruefung/oberflaeche.mjs
+
+      # Die Adressregeln gegen einen echten Apache mit der echten
+      # .htaccess. Ohne ihn faende die Pruefung null Links und meldete
+      # trotzdem Erfolg — deshalb steht der Aufbau als eigener Schritt da.
+      - name: Adressregeln gegen echten Apache
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apache2
+          bash pruefung/adressen-aufbau.sh
+          bash pruefung/adressen-pruefe.sh
+          node pruefung/adressen-links.mjs
+
   deploy:
     runs-on: ubuntu-latest
+    needs: pruefung
+    # Nur vom Zweig main aus deployen. Ein Pull Request laeuft bis hierher
+    # und hoert dann auf.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
 

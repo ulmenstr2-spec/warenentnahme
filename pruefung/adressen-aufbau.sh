@@ -8,7 +8,11 @@
 # Apache (Benutzer www-data) nicht betreten darf, antwortet er mit 403,
 # und das sieht wie ein Fehler in den Regeln aus.
 set -e
-W=/home/user/warenentnahme
+# Das Projektverzeichnis aus dem Ort dieses Skripts ableiten, nicht fest
+# hinschreiben. Mit einem festen Pfad lief die Pruefung nur auf dem einen
+# Rechner, auf dem sie geschrieben wurde — in GitHub Actions liegt das
+# Repository woanders.
+W="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 B=/var/www/wetest
 
 sudo mkdir -p /var/www/wetest && sudo chmod 755 /var/www/wetest && sudo chown 0:0 /var/www/wetest

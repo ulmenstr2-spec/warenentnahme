@@ -53,8 +53,11 @@ Der Rest der Datei ist Chronik — hier steht, woran noch etwas hängt.
       *geändert* wird, erreicht das andere nie — der Abgleich fügt nur
       hinzu, was fehlt. Bei einem Gerät je Kunde ist das folgenlos;
       sobald jemand Handy und Rechner parallel nutzt, nicht mehr.
-- [ ] **Prüfskripte in GitHub Actions.** Es gibt elf; der Workflow führt
-      keins davon aus, er baut und deployt nur.
+- [x] **Prüfskripte in GitHub Actions** — erledigt am 10.10.2026. Alle
+      dreizehn laufen bei jedem Pull Request und bei jedem Push auf
+      `main`; der Deploy hängt über `needs: pruefung` daran. Dabei kamen
+      zwei feste Pfade weg, die die Prüfungen an diese eine Umgebung
+      gebunden hatten.
 - [ ] Ein 512er App-Symbol fehlt. `favicon.png` ist 192×192 und wird
       jetzt als `icon-192.png` mitgeliefert; für den Startbildschirm auf
       Android wäre ein 512er besser.

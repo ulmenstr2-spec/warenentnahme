@@ -128,6 +128,14 @@ muss unter `/var/www/` liegen — auf ein Verzeichnis, das der Benutzer
 `www-data` nicht betreten darf, antwortet Apache mit 403, und das sieht
 wie ein Fehler in den Regeln aus.
 
+**Alle dreizehn laufen in GitHub Actions** — bei jedem Pull Request und
+bei jedem Push auf `main`. Der Deploy hängt über `needs: pruefung` daran:
+schlägt eine Prüfung fehl, bleibt der alte Stand auf dem Server. Keine
+Prüfung darf deshalb einen Pfad dieser einen Umgebung voraussetzen;
+`adressen-aufbau.sh` leitet das Projektverzeichnis aus dem Ort des
+Skripts ab, und der Chromium kommt überall über
+`process.env.PLAYWRIGHT_CHROMIUM || undefined`.
+
 ---
 
 ## Arbeitsweise
@@ -154,6 +162,11 @@ Konkret heißt das:
   anspringt. `adressen-links.mjs` hat monatelang „alles gut" gemeldet:
   ohne laufenden Apache fand sie null Links, verschluckte den Abbruch und
   kam nie bis zu ihrer eigenen Schleife.
+  Das gilt auch für die Mechanik drumherum: Jede Prüfung endet mit
+  `process.exit(fehler ? 1 : 0)`, und GitHub Actions führt einen
+  `run`-Block mit `bash -e` aus — die Kette bricht beim ersten
+  Fehlschlag ab. Beides am 10.10.2026 mit einem absichtlich kaputten
+  `app.html` nachgemessen.
 
 Wenn eine Annahme sich als falsch erweist, gehört das klar gesagt und
 nicht umschifft.

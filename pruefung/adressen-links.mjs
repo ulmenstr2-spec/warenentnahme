@@ -8,7 +8,10 @@ const U = 'https://localhost:8443';
 const seiten = ['/', '/impressum', '/agb', '/avv', '/datenschutz',
                 '/kuendigung', '/pauschbetraege', '/fuer-steuerberater', '/eigenverbrauch-buchen', '/app/'];
 
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+// Wie alle anderen Pruefungen: ohne gesetzte Variable nimmt Playwright
+// den selbst installierten Chromium. Der feste Pfad hier liess die
+// Pruefung ausserhalb dieser einen Umgebung gar nicht erst starten.
+const b = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_CHROMIUM || undefined });
 const ctx = await b.newContext({ viewport:{width:390,height:844}, ignoreHTTPSErrors:true });
 const alle = new Map();   // Pfad → Seiten, die ihn verlinken
 const fehler = [];

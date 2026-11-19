@@ -7668,16 +7668,23 @@ function GmbhReportTab({meals,withdrawals,persons,setPersons,firma,setFirma,peri
       });
       y+=2;
       // Die Aufteilung nach Steuersatz — der eigentliche Anlass der Rueckfrage.
-      doc.setFontSize(6.5);doc.setTextColor(...GRAY);
-      txt('Warenrabatt im Zeitraum nach Steuersatz:',ML+2,y);y+=4;
-      doc.setTextColor(...BLACK);doc.setFontSize(7);
-      zeilen.forEach(z=>{
-        if(z.imZeitraum<=0)return;
-        safeY();
-        txt(`${kuerze(z.name,40)}:  7 % ${fc(z.brutto7)} EUR   ·   19 % ${fc(z.brutto19)} EUR  (brutto)`,ML+4,y);
-        y+=4;
-      });
-      y+=3;
+      //
+      // Die Ueberschrift nur setzen, wenn darunter auch etwas steht. Sie
+      // stand am 23.09.2026 im Bericht eines Kunden allein da, weil in
+      // dem Zeitraum kein Warenrabatt angefallen war — die Zeilen wurden
+      // einzeln uebersprungen, die Ueberschrift nicht.
+      const mitRabatt=zeilen.filter(z=>z.imZeitraum>0);
+      if(mitRabatt.length){
+        doc.setFontSize(6.5);doc.setTextColor(...GRAY);
+        txt('Warenrabatt im Zeitraum nach Steuersatz:',ML+2,y);y+=4;
+        doc.setTextColor(...BLACK);doc.setFontSize(7);
+        mitRabatt.forEach(z=>{
+          safeY();
+          txt(`${kuerze(z.name,40)}:  7 % ${fc(z.brutto7)} EUR   ·   19 % ${fc(z.brutto19)} EUR  (brutto)`,ML+4,y);
+          y+=4;
+        });
+        y+=3;
+      }
       doc.setFontSize(6.5);doc.setTextColor(...GRAY);
       [
         'Der Rabattfreibetrag ist eine lohnsteuerliche Vorschrift. Auf den Lohnzettel gehoert nur die Spalte',
